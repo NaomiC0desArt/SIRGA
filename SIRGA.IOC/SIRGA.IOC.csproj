@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SIRGA.Application\SIRGA.Application.csproj" />
+    <ProjectReference Include="..\SIRGA.Domain\SIRGA.Domain.csproj" />
+    <ProjectReference Include="..\SIRGA.Identity\SIRGA.Identity.csproj" />
+    <ProjectReference Include="..\SIRGA.Infraestructure\SIRGA.Infraestructure.csproj" />
+    <ProjectReference Include="..\SIRGA.Persistence\SIRGA.Persistence.csproj" />
+  </ItemGroup>
+
+</Project>

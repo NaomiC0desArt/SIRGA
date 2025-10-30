@@ -1,0 +1,82 @@
+﻿@if (TempData["SuccessMessage"] != null || TempData["ErrorMessage"] != null)
+{
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div id="successAlert" class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6 transition-all duration-500 ease-in-out">
+            <div class="flex items-start">
+                <svg class="w-6 h-6 text-green-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div class="flex-1">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h3 class="text-sm font-medium text-green-800 mb-2">@TempData["SuccessMessage"]</h3>
+                            @if (TempData["EstudianteInfo"] != null || TempData["ProfesorInfo"] != null)
+                            {
+                                <div class="text-sm text-green-700 space-y-1">
+                                    @Html.Raw(TempData["EstudianteInfo"] ?? TempData["ProfesorInfo"])
+                                </div>
+                            }
+                        </div>
+                        <button onclick="closeAlert('successAlert')" class="ml-4 text-green-500 hover:text-green-700 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="mt-3 h-1 bg-green-200 rounded-full overflow-hidden">
+                        <div class="alert-progress h-full bg-green-500 transition-all ease-linear" style="width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div id="errorAlert" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 transition-all duration-500 ease-in-out">
+            <div class="flex items-start justify-between">
+                <div class="flex items-start flex-1">
+                    <svg class="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="text-sm text-red-700 flex-1">@TempData["ErrorMessage"]</div>
+                </div>
+                <button onclick="closeAlert('errorAlert')" class="ml-4 text-red-500 hover:text-red-700 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="mt-3 h-1 bg-red-200 rounded-full overflow-hidden">
+                <div class="alert-progress h-full bg-red-500 transition-all ease-linear" style="width: 100%;"></div>
+            </div>
+        </div>
+    }
+
+    <script>
+        function closeAlert(alertId) {
+            const alert = document.getElementById(alertId);
+            if (alert) {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-20px)';
+                setTimeout(() => alert.remove(), 500);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const alerts = ['successAlert', 'errorAlert'];
+            alerts.forEach(alertId => {
+                const alert = document.getElementById(alertId);
+                if (alert) {
+                    const progressBar = alert.querySelector('.alert-progress');
+                    if (progressBar) {
+                        setTimeout(() => progressBar.style.width = '0%', 100);
+                        progressBar.style.transitionDuration = '40000ms';
+                    }
+                    setTimeout(() => closeAlert(alertId), 40000);
+                }
+            });
+        });
+    </script>
+}

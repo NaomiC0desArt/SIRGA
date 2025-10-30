@@ -1,0 +1,124 @@
+﻿@model SIRGA.Web.Models.Auth.LoginRequest
+
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+}
+
+<div class="min-h-screen flex items-start justify-center px-3 sm:px-4 lg:px-8 pt-12">
+    <div class="max-w-lg w-full space-y-8">
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            <div class="text-center mb-8">
+                <div class="mx-auto h-16 w-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                    </svg>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">
+                    Iniciar Sesión
+                </h2>
+                <p class="text-gray-600">Accede a tu cuenta de SIRGA</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-green-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div class="text-sm text-green-700">
+                            @TempData["SuccessMessage"]
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div class="text-sm text-red-700">
+                            @TempData["ErrorMessage"]
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <form method="post" class="space-y-6">
+                <div asp-validation-summary="ModelOnly" class="text-sm text-red-500"></div>
+
+                <!-- Campo Email -->
+                <div>
+                    <label asp-for="Email" class="block text-md font-medium text-gray-700 mb-3">
+                        <span class="flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                            </svg>
+                            Correo Electrónico
+                        </span>
+                    </label>
+
+                    <div class="relative">
+                        <input asp-for="Email"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-100 text-lg font-medium transition-all duration-200 placeholder-gray-400"
+                               type="email"
+                               placeholder="ejemplo@correo.com" />
+                    </div>
+                    <span asp-validation-for="Email" class="text-sm text-red-500 mt-1"></span>
+                </div>
+
+                <!-- Campo Password -->
+                <div>
+                    <label asp-for="Password" class="block text-md font-medium text-gray-700 mb-3">
+                        <span class="flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                            Contraseña
+                        </span>
+                    </label>
+
+                    <div class="relative">
+                        <input asp-for="Password"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-100 text-lg font-medium transition-all duration-200 placeholder-gray-400"
+                               type="password"
+                               placeholder="••••••••" />
+                    </div>
+                    <span asp-validation-for="Password" class="text-sm text-red-500 mt-1"></span>
+                </div>
+
+                <!-- Botón de submit -->
+                <div class="pt-4">
+                    <button type="submit"
+                            class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-lg font-semibold rounded-lg text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                            </svg>
+                            Iniciar Sesión
+                        </span>
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6 space-y-3">
+                <div class="text-center">
+                    <a asp-action="ForgotPassword"
+                       class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                        </svg>
+                        ¿Olvidaste tu contraseña?
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

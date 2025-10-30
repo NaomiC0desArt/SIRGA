@@ -1,0 +1,28 @@
+﻿
+
+namespace SIRGA.Application.DTOs.UserManagement.Estudiante
+{
+    public class EstudianteResponseDto
+    {
+        public int Id { get; set; }
+        public string Matricula { get; set; }
+        public string Email { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public char Gender { get; set; }
+        public DateOnly DateOfBirth { get; set; }
+        public string Province { get; set; }
+        public string Sector { get; set; }
+        public string Address { get; set; }
+        public string PhoneNumber { get; set; }
+        public DateOnly DateOfEntry { get; set; }
+        public bool IsActive { get; set; }
+        public bool MustCompleteProfile { get; set; }
+        public string ApplicationUserId { get; set; }
+
+        // Solo se llena cuando se crea un estudiante
+        public string TemporaryPassword { get; set; }
+        public string EmergencyContactName { get; set; }
+        public string EmergencyContactPhone { get; set; }
+    }
+}
