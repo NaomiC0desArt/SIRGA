@@ -164,6 +164,27 @@ namespace SIRGA.Web.Services
             }
         }
 
+        public async Task<bool> PatchAsync(string endpoint)
+        {
+            try
+            {
+                var client = CreateClient();
+                _logger.LogInformation($"➡️ Calling PATCH {endpoint}");
+
+                var request = new HttpRequestMessage(new HttpMethod("PATCH"), endpoint);
+                var response = await client.SendAsync(request);
+
+                _logger.LogInformation($"⬅️ PATCH Response: {(int)response.StatusCode} {response.ReasonPhrase}");
+
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in PATCH {endpoint}");
+                return false;
+            }
+        }
+
         private bool IsTokenExpired(string token)
         {
             try

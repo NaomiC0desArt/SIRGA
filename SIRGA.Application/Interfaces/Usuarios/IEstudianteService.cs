@@ -12,6 +12,8 @@ namespace SIRGA.Application.Interfaces.Usuarios
         Task<ApiResponse<List<EstudianteResponseDto>>> GetAllEstudiantesAsync();
         Task<ApiResponse<EstudianteResponseDto>> UpdateEstudianteAsync(int id, UpdateEstudianteDto dto);
         Task<ApiResponse<bool>> DeleteEstudianteAsync(int id);
+        Task<ApiResponse<bool>> ActivateAsync(int id);
+        Task<ApiResponse<bool>> DeactivateAsync(int id);
         Task<ApiResponse<CredentialsDto>> GetCredentialsByEstudianteIdAsync(int id);
         Task<ApiResponse<bool>> CompleteProfileAsync(string userId, CompleteStudentProfileDto dto);
     }

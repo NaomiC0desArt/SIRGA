@@ -49,6 +49,83 @@ namespace SIRGA.Application.Services
             _logger = logger;
         }
 
+        public async Task<ApiResponse<bool>> ActivateAsync(int id)
+        {
+            try
+            {
+                var estudiante = await _estudianteRepository.GetByIdAsync(id);
+                if (estudiante == null)
+                {
+                    return ApiResponse<bool>.ErrorResponse("Estudiante no encontrado");
+                }
+
+                var user = await _userManager.FindByIdAsync(estudiante.ApplicationUserId);
+                if (user == null)
+                {
+                    return ApiResponse<bool>.ErrorResponse("Usuario asociado no encontrado");
+                }
+
+                user.IsActive = true;
+                var result = await _userManager.UpdateAsync(user);
+
+                if (!result.Succeeded)
+                {
+                    return ApiResponse<bool>.ErrorResponse(
+                        "Error al activar el estudiante",
+                        result.Errors.Select(e => e.Description).ToList()
+                    );
+                }
+
+                return ApiResponse<bool>.SuccessResponse(true, "Estudiante activado exitosamente");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<bool>.ErrorResponse(
+                    "Error al activar el estudiante",
+                    new List<string> { ex.Message }
+                );
+            }
+        }
+
+        // ==================== NUEVO: DESACTIVAR ESTUDIANTE ====================
+        public async Task<ApiResponse<bool>> DeactivateAsync(int id)
+        {
+            try
+            {
+                var estudiante = await _estudianteRepository.GetByIdAsync(id);
+                if (estudiante == null)
+                {
+                    return ApiResponse<bool>.ErrorResponse("Estudiante no encontrado");
+                }
+
+                var user = await _userManager.FindByIdAsync(estudiante.ApplicationUserId);
+                if (user == null)
+                {
+                    return ApiResponse<bool>.ErrorResponse("Usuario asociado no encontrado");
+                }
+
+                user.IsActive = false;
+                var result = await _userManager.UpdateAsync(user);
+
+                if (!result.Succeeded)
+                {
+                    return ApiResponse<bool>.ErrorResponse(
+                        "Error al desactivar el estudiante",
+                        result.Errors.Select(e => e.Description).ToList()
+                    );
+                }
+
+                return ApiResponse<bool>.SuccessResponse(true, "Estudiante desactivado exitosamente");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<bool>.ErrorResponse(
+                    "Error al desactivar el estudiante",
+                    new List<string> { ex.Message }
+                );
+            }
+        }
+
         public async Task<ApiResponse<EstudianteResponseDto>> CreateEstudianteAsync(CreateEstudianteDto dto)
         {
             try

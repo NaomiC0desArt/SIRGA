@@ -194,19 +194,39 @@
                                                 </svg>
                                                 Editar
                                             </a>
+                                            <!-- Toggle Activar/Desactivar -->
+                                            @if (profesor.IsActive)
+                                            {
+                                                <button type="button"
+                                                        onclick="toggleEstado(@profesor.Id, '@profesor.FirstName @profesor.LastName', false)"
+                                                        class="inline-flex items-center px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                                                        title="Desactivar profesor">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                                                    </svg>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button"
+                                                        onclick="toggleEstado(@profesor.Id, '@profesor.FirstName @profesor.LastName', true)"
+                                                        class="inline-flex items-center px-3 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                                                        title="Activar profesor">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    </svg>
+                                                </button>
+                                            }
 
                                             <!-- Eliminar -->
-                                            <form asp-action="EliminarProfesor" asp-route-id="@profesor.Id" method="post" class="inline">
-                                                <button type="submit"
-                                                        class="inline-flex items-center px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                                                        onclick="return confirm('¿Está seguro que desea eliminar este profesor?')"
-                                                        title="Eliminar">
-                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                    </svg>
-                                                    Eliminar
-                                                </button>
-                                            </form>
+                                            <button type="button"
+                                                    onclick="confirmarEliminar(@profesor.Id, '@profesor.FirstName @profesor.LastName')"
+                                                    class="inline-flex items-center px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                                                    title="Eliminar permanentemente">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -239,3 +259,106 @@
         </div>
     </div>
 </div>
+
+<!-- Formularios ocultos -->
+<form id="formActivar" asp-action="ActivarProfesor" method="post" style="display:none;">
+    <input type="hidden" id="activarId" name="id" />
+</form>
+
+<form id="formDesactivar" asp-action="DesactivarProfesor" method="post" style="display:none;">
+    <input type="hidden" id="desactivarId" name="id" />
+</form>
+
+<form id="formEliminar" asp-action="EliminarProfesor" method="post" style="display:none;">
+    <input type="hidden" id="eliminarId" name="id" />
+</form>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function toggleEstado(id, nombre, activar) {
+            const titulo = activar ? '¿Activar profesor?' : '¿Desactivar profesor?';
+            const texto = activar
+                ? `¿Estás seguro de activar a <strong>${nombre}</strong>?<br><small class="text-gray-600">Podrá acceder al sistema nuevamente.</small>`
+                : `¿Estás seguro de desactivar a <strong>${nombre}</strong>?<br><small class="text-gray-600">No podrá acceder al sistema temporalmente.</small>`;
+            const icono = activar ? 'question' : 'warning';
+            const btnColor = activar ? '#10b981' : '#f59e0b';
+            const btnTexto = activar ? 'Activar' : 'Desactivar';
+
+            Swal.fire({
+                title: titulo,
+                html: texto,
+                icon: icono,
+                showCancelButton: true,
+                confirmButtonColor: btnColor,
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: btnTexto,
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    popup: 'rounded-2xl',
+                    confirmButton: 'rounded-lg px-6 py-2.5',
+                    cancelButton: 'rounded-lg px-6 py-2.5'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (activar) {
+                        document.getElementById('activarId').value = id;
+                        document.getElementById('formActivar').submit();
+                    } else {
+                        document.getElementById('desactivarId').value = id;
+                        document.getElementById('formDesactivar').submit();
+                    }
+                }
+            });
+        }
+
+        function confirmarEliminar(id, nombre) {
+            Swal.fire({
+                title: '¡Atención!',
+                html: `
+                            <div class="text-left space-y-3">
+                                <p class="text-gray-700">Estás a punto de <strong class="text-red-600">eliminar permanentemente</strong> a:</p>
+                                <div class="bg-gray-100 p-3 rounded-lg">
+                                    <p class="font-semibold text-gray-900">${nombre}</p>
+                                </div>
+                                <div class="bg-red-50 border-l-4 border-red-400 p-3 rounded">
+                                    <p class="text-sm text-red-700">
+                                        <strong>Esta acción NO se puede deshacer.</strong><br>
+                                        Se eliminarán todos los datos asociados al profesor.
+                                    </p>
+                                </div>
+                                <p class="text-sm text-gray-600">
+                                    <strong>Recomendación:</strong> Si solo deseas suspender temporalmente al profesor,
+                                    usa la opción <span class="text-amber-600 font-semibold">"Desactivar"</span> en su lugar.
+                                </p>
+                            </div>
+                        `,
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Eliminar',
+                cancelButtonText: 'Cancelar',
+                width: '600px',
+                customClass: {
+                    popup: 'rounded-2xl',
+                    confirmButton: 'rounded-lg px-6 py-2.5',
+                    cancelButton: 'rounded-lg px-6 py-2.5'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('eliminarId').value = id;
+                    document.getElementById('formEliminar').submit();
+                }
+            });
+        }
+    </script>
+
+    <style>
+        @@keyframes fade-in {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fade-in 0.3s ease-out; }
+    </style>
+}

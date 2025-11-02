@@ -43,6 +43,82 @@ namespace SIRGA.Application.Services
             _urlGenerator = urlGenerator;
         }
 
+       
+        public async Task<ApiResponse<bool>> ActivateAsync(int id)
+        {
+            try
+            {
+                var profesor = await _profesorRepository.GetByIdAsync(id);
+                if (profesor == null)
+                {
+                    return ApiResponse<bool>.ErrorResponse("Profesor no encontrado");
+                }
+
+                var user = await _userManager.FindByIdAsync(profesor.ApplicationUserId);
+                if (user == null)
+                {
+                    return ApiResponse<bool>.ErrorResponse("Usuario asociado no encontrado");
+                }
+
+                user.IsActive = true;
+                var result = await _userManager.UpdateAsync(user);
+
+                if (!result.Succeeded)
+                {
+                    return ApiResponse<bool>.ErrorResponse(
+                        "Error al activar el profesor",
+                        result.Errors.Select(e => e.Description).ToList()
+                    );
+                }
+
+                return ApiResponse<bool>.SuccessResponse(true, "Profesor activado exitosamente");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<bool>.ErrorResponse(
+                    "Error al activar el profesor",
+                    new List<string> { ex.Message }
+                );
+            }
+        }
+
+        public async Task<ApiResponse<bool>> DeactivateAsync(int id)
+        {
+            try
+            {
+                var profesor = await _profesorRepository.GetByIdAsync(id);
+                if (profesor == null)
+                {
+                    return ApiResponse<bool>.ErrorResponse("Profesor no encontrado");
+                }
+
+                var user = await _userManager.FindByIdAsync(profesor.ApplicationUserId);
+                if (user == null)
+                {
+                    return ApiResponse<bool>.ErrorResponse("Usuario asociado no encontrado");
+                }
+
+                user.IsActive = false;
+                var result = await _userManager.UpdateAsync(user);
+
+                if (!result.Succeeded)
+                {
+                    return ApiResponse<bool>.ErrorResponse(
+                        "Error al desactivar el profesor",
+                        result.Errors.Select(e => e.Description).ToList()
+                    );
+                }
+
+                return ApiResponse<bool>.SuccessResponse(true, "Profesor desactivado exitosamente");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<bool>.ErrorResponse(
+                    "Error al desactivar el profesor",
+                    new List<string> { ex.Message }
+                );
+            }
+        }
         public async Task<ApiResponse<ProfesorResponseDto>> CreateProfesorAsync(CreateProfesorDto dto)
         {
             try

@@ -87,5 +87,23 @@ namespace SIRGA.API.Controllers
             if (!result.Success) return NotFound(result);
             return Ok(result);
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("Activar/{id:int}")]
+        public async Task<IActionResult> Activate(int id)
+        {
+            var result = await _profesorService.ActivateAsync(id);
+            if (!result.Success) return BadRequest(result);
+            return Ok(result);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("Desactivar/{id:int}")]
+        public async Task<IActionResult> Deactivate(int id)
+        {
+            var result = await _profesorService.DeactivateAsync(id);
+            if (!result.Success) return BadRequest(result);
+            return Ok(result);
+        }
     }
 }

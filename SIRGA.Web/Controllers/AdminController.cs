@@ -83,7 +83,57 @@ namespace SIRGA.Web.Controllers
             }
         }
 
-            [HttpGet]
+        [HttpPost]
+        public async Task<IActionResult> ActivarEstudiante(int id)
+        {
+            try
+            {
+                var response = await _apiService.PatchAsync($"api/Estudiante/Activar/{id}");
+
+                if (response)
+                {
+                    TempData["SuccessMessage"] = "✅ Estudiante activado exitosamente";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "❌ Error al activar el estudiante";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error al procesar la solicitud";
+            }
+
+            return RedirectToAction(nameof(Estudiantes));
+        }
+
+        // ==================== NUEVO: DESACTIVAR ESTUDIANTE ====================
+        [HttpPost]
+        public async Task<IActionResult> DesactivarEstudiante(int id)
+        {
+            try
+            {
+                var response = await _apiService.PatchAsync($"api/Estudiante/Desactivar/{id}");
+
+                if (response)
+                {
+                    TempData["SuccessMessage"] = "Estudiante desactivado exitosamente";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Error al desactivar el estudiante";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error al procesar la solicitud";
+            }
+
+            return RedirectToAction(nameof(Estudiantes));
+        }
+
+
+        [HttpGet]
             public IActionResult CrearEstudiante()
             {
             var model = new CreateEstudianteDto
@@ -243,7 +293,56 @@ namespace SIRGA.Web.Controllers
                 return View(response.Data);
             }
 
-            [HttpGet]
+        [HttpPost]
+        public async Task<IActionResult> ActivarProfesor(int id)
+        {
+            try
+            {
+                var response = await _apiService.PatchAsync($"api/Profesor/Activar/{id}");
+
+                if (response)
+                {
+                    TempData["SuccessMessage"] = "✅ Profesor activado exitosamente";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "❌ Error al activar el profesor";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error al procesar la solicitud";
+            }
+
+            return RedirectToAction(nameof(Profesores));
+        }
+
+        // ==================== NUEVO: DESACTIVAR PROFESOR ====================
+        [HttpPost]
+        public async Task<IActionResult> DesactivarProfesor(int id)
+        {
+            try
+            {
+                var response = await _apiService.PatchAsync($"api/Profesor/Desactivar/{id}");
+
+                if (response)
+                {
+                    TempData["SuccessMessage"] = "⛔ Profesor desactivado exitosamente";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "❌ Error al desactivar el profesor";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error al procesar la solicitud";
+            }
+
+            return RedirectToAction(nameof(Profesores));
+        }
+
+        [HttpGet]
             public IActionResult CrearProfesor()
             {
                 return View();
