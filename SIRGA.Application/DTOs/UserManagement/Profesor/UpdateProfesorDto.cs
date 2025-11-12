@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SIRGA.Application.DTOs.UserManagement.Profesor
+﻿namespace SIRGA.Application.DTOs.UserManagement.Profesor
 {
     public class UpdateProfesorDto
     {

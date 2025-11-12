@@ -1,13 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using SIRGA.Domain.Entities;
 
-namespace SIRGA.Domain.Entities
+namespace SIRGA.Application.DTOs.ResponseDto
 {
-    public class CursoAcademico
+    public class CursoAcademicoResponseDto
     {
         public int Id { get; set; }
-        
         public int IdGrado { get; set; }
-        [ForeignKey("IdGrado")]
         public Grado Grado { get; set; }
         public string SchoolYear { get; set; } //2023-2024
     }

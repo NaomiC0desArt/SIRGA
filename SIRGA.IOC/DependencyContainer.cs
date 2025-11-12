@@ -11,6 +11,7 @@ using SIRGA.Identity.Shared.Interfaces;
 using SIRGA.Infraestructure.Services;
 using SIRGA.Infraestructure.Services.Email;
 using SIRGA.Infraestructure.Settings;
+using SIRGA.Persistence.Repositories;
 using SIRGA.Persistence.Repositories.Usuarios;
 
 namespace SIRGA.IOC
@@ -24,6 +25,11 @@ namespace SIRGA.IOC
             // Repositorios
             services.AddScoped<IEstudianteRepository, EstudianteRepository>();
             services.AddScoped<IProfesorRepository, ProfesorRepository>();
+            services.AddScoped<IAsignaturaRepository, AsignaturaRepository>();
+            services.AddScoped<IClaseProgramadaRepository, ClaseProgramadaRepository>();
+            services.AddScoped<ICursoAcademicoRepository, CursoAcademicoRepository>();
+            services.AddScoped<IGradoRepository, GradoRepository>();
+            services.AddScoped<IInscripcionRepository, InscripcionRepository>();
 
             // servicios de Application
             services.AddScoped<IEstudianteService, EstudianteService>();

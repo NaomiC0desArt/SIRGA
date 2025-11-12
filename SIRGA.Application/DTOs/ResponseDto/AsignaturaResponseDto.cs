@@ -1,6 +1,6 @@
-﻿namespace SIRGA.Domain.Entities
+﻿namespace SIRGA.Application.DTOs.ResponseDto
 {
-    public class Asignatura
+    public class AsignaturaResponseDto
     {
         public int Id { get; set; }
         public string Nombre { get; set; }
