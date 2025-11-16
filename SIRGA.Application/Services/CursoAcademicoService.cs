@@ -25,9 +25,7 @@ namespace SIRGA.Application.Services
             {
                 var response = new CursoAcademico
                 {
-                    Id = dto.Id,
                     IdGrado = dto.IdGrado,
-                    Grado = dto.Grado,
                     SchoolYear = dto.SchoolYear
                 };
 
@@ -45,6 +43,7 @@ namespace SIRGA.Application.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error al crear el curso académico");
                 return ApiResponse<CursoAcademicoResponseDto>.ErrorResponse(
                     "Error al crear el curso Academico",
                     new List<string> { ex.Message }
@@ -146,7 +145,6 @@ namespace SIRGA.Application.Services
                 }
 
                 cursoAcademico.IdGrado = dto.IdGrado;
-                cursoAcademico.Grado = dto.Grado;
                 cursoAcademico.SchoolYear = dto.SchoolYear;
 
                 await _cursoAcademicoRepository.UpdateAsync(cursoAcademico);
@@ -163,6 +161,7 @@ namespace SIRGA.Application.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error al actualizar el curso académico");
                 return ApiResponse<CursoAcademicoResponseDto>.ErrorResponse(
                     "Error al actualizar el curso",
                     new List<string> { ex.Message }

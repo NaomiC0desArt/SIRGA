@@ -1,4 +1,6 @@
-﻿namespace SIRGA.Domain.Entities
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace SIRGA.Domain.Entities
 {
     public class Profesor
     {

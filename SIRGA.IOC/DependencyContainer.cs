@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SIRGA.Application.Interfaces.Entities;
 using SIRGA.Application.Interfaces.Services;
 using SIRGA.Application.Interfaces.Services.Email;
 using SIRGA.Application.Interfaces.Usuarios;
@@ -34,6 +35,11 @@ namespace SIRGA.IOC
             // servicios de Application
             services.AddScoped<IEstudianteService, EstudianteService>();
             services.AddScoped<IProfesorService, ProfesorService>();
+            services.AddScoped<IAsignaturaService, AsignaturaService>();
+            services.AddScoped<IClaseProgramadaService, ClaseProgramadaService>();
+            services.AddScoped<ICursoAcademicoService, CursoAcademicoService>();
+            services.AddScoped<IGradoService, GradoService>();
+            services.AddScoped<IInscripcionService, InscripcionService>();
 
             // servicios de identity
             services.AddScoped<IAccountService, AccountService>();

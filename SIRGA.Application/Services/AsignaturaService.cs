@@ -25,7 +25,6 @@ namespace SIRGA.Application.Services
             {
                 var response = new Asignatura
                 {
-                    Id = dto.Id,
                     Nombre = dto.Nombre,
                     Descripcion = dto.Descripcion
                 };
@@ -34,7 +33,6 @@ namespace SIRGA.Application.Services
 
                 var asignaturaResponse = new AsignaturaResponseDto
                 {
-                    Id = response.Id,
                     Nombre = response.Nombre,
                     Descripcion = response.Descripcion
                 };

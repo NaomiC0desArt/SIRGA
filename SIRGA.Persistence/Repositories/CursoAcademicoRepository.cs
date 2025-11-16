@@ -33,12 +33,12 @@ namespace SIRGA.Persistence.Repositories
 
         public async Task<List<CursoAcademico>> GetAllAsync()
         {
-            return await _context.CursosAcademicos.ToListAsync();
+            return await _context.CursosAcademicos.Include(c => c.Grado).ToListAsync();
         }
 
         public async Task<CursoAcademico> GetByIdAsync(int id)
         {
-            return await _context.CursosAcademicos.FindAsync(id);
+            return await _context.CursosAcademicos.Include(c => c.Grado).FirstOrDefaultAsync(c=>c.Id == id);
         }
 
         public async Task<CursoAcademico> UpdateAsync(CursoAcademico cursoAcademico)

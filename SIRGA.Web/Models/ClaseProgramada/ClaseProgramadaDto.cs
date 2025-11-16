@@ -1,6 +1,4 @@
-﻿using SIRGA.Domain.Entities;
-
-namespace SIRGA.Application.DTOs.Entities
+﻿namespace SIRGA.Web.Models.ClaseProgramada
 {
     public class ClaseProgramadaDto
     {
@@ -10,10 +8,10 @@ namespace SIRGA.Application.DTOs.Entities
         public string WeekDay { get; set; }
         public string Location { get; set; }
         public int IdAsignatura { get; set; }
-        //public Asignatura Asignatura { get; set; }
+        public string AsignaturaNombre { get; set; }
         public int IdProfesor { get; set; }
-        //public Profesor Profesor { get; set; }
+        public string ProfesorNombre { get; set; }
         public int IdCursoAcademico { get; set; }
-        //public CursoAcademico CursoAcademico { get; set; }
+        public string CursoAcademicoNombre { get; set; }
     }
 }

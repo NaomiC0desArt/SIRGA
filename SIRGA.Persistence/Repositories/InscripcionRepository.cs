@@ -18,7 +18,7 @@ namespace SIRGA.Persistence.Repositories
         {
             await _context.Inscripciones.AddAsync(inscripcion);
             await _context.SaveChangesAsync();
-            return inscripcion;
+            return await GetByIdAsync(inscripcion.Id);
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -33,19 +33,27 @@ namespace SIRGA.Persistence.Repositories
 
         public async Task<List<Inscripcion>> GetAllAsync()
         {
-            return await _context.Inscripciones.ToListAsync();
+            return await _context.Inscripciones
+                .Include(i => i.Estudiante)
+                .Include(i => i.CursoAcademico)
+                    .ThenInclude(c => c.Grado)
+                .ToListAsync();
         }
 
         public async Task<Inscripcion> GetByIdAsync(int id)
         {
-            return await _context.Inscripciones.FindAsync(id);
+            return await _context.Inscripciones
+                .Include(i => i.Estudiante)
+                .Include(i => i.CursoAcademico)
+                    .ThenInclude(c => c.Grado)
+                .FirstOrDefaultAsync(i => i.Id == id);
         }
 
         public async Task<Inscripcion> UpdateAsync(Inscripcion inscripcion)
         {
             _context.Inscripciones.Update(inscripcion);
             await _context.SaveChangesAsync();
-            return inscripcion;
+            return await GetByIdAsync(inscripcion.Id);
         }
     }
 }

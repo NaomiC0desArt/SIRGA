@@ -27,9 +27,7 @@ namespace SIRGA.Application.Services
                 {
                     Id = dto.Id,
                     IdEstudiante = dto.IdEstudiante,
-                    Estudiante = dto.Estudiante,
                     IdCursoAcademico = dto.IdCursoAcademico,
-                    CursoAcademico = dto.CursoAcademico,
                     FechaInscripcion = dto.FechaInscripcion
                 };
 
@@ -154,9 +152,7 @@ namespace SIRGA.Application.Services
                 }
 
                 inscripcion.IdEstudiante = dto.IdEstudiante;
-                inscripcion.Estudiante = dto.Estudiante;
                 inscripcion.IdCursoAcademico = dto.IdCursoAcademico;
-                inscripcion.CursoAcademico = dto.CursoAcademico;
                 inscripcion.FechaInscripcion = dto.FechaInscripcion;
 
                 await _inscripcionRepository.UpdateAsync(inscripcion);

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Azure;
+using Microsoft.Extensions.Logging;
 using SIRGA.Application.DTOs.Common;
 using SIRGA.Application.DTOs.Entities;
 using SIRGA.Application.DTOs.ResponseDto;
@@ -18,17 +19,44 @@ namespace SIRGA.Application.Services
             _claseProgramadaRepository = claseProgramadaRepository;
             _logger = logger;
         }
-
+        #region Create
         public async Task<ApiResponse<ClaseProgramadaResponseDto>> CreateAsync(ClaseProgramadaDto dto)
         {
             try
             {
+                if (dto.EndTime <= dto.StartTime)
+                {
+                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
+                        "La hora de fin debe ser posterior a la hora de inicio");
+                }
+
+                var duracion = dto.EndTime - dto.StartTime;
+                if (duracion.TotalHours > 2)
+                {
+                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
+                        "Una clase no puede durar más de 2 horas");
+                }
+
+                var conflicto = await ValidarConflictoProfesor(
+                    dto.IdProfesor,
+                    dto.WeekDay,
+                    dto.StartTime,
+                    dto.EndTime);
+
+                if (conflicto != null)
+                {
+                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
+                        $"El profesor ya tiene una clase programada el {dto.WeekDay} de {conflicto.StartTime:hh\\:mm} a {conflicto.EndTime:hh\\:mm}");
+                }
+
+                var dayOfWeek = ConvertirDiaADayOfWeek(dto.WeekDay);
+
                 var response = new ClaseProgramada
                 {
                     Id = dto.Id,
                     StartTime = dto.StartTime,
                     EndTime = dto.EndTime,
-                    WeekDay = dto.WeekDay,
+                    WeekDay = dayOfWeek,
                     Location = dto.Location,
                     IdAsignatura = dto.IdAsignatura,
                     IdProfesor = dto.IdProfesor,
@@ -42,11 +70,18 @@ namespace SIRGA.Application.Services
                     Id = response.Id,
                     StartTime = response.StartTime,
                     EndTime = response.EndTime,
-                    WeekDay = response.WeekDay,
+                    WeekDay = ConvertirDayOfWeekADia(response.WeekDay),
                     Location = response.Location,
                     IdAsignatura = response.IdAsignatura,
+                    Asignatura = response.Asignatura,
                     IdProfesor = response.IdProfesor,
-                    IdCursoAcademico = response.IdCursoAcademico
+                    ProfesorNombre = response.Profesor != null
+                        ? $"{response.Profesor.FirstName} {response.Profesor.LastName}"
+                        : null,
+                    IdCursoAcademico = response.IdCursoAcademico,
+                    CursoAcademicoNombre = response.CursoAcademico?.Grado != null
+                        ? $"{response.CursoAcademico.Grado.GradeName} {response.CursoAcademico.Grado.Section}"
+                        : null
                 };
                 return ApiResponse<ClaseProgramadaResponseDto>.SuccessResponse(claseProgramadaResponse, "Clase programada creada exitosamente");
             }
@@ -54,6 +89,36 @@ namespace SIRGA.Application.Services
             {
                 return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse("Error al crear la clase programada");
             }
+        }
+        #endregion
+        private DayOfWeek ConvertirDiaADayOfWeek(string dia)
+        {
+            return dia switch
+            {
+                "Lunes" => DayOfWeek.Monday,
+                "Martes" => DayOfWeek.Tuesday,
+                "Miércoles" => DayOfWeek.Wednesday,
+                "Jueves" => DayOfWeek.Thursday,
+                "Viernes" => DayOfWeek.Friday,
+                "Sábado" => DayOfWeek.Saturday,
+                "Domingo" => DayOfWeek.Sunday,
+                _ => throw new ArgumentException($"Día no válido: {dia}")
+            };
+        }
+
+        private string ConvertirDayOfWeekADia(DayOfWeek dayOfWeek)
+        {
+            return dayOfWeek switch
+            {
+                DayOfWeek.Monday => "Lunes",
+                DayOfWeek.Tuesday => "Martes",
+                DayOfWeek.Wednesday => "Miércoles",
+                DayOfWeek.Thursday => "Jueves",
+                DayOfWeek.Friday => "Viernes",
+                DayOfWeek.Saturday => "Sábado",
+                DayOfWeek.Sunday => "Domingo",
+                _ => "Desconocido"
+            };
         }
 
         public async Task<ApiResponse<bool>> DeleteAsync(int id)
@@ -85,24 +150,24 @@ namespace SIRGA.Application.Services
                 var clasesProgramadas = await _claseProgramadaRepository.GetAllAsync();
                 _logger.LogInformation($"Clases programada obtenidas: {clasesProgramadas.Count}");
 
-                var clasesResponse = new List<ClaseProgramadaResponseDto>();
-
-                foreach (var claseProgramada in clasesProgramadas)
+                var clasesResponse = clasesProgramadas.Select(c => new ClaseProgramadaResponseDto
                 {
-                    _logger.LogInformation($"Procesando Clase: {claseProgramada.Id}");
-
-                    clasesResponse.Add(new ClaseProgramadaResponseDto
-                    {
-                        Id = claseProgramada.Id,
-                        StartTime = claseProgramada.StartTime,
-                        EndTime = claseProgramada.EndTime,
-                        WeekDay = claseProgramada.WeekDay,
-                        Location = claseProgramada.Location,
-                        IdAsignatura = claseProgramada.IdAsignatura,
-                        IdProfesor = claseProgramada.IdProfesor,
-                        IdCursoAcademico = claseProgramada.IdCursoAcademico
-                    });
-                }
+                    Id = c.Id,
+                    StartTime = c.StartTime,
+                    EndTime = c.EndTime,
+                    WeekDay = ConvertirDayOfWeekADia(c.WeekDay),
+                    Location = c.Location,
+                    IdAsignatura = c.IdAsignatura,
+                    AsignaturaNombre = c.Asignatura?.Nombre, // ← MAPEAR NOMBRE
+                    IdProfesor = c.IdProfesor,
+                    ProfesorNombre = c.Profesor != null // ← MAPEAR NOMBRE
+                        ? $"{c.Profesor.FirstName} {c.Profesor.LastName}"
+                        : null,
+                    IdCursoAcademico = c.IdCursoAcademico,
+                    CursoAcademicoNombre = c.CursoAcademico?.Grado != null // ← MAPEAR NOMBRE
+                        ? $"{c.CursoAcademico.Grado.GradeName} {c.CursoAcademico.Grado.Section}"
+                        : null
+                }).ToList();
 
                 _logger.LogInformation("Todas las clases programadas procesadas correctamente");
                 return ApiResponse<List<ClaseProgramadaResponseDto>>.SuccessResponse(clasesResponse, "Clases obtenidas exitosamente");
@@ -131,12 +196,18 @@ namespace SIRGA.Application.Services
                     Id = claseProgramada.Id,
                     StartTime = claseProgramada.StartTime,
                     EndTime = claseProgramada.EndTime,
-                    WeekDay = claseProgramada.WeekDay,
+                    WeekDay = ConvertirDayOfWeekADia(claseProgramada.WeekDay),
                     Location = claseProgramada.Location,
                     IdAsignatura = claseProgramada.IdAsignatura,
+                    AsignaturaNombre = claseProgramada.Asignatura?.Nombre,
                     IdProfesor = claseProgramada.IdProfesor,
-                    IdCursoAcademico = claseProgramada.IdCursoAcademico
-
+                    ProfesorNombre = claseProgramada.Profesor != null
+                        ? $"{claseProgramada.Profesor.FirstName} {claseProgramada.Profesor.LastName}"
+                        : null,
+                    IdCursoAcademico = claseProgramada.IdCursoAcademico,
+                    CursoAcademicoNombre = claseProgramada.CursoAcademico?.Grado != null
+                        ? $"{claseProgramada.CursoAcademico.Grado.GradeName} {claseProgramada.CursoAcademico.Grado.Section}"
+                        : null
                 };
 
                 return ApiResponse<ClaseProgramadaResponseDto>.SuccessResponse(claseProgramadaResponse, "Clase programada obtenida exitosamente");
@@ -159,9 +230,34 @@ namespace SIRGA.Application.Services
                     return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse("Clase no encontrada");
                 }
 
+                if (dto.EndTime <= dto.StartTime)
+                {
+                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
+                        "La hora de fin debe ser posterior a la hora de inicio");
+                }
+
+                var duracion = dto.EndTime - dto.StartTime;
+                if (duracion.TotalHours > 2)
+                {
+                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
+                        "Una clase no puede durar más de 2 horas");
+                }
+
+                var conflicto = await ValidarConflictoProfesor(
+                    dto.IdProfesor,
+                    dto.WeekDay,
+                    dto.StartTime,
+                    dto.EndTime,
+                    id);
+
+                if (conflicto != null)
+                {
+                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
+                        $"El profesor ya tiene una clase programada el {dto.WeekDay} de {conflicto.StartTime:hh\\:mm} a {conflicto.EndTime:hh\\:mm}");
+                }
                 claseProgramada.StartTime = dto.StartTime;
                 claseProgramada.EndTime = dto.EndTime;
-                claseProgramada.WeekDay = dto.WeekDay;
+                claseProgramada.WeekDay = ConvertirDiaADayOfWeek(dto.WeekDay);
                 claseProgramada.Location = dto.Location;
                 claseProgramada.IdAsignatura = dto.IdAsignatura;
                 claseProgramada.IdProfesor = dto.IdProfesor;
@@ -174,11 +270,18 @@ namespace SIRGA.Application.Services
                     Id = claseProgramada.Id,
                     StartTime = claseProgramada.StartTime,
                     EndTime = claseProgramada.EndTime,
-                    WeekDay = claseProgramada.WeekDay,
+                    WeekDay = ConvertirDayOfWeekADia(claseProgramada.WeekDay),
                     Location = claseProgramada.Location,
                     IdAsignatura = claseProgramada.IdAsignatura,
+                    AsignaturaNombre = claseProgramada.Asignatura?.Nombre,
                     IdProfesor = claseProgramada.IdProfesor,
-                    IdCursoAcademico = claseProgramada.IdCursoAcademico
+                    ProfesorNombre = claseProgramada.Profesor != null
+                        ? $"{claseProgramada.Profesor.FirstName} {claseProgramada.Profesor.LastName}"
+                        : null,
+                    IdCursoAcademico = claseProgramada.IdCursoAcademico,
+                    CursoAcademicoNombre = claseProgramada.CursoAcademico?.Grado != null
+                        ? $"{claseProgramada.CursoAcademico.Grado.GradeName} {claseProgramada.CursoAcademico.Grado.Section}"
+                        : null
                 };
 
                 return ApiResponse<ClaseProgramadaResponseDto>.SuccessResponse(claseProgramadaResponse, "Clase programada actualizada exitosamente");
@@ -190,6 +293,31 @@ namespace SIRGA.Application.Services
                     new List<string> { ex.Message }
                 );
             }
+        }
+
+        private async Task<ClaseProgramada> ValidarConflictoProfesor(
+            int idProfesor,
+            string weekDay,
+            TimeSpan startTime,
+            TimeSpan endTime,
+            int? excludeClaseId = null)
+        {
+            var dayOfWeek = ConvertirDiaADayOfWeek(weekDay);
+            var todasLasClases = await _claseProgramadaRepository.GetAllAsync();
+
+            return todasLasClases.FirstOrDefault(c =>
+                c.IdProfesor == idProfesor &&
+                c.WeekDay == dayOfWeek &&
+                (!excludeClaseId.HasValue || c.Id != excludeClaseId.Value) && // Excluir clase actual en UPDATE
+                (
+                    // Caso 1: Nueva clase empieza durante una clase existente
+                    (startTime >= c.StartTime && startTime < c.EndTime) ||
+                    // Caso 2: Nueva clase termina durante una clase existente
+                    (endTime > c.StartTime && endTime <= c.EndTime) ||
+                    // Caso 3: Nueva clase engloba completamente una clase existente
+                    (startTime <= c.StartTime && endTime >= c.EndTime)
+                )
+            );
         }
     }
 }

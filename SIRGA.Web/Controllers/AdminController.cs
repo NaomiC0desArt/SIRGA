@@ -7,6 +7,8 @@ using SIRGA.Web.Models.Estudiante;
 using SIRGA.Web.Models.Profesor;
 using SIRGA.Web.Services;
 using System.Security.Claims;
+using SIRGA.Web.Models.ClaseProgramada;
+using SIRGA.Web.Models.Inscripcion;
 
 namespace SIRGA.Web.Controllers
 {
@@ -21,8 +23,10 @@ namespace SIRGA.Web.Controllers
                 _apiService = apiService;
             }
 
-            // ==================== DASHBOARD ====================
-            public async Task<IActionResult> Index()
+        
+
+        #region Dashboard
+        public async Task<IActionResult> Index()
             {
             try {
                 var userName = User.FindFirstValue(ClaimTypes.Name);
@@ -58,10 +62,10 @@ namespace SIRGA.Web.Controllers
             }
 
         }
-
-            // ==================== ESTUDIANTES ====================
-
-            [HttpGet]
+        #endregion
+        
+        #region Estudiantes
+        [HttpGet]
             public async Task<IActionResult> Estudiantes()
             {
             try
@@ -276,10 +280,10 @@ namespace SIRGA.Web.Controllers
 
                 return View(response.Data);
             }
-
-            // ==================== PROFESORES ====================
-
-            [HttpGet]
+        #endregion
+        
+        #region Profesores
+        [HttpGet]
             public async Task<IActionResult> Profesores()
             {
                 var response = await _apiService.GetAsync<ApiResponse<List<ProfesorDto>>>("api/Profesor/GetAll");
@@ -471,8 +475,11 @@ namespace SIRGA.Web.Controllers
 
                 return View(response.Data);
             }
-        }
-        public class AdminDashboardViewModel
+        #endregion
+
+        
+    }
+    public class AdminDashboardViewModel
         {
             public string UserName { get; set; }
             public int TotalEstudiantes { get; set; }
