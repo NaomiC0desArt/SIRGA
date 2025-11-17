@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SIRGA.Persistence.Repositories
 {
-    class ClaseProgramadaConDetalles
+    public class ClaseProgramadaConDetalles
     {
         public int Id { get; set; }
         public int IdAsignatura { get; set; }

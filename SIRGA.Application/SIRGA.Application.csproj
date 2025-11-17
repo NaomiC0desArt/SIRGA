@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SIRGA.Domain\SIRGA.Domain.csproj" />
     <ProjectReference Include="..\SIRGA.Identity.Shared\SIRGA.Identity.Shared.csproj" />
+    <ProjectReference Include="..\SIRGA.Persistence\SIRGA.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

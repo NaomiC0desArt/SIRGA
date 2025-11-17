@@ -2,10 +2,11 @@
 using SIRGA.Domain.Entities;
 using SIRGA.Domain.Interfaces;
 using SIRGA.Persistence.DbContext;
+using SIRGA.Persistence.Interfaces;
 
 namespace SIRGA.Persistence.Repositories
 {
-    public class ClaseProgramadaRepository : IClaseProgramadaRepository
+    public class ClaseProgramadaRepository : IClaseProgramadaRepositoryExtended
     {
         private readonly ApplicationDbContext _context;
 
@@ -38,8 +39,6 @@ namespace SIRGA.Persistence.Repositories
         {
             return await _context.ClasesProgramadas
                 .Include(c => c.Asignatura)
-                .Include(c => c.Profesor) 
-                    .ThenInclude(p => p.ApplicationUser) 
                 .Include(c => c.CursoAcademico)
                     .ThenInclude(ca => ca.Grado)
                 .ToListAsync();
@@ -49,8 +48,6 @@ namespace SIRGA.Persistence.Repositories
         {
             return await _context.ClasesProgramadas
                 .Include(c => c.Asignatura)
-                .Include(c => c.Profesor) 
-                    .ThenInclude(p => p.ApplicationUser)
                 .Include(c => c.CursoAcademico)
                     .ThenInclude(ca => ca.Grado)
                 .FirstOrDefaultAsync(c => c.Id == id);
@@ -62,5 +59,61 @@ namespace SIRGA.Persistence.Repositories
             await _context.SaveChangesAsync();
             return await GetByIdAsync(claseProgramada.Id);
         }
+
+        public async Task<List<ClaseProgramadaConDetalles>> GetAllWithDetailsAsync()
+        {
+            return await (from cp in _context.ClasesProgramadas
+                          join asig in _context.Asignaturas on cp.IdAsignatura equals asig.Id
+                          join prof in _context.Profesores on cp.IdProfesor equals prof.Id
+                          join user in _context.Users on prof.ApplicationUserId equals user.Id
+                          join curso in _context.CursosAcademicos on cp.IdCursoAcademico equals curso.Id
+                          join grado in _context.Grados on curso.IdGrado equals grado.Id
+                          select new ClaseProgramadaConDetalles
+                          {
+                              Id = cp.Id,
+                              StartTime = cp.StartTime,
+                              EndTime = cp.EndTime,
+                              WeekDay = cp.WeekDay,
+                              Location = cp.Location,
+                              IdAsignatura = cp.IdAsignatura,
+                              AsignaturaNombre = asig.Nombre,
+                              IdProfesor = cp.IdProfesor,
+                              ProfesorFirstName = user.FirstName,
+                              ProfesorLastName = user.LastName,
+                              IdCursoAcademico = cp.IdCursoAcademico,
+                              GradoNombre = grado.GradeName,
+                              GradoSeccion = grado.Section,
+                              SchoolYear = curso.SchoolYear
+                          }).ToListAsync();
+        }
+
+        public async Task<ClaseProgramadaConDetalles> GetByIdWithDetailsAsync(int id)
+        {
+            return await (from cp in _context.ClasesProgramadas
+                          join asig in _context.Asignaturas on cp.IdAsignatura equals asig.Id
+                          join prof in _context.Profesores on cp.IdProfesor equals prof.Id
+                          join user in _context.Users on prof.ApplicationUserId equals user.Id
+                          join curso in _context.CursosAcademicos on cp.IdCursoAcademico equals curso.Id
+                          join grado in _context.Grados on curso.IdGrado equals grado.Id
+                          where cp.Id == id
+                          select new ClaseProgramadaConDetalles
+                          {
+                              Id = cp.Id,
+                              StartTime = cp.StartTime,
+                              EndTime = cp.EndTime,
+                              WeekDay = cp.WeekDay,
+                              Location = cp.Location,
+                              IdAsignatura = cp.IdAsignatura,
+                              AsignaturaNombre = asig.Nombre,
+                              IdProfesor = cp.IdProfesor,
+                              ProfesorFirstName = user.FirstName,
+                              ProfesorLastName = user.LastName,
+                              IdCursoAcademico = cp.IdCursoAcademico,
+                              GradoNombre = grado.GradeName,
+                              GradoSeccion = grado.Section,
+                              SchoolYear = curso.SchoolYear
+                          }).FirstOrDefaultAsync();
+        }
+
     }
 }

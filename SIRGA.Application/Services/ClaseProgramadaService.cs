@@ -6,15 +6,16 @@ using SIRGA.Application.DTOs.ResponseDto;
 using SIRGA.Application.Interfaces.Entities;
 using SIRGA.Domain.Entities;
 using SIRGA.Domain.Interfaces;
+using SIRGA.Persistence.Interfaces;
 
 namespace SIRGA.Application.Services
 {
     public class ClaseProgramadaService : IClaseProgramadaService
     {
-        private readonly IClaseProgramadaRepository _claseProgramadaRepository;
+        private readonly IClaseProgramadaRepositoryExtended _claseProgramadaRepository;
         private readonly ILogger<ClaseProgramadaService> _logger;
 
-        public ClaseProgramadaService(IClaseProgramadaRepository claseProgramadaRepository, ILogger<ClaseProgramadaService> logger)
+        public ClaseProgramadaService(IClaseProgramadaRepositoryExtended claseProgramadaRepository, ILogger<ClaseProgramadaService> logger)
         {
             _claseProgramadaRepository = claseProgramadaRepository;
             _logger = logger;
@@ -49,41 +50,43 @@ namespace SIRGA.Application.Services
                         $"El profesor ya tiene una clase programada el {dto.WeekDay} de {conflicto.StartTime:hh\\:mm} a {conflicto.EndTime:hh\\:mm}");
                 }
 
-                var dayOfWeek = ConvertirDiaADayOfWeek(dto.WeekDay);
-
-                var response = new ClaseProgramada
+                var nuevaClase = new ClaseProgramada
                 {
-                    Id = dto.Id,
                     StartTime = dto.StartTime,
                     EndTime = dto.EndTime,
-                    WeekDay = dayOfWeek,
+                    WeekDay = ConvertirDiaADayOfWeek(dto.WeekDay),
                     Location = dto.Location,
                     IdAsignatura = dto.IdAsignatura,
                     IdProfesor = dto.IdProfesor,
                     IdCursoAcademico = dto.IdCursoAcademico
                 };
 
-                await _claseProgramadaRepository.AddAsync(response);
+                await _claseProgramadaRepository.AddAsync(nuevaClase);
 
-                var claseProgramadaResponse = new ClaseProgramadaResponseDto
+                // ✅ Obtener la clase con detalles después de crearla
+                var claseConDetalles = await _claseProgramadaRepository.GetByIdWithDetailsAsync(nuevaClase.Id);
+
+                if (claseConDetalles == null)
                 {
-                    Id = response.Id,
-                    StartTime = response.StartTime,
-                    EndTime = response.EndTime,
-                    WeekDay = ConvertirDayOfWeekADia(response.WeekDay),
-                    Location = response.Location,
-                    IdAsignatura = response.IdAsignatura,
-                    Asignatura = response.Asignatura,
-                    IdProfesor = response.IdProfesor,
-                    ProfesorNombre = response.Profesor != null
-                        ? $"{response.Profesor.FirstName} {response.Profesor.LastName}"
-                        : null,
-                    IdCursoAcademico = response.IdCursoAcademico,
-                    CursoAcademicoNombre = response.CursoAcademico?.Grado != null
-                        ? $"{response.CursoAcademico.Grado.GradeName} {response.CursoAcademico.Grado.Section}"
-                        : null
+                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
+                        "Error al obtener los detalles de la clase creada");
+                }
+
+                var response = new ClaseProgramadaResponseDto
+                {
+                    Id = claseConDetalles.Id,
+                    StartTime = claseConDetalles.StartTime,
+                    EndTime = claseConDetalles.EndTime,
+                    WeekDay = ConvertirDayOfWeekADia(claseConDetalles.WeekDay),
+                    Location = claseConDetalles.Location,
+                    IdAsignatura = claseConDetalles.IdAsignatura,
+                    AsignaturaNombre = claseConDetalles.AsignaturaNombre,
+                    IdProfesor = claseConDetalles.IdProfesor,
+                    ProfesorNombre = $"{claseConDetalles.ProfesorFirstName} {claseConDetalles.ProfesorLastName}",
+                    IdCursoAcademico = claseConDetalles.IdCursoAcademico,
+                    CursoAcademicoNombre = $"{claseConDetalles.GradoNombre} {claseConDetalles.GradoSeccion}"
                 };
-                return ApiResponse<ClaseProgramadaResponseDto>.SuccessResponse(claseProgramadaResponse, "Clase programada creada exitosamente");
+                return ApiResponse<ClaseProgramadaResponseDto>.SuccessResponse(response, "Clase programada creada exitosamente");
             }
             catch (Exception ex)
             {
@@ -147,7 +150,7 @@ namespace SIRGA.Application.Services
         {
             try
             {
-                var clasesProgramadas = await _claseProgramadaRepository.GetAllAsync();
+                var clasesProgramadas = await _claseProgramadaRepository.GetAllWithDetailsAsync();
                 _logger.LogInformation($"Clases programada obtenidas: {clasesProgramadas.Count}");
 
                 var clasesResponse = clasesProgramadas.Select(c => new ClaseProgramadaResponseDto
@@ -158,16 +161,13 @@ namespace SIRGA.Application.Services
                     WeekDay = ConvertirDayOfWeekADia(c.WeekDay),
                     Location = c.Location,
                     IdAsignatura = c.IdAsignatura,
-                    AsignaturaNombre = c.Asignatura?.Nombre, // ← MAPEAR NOMBRE
+                    AsignaturaNombre = c.AsignaturaNombre,
                     IdProfesor = c.IdProfesor,
-                    ProfesorNombre = c.Profesor != null // ← MAPEAR NOMBRE
-                        ? $"{c.Profesor.FirstName} {c.Profesor.LastName}"
-                        : null,
+                    ProfesorNombre = $"{c.ProfesorFirstName} {c.ProfesorLastName}", 
                     IdCursoAcademico = c.IdCursoAcademico,
-                    CursoAcademicoNombre = c.CursoAcademico?.Grado != null // ← MAPEAR NOMBRE
-                        ? $"{c.CursoAcademico.Grado.GradeName} {c.CursoAcademico.Grado.Section}"
-                        : null
+                    CursoAcademicoNombre = $"{c.GradoNombre} {c.GradoSeccion}"
                 }).ToList();
+
 
                 _logger.LogInformation("Todas las clases programadas procesadas correctamente");
                 return ApiResponse<List<ClaseProgramadaResponseDto>>.SuccessResponse(clasesResponse, "Clases obtenidas exitosamente");
@@ -184,8 +184,8 @@ namespace SIRGA.Application.Services
         {
             try
             {
-                var claseProgramada = await _claseProgramadaRepository.GetByIdAsync(id);
-                
+                var claseProgramada = await _claseProgramadaRepository.GetByIdWithDetailsAsync(id);
+
                 if (claseProgramada == null)
                 {
                     return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse("Clase no encontrada");
@@ -199,15 +199,11 @@ namespace SIRGA.Application.Services
                     WeekDay = ConvertirDayOfWeekADia(claseProgramada.WeekDay),
                     Location = claseProgramada.Location,
                     IdAsignatura = claseProgramada.IdAsignatura,
-                    AsignaturaNombre = claseProgramada.Asignatura?.Nombre,
+                    AsignaturaNombre = claseProgramada.AsignaturaNombre,
                     IdProfesor = claseProgramada.IdProfesor,
-                    ProfesorNombre = claseProgramada.Profesor != null
-                        ? $"{claseProgramada.Profesor.FirstName} {claseProgramada.Profesor.LastName}"
-                        : null,
+                    ProfesorNombre = $"{claseProgramada.ProfesorFirstName} {claseProgramada.ProfesorLastName}",
                     IdCursoAcademico = claseProgramada.IdCursoAcademico,
-                    CursoAcademicoNombre = claseProgramada.CursoAcademico?.Grado != null
-                        ? $"{claseProgramada.CursoAcademico.Grado.GradeName} {claseProgramada.CursoAcademico.Grado.Section}"
-                        : null
+                    CursoAcademicoNombre = $"{claseProgramada.GradoNombre} {claseProgramada.GradoSeccion}"
                 };
 
                 return ApiResponse<ClaseProgramadaResponseDto>.SuccessResponse(claseProgramadaResponse, "Clase programada obtenida exitosamente");
@@ -224,8 +220,8 @@ namespace SIRGA.Application.Services
         {
             try
             {
-                var claseProgramada = await _claseProgramadaRepository.GetByIdAsync(id);
-                if (claseProgramada == null)
+                var claseExistente = await _claseProgramadaRepository.GetByIdAsync(id);
+                if (claseExistente == null)
                 {
                     return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse("Clase no encontrada");
                 }
@@ -255,36 +251,41 @@ namespace SIRGA.Application.Services
                     return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
                         $"El profesor ya tiene una clase programada el {dto.WeekDay} de {conflicto.StartTime:hh\\:mm} a {conflicto.EndTime:hh\\:mm}");
                 }
-                claseProgramada.StartTime = dto.StartTime;
-                claseProgramada.EndTime = dto.EndTime;
-                claseProgramada.WeekDay = ConvertirDiaADayOfWeek(dto.WeekDay);
-                claseProgramada.Location = dto.Location;
-                claseProgramada.IdAsignatura = dto.IdAsignatura;
-                claseProgramada.IdProfesor = dto.IdProfesor;
-                claseProgramada.IdCursoAcademico = dto.IdCursoAcademico;
+                claseExistente.StartTime = dto.StartTime;
+                claseExistente.EndTime = dto.EndTime;
+                claseExistente.WeekDay = ConvertirDiaADayOfWeek(dto.WeekDay);
+                claseExistente.Location = dto.Location;
+                claseExistente.IdAsignatura = dto.IdAsignatura;
+                claseExistente.IdProfesor = dto.IdProfesor;
+                claseExistente.IdCursoAcademico = dto.IdCursoAcademico;
 
-                await _claseProgramadaRepository.UpdateAsync(claseProgramada);
+                await _claseProgramadaRepository.UpdateAsync(claseExistente);
 
-                var claseProgramadaResponse = new ClaseProgramadaResponseDto
+                var claseConDetalles = await _claseProgramadaRepository.GetByIdWithDetailsAsync(id);
+
+                if (claseConDetalles == null)
                 {
-                    Id = claseProgramada.Id,
-                    StartTime = claseProgramada.StartTime,
-                    EndTime = claseProgramada.EndTime,
-                    WeekDay = ConvertirDayOfWeekADia(claseProgramada.WeekDay),
-                    Location = claseProgramada.Location,
-                    IdAsignatura = claseProgramada.IdAsignatura,
-                    AsignaturaNombre = claseProgramada.Asignatura?.Nombre,
-                    IdProfesor = claseProgramada.IdProfesor,
-                    ProfesorNombre = claseProgramada.Profesor != null
-                        ? $"{claseProgramada.Profesor.FirstName} {claseProgramada.Profesor.LastName}"
-                        : null,
-                    IdCursoAcademico = claseProgramada.IdCursoAcademico,
-                    CursoAcademicoNombre = claseProgramada.CursoAcademico?.Grado != null
-                        ? $"{claseProgramada.CursoAcademico.Grado.GradeName} {claseProgramada.CursoAcademico.Grado.Section}"
-                        : null
+                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
+                        "Error al obtener los detalles de la clase actualizada");
+                }
+
+                var response = new ClaseProgramadaResponseDto
+                {
+                    Id = claseConDetalles.Id,
+                    StartTime = claseConDetalles.StartTime,
+                    EndTime = claseConDetalles.EndTime,
+                    WeekDay = ConvertirDayOfWeekADia(claseConDetalles.WeekDay),
+                    Location = claseConDetalles.Location,
+                    IdAsignatura = claseConDetalles.IdAsignatura,
+                    AsignaturaNombre = claseConDetalles.AsignaturaNombre,
+                    IdProfesor = claseConDetalles.IdProfesor,
+                    ProfesorNombre = $"{claseConDetalles.ProfesorFirstName} {claseConDetalles.ProfesorLastName}",
+                    IdCursoAcademico = claseConDetalles.IdCursoAcademico,
+                    CursoAcademicoNombre = $"{claseConDetalles.GradoNombre} {claseConDetalles.GradoSeccion}"
                 };
 
-                return ApiResponse<ClaseProgramadaResponseDto>.SuccessResponse(claseProgramadaResponse, "Clase programada actualizada exitosamente");
+
+                return ApiResponse<ClaseProgramadaResponseDto>.SuccessResponse(response, "Clase programada actualizada exitosamente");
             }
             catch (Exception ex)
             {

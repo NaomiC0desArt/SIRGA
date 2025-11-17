@@ -15,10 +15,10 @@ namespace SIRGA.Web.Controllers
         private readonly ApiService _apiService;
         private readonly ILogger<InscripcionController> _logger;
 
-        public InscripcionController(ApiService apiService, ILogger<InscripcionController> logger)
+        public InscripcionController(ApiService apiService, ILogger<InscripcionController> _logger)
         {
             _apiService = apiService;
-            _logger = logger;
+            this._logger = _logger;
         }
 
         [HttpGet]
@@ -114,13 +114,18 @@ namespace SIRGA.Web.Controllers
 
             var updateDto = new UpdateInscripcionDto
             {
-                IdEstudiante = response.Data.IdEstudiante,
                 IdCursoAcademico = response.Data.IdCursoAcademico,
                 FechaInscripcion = response.Data.FechaInscripcion
             };
 
             await CargarDropdowns();
+
+            // Pasar datos del estudiante al ViewBag para mostrarlos como solo lectura
             ViewBag.InscripcionId = id;
+            ViewBag.IdEstudiante = response.Data.IdEstudiante;
+            ViewBag.EstudianteNombre = response.Data.EstudianteNombre ?? "N/A";
+            ViewBag.EstudianteMatricula = response.Data.EstudianteMatricula ?? "N/A";
+
             return View(updateDto);
         }
 
@@ -130,13 +135,37 @@ namespace SIRGA.Web.Controllers
             if (!ModelState.IsValid)
             {
                 await CargarDropdowns();
+
+                
+                var responseReload = await _apiService.GetAsync<ApiResponse<InscripcionDto>>($"api/Inscripcion/{id}");
                 ViewBag.InscripcionId = id;
+                ViewBag.IdEstudiante = responseReload?.Data?.IdEstudiante ?? 0;
+                ViewBag.EstudianteNombre = responseReload?.Data?.EstudianteNombre ?? "N/A";
+                ViewBag.EstudianteMatricula = responseReload?.Data?.EstudianteMatricula ?? "N/A";
+
                 return View(model);
             }
 
             try
             {
-                var response = await _apiService.PutAsync($"api/Inscripcion/Actualizar/{id}", model);
+                // Obtener el IdEstudiante original
+                var inscripcionActual = await _apiService.GetAsync<ApiResponse<InscripcionDto>>($"api/Inscripcion/{id}");
+
+                if (inscripcionActual?.Success != true)
+                {
+                    TempData["ErrorMessage"] = "No se pudo obtener la inscripción";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Crear el DTO completo con el IdEstudiante original
+                var updateDtoCompleto = new
+                {
+                    IdEstudiante = inscripcionActual.Data.IdEstudiante, 
+                    IdCursoAcademico = model.IdCursoAcademico,
+                    FechaInscripcion = model.FechaInscripcion
+                };
+
+                var response = await _apiService.PutAsync($"api/Inscripcion/Actualizar/{id}", updateDtoCompleto);
 
                 if (response)
                 {
@@ -147,14 +176,23 @@ namespace SIRGA.Web.Controllers
                 TempData["ErrorMessage"] = "Error al actualizar la inscripción";
                 await CargarDropdowns();
                 ViewBag.InscripcionId = id;
+                ViewBag.IdEstudiante = inscripcionActual.Data.IdEstudiante;
+                ViewBag.EstudianteNombre = inscripcionActual.Data.EstudianteNombre;
+                ViewBag.EstudianteMatricula = inscripcionActual.Data.EstudianteMatricula;
                 return View(model);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al actualizar inscripción");
                 TempData["ErrorMessage"] = "Error al procesar la solicitud";
+
+               
+                var responseError = await _apiService.GetAsync<ApiResponse<InscripcionDto>>($"api/Inscripcion/{id}");
                 await CargarDropdowns();
                 ViewBag.InscripcionId = id;
+                ViewBag.IdEstudiante = responseError?.Data?.IdEstudiante ?? 0;
+                ViewBag.EstudianteNombre = responseError?.Data?.EstudianteNombre ?? "N/A";
+                ViewBag.EstudianteMatricula = responseError?.Data?.EstudianteMatricula ?? "N/A";
                 return View(model);
             }
         }
@@ -198,7 +236,7 @@ namespace SIRGA.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ==================== MÉTODOS PRIVADOS ====================
+        
         private async Task CargarDropdowns()
         {
             try
@@ -220,10 +258,24 @@ namespace SIRGA.Web.Controllers
                         .ToList();
 
                     ViewBag.Estudiantes = new SelectList(estudiantes, "Value", "Text");
+
+                    // Datos para JavaScript (búsqueda)
+                    ViewBag.EstudiantesData = estudiantesResponse.Data
+                        .Where(e => e.IsActive)
+                        .OrderBy(e => e.FirstName)
+                        .Select(e => new
+                        {
+                            id = e.Id,
+                            nombre = $"{e.FirstName} {e.LastName}",
+                            matricula = e.Matricula,
+                            nombreCompleto = $"{e.FirstName} {e.LastName} - {e.Matricula}"
+                        })
+                        .ToList();
                 }
                 else
                 {
                     ViewBag.Estudiantes = new SelectList(Enumerable.Empty<SelectListItem>());
+                    ViewBag.EstudiantesData = new List<object>();
                 }
 
                 // Cargar Cursos Académicos
@@ -252,67 +304,8 @@ namespace SIRGA.Web.Controllers
 
                 // Valores por defecto en caso de error
                 ViewBag.Estudiantes = new SelectList(Enumerable.Empty<SelectListItem>());
+                ViewBag.EstudiantesData = new List<object>();
                 ViewBag.CursosAcademicos = new SelectList(Enumerable.Empty<SelectListItem>());
-            }
-        }
-
-        // ==================== API ENDPOINTS OPCIONALES ====================
-        [HttpGet]
-        public async Task<JsonResult> ObtenerEstudiantesActivos()
-        {
-            try
-            {
-                var response = await _apiService.GetAsync<ApiResponse<List<EstudianteDto>>>("api/Estudiante/GetAll");
-
-                if (response?.Data != null && response.Data.Any())
-                {
-                    var estudiantes = response.Data
-                        .Where(e => e.IsActive)
-                        .Select(e => new
-                        {
-                            id = e.Id,
-                            text = $"{e.FirstName} {e.LastName} - {e.Matricula}"
-                        })
-                        .ToList();
-
-                    return Json(estudiantes);
-                }
-
-                return Json(new List<object>());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al obtener estudiantes");
-                return Json(new List<object>());
-            }
-        }
-
-        [HttpGet]
-        public async Task<JsonResult> ObtenerCursosAcademicos()
-        {
-            try
-            {
-                var response = await _apiService.GetAsync<ApiResponse<List<CursoAcademicoDto>>>("api/CursoAcademico/GetAll");
-
-                if (response?.Data != null && response.Data.Any())
-                {
-                    var cursos = response.Data
-                        .Select(c => new
-                        {
-                            id = c.Id,
-                            text = $"{(c.Grado != null ? $"{c.Grado.GradeName} {c.Grado.Section}" : "N/A")} - {c.SchoolYear}"
-                        })
-                        .ToList();
-
-                    return Json(cursos);
-                }
-
-                return Json(new List<object>());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al obtener cursos académicos");
-                return Json(new List<object>());
             }
         }
     }

@@ -25,8 +25,27 @@
 
         <!-- Formulario -->
         <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-            <form asp-action="Editar" asp-route-id="@claseProgramadaId" method="post" class="space-y-6">
+            <form asp-action="Editar" asp-route-id="@claseProgramadaId" method="post" class="space-y-6" id="formClase">
                 <div asp-validation-summary="ModelOnly" class="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg p-4"></div>
+
+                <!-- Curso Académico -->
+                <div>
+                    <label asp-for="IdCursoAcademico" class="block text-md font-medium text-gray-700 mb-2">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                            Curso Académico <span class="text-red-500">*</span>
+                        </span>
+                    </label>
+                    <select asp-for="IdCursoAcademico"
+                            asp-items="ViewBag.CursosAcademicos"
+                            id="cursoSelect"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                        <option value="">Seleccione un curso</option>
+                    </select>
+                    <span asp-validation-for="IdCursoAcademico" class="text-sm text-red-500 mt-1"></span>
+                </div>
 
                 <!-- Día de la Semana -->
                 <div>
@@ -35,7 +54,7 @@
                             <svg class="w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
-                            Día de la Semana
+                            Día de la Semana <span class="text-red-500">*</span>
                         </span>
                     </label>
                     <select asp-for="WeekDay" class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
@@ -57,11 +76,24 @@
                             <svg class="w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            Hora de Inicio
+                            Hora de Inicio <span class="text-red-500">*</span>
                         </span>
                     </label>
-                    <input asp-for="StartTime" type="time"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200" />
+                    <select asp-for="StartTime" id="startTimeSelect"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                        <option value="">Seleccione hora de inicio</option>
+                        <option value="07:00:00">7:00 AM</option>
+                        <option value="08:00:00">8:00 AM</option>
+                        <option value="09:00:00">9:00 AM</option>
+                        <option value="10:00:00">10:00 AM</option>
+                        <option value="11:00:00">11:00 AM</option>
+                        <option value="12:00:00">12:00 PM</option>
+                        <option value="13:00:00">1:00 PM</option>
+                        <option value="14:00:00">2:00 PM</option>
+                        <option value="15:00:00">3:00 PM</option>
+                        <option value="16:00:00">4:00 PM</option>
+                        <option value="17:00:00">5:00 PM</option>
+                    </select>
                     <span asp-validation-for="StartTime" class="text-sm text-red-500 mt-1"></span>
                 </div>
 
@@ -72,12 +104,15 @@
                             <svg class="w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            Hora de Fin
+                            Hora de Fin <span class="text-red-500">*</span>
                         </span>
                     </label>
-                    <input asp-for="EndTime" type="time"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200" />
+                    <select asp-for="EndTime" id="endTimeSelect"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                        <option value="">Primero seleccione hora de inicio</option>
+                    </select>
                     <span asp-validation-for="EndTime" class="text-sm text-red-500 mt-1"></span>
+                    <span id="duracionInfo" class="text-sm text-gray-500 mt-1 hidden"></span>
                 </div>
 
                 <!-- Ubicación -->
@@ -88,13 +123,16 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             </svg>
-                            Ubicación
+                            Ubicación <span class="text-red-500">*</span>
                         </span>
                     </label>
-                    <input asp-for="Location"
+                    <input asp-for="Location" id="locationInput"
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
                            placeholder="Ej: Aula 301, Laboratorio B" />
                     <span asp-validation-for="Location" class="text-sm text-red-500 mt-1"></span>
+                    <p class="mt-2 text-sm text-gray-500">
+                        💡 La ubicación se puede actualizar automáticamente según el curso.
+                    </p>
                 </div>
 
                 <!-- Asignatura -->
@@ -104,51 +142,43 @@
                             <svg class="w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                             </svg>
-                            Asignatura
+                            Asignatura <span class="text-red-500">*</span>
                         </span>
                     </label>
                     <select asp-for="IdAsignatura"
                             asp-items="ViewBag.Asignaturas"
-                            class="form-control">
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
                         <option value="">Seleccione una asignatura</option>
                     </select>
                     <span asp-validation-for="IdAsignatura" class="text-sm text-red-500 mt-1"></span>
                 </div>
 
-                <!-- Profesor -->
+                <!-- Profesor CON BÚSQUEDA -->
                 <div>
                     <label asp-for="IdProfesor" class="block text-md font-medium text-gray-700 mb-2">
                         <span class="flex items-center">
                             <svg class="w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                             </svg>
-                            Profesor
+                            Profesor <span class="text-red-500">*</span>
                         </span>
                     </label>
-                    <select asp-for="IdProfesor"
-                            asp-items="ViewBag.Profesores"
-                            class="form-control">
-                        <option value="">Seleccione un profesor</option>
+
+                    <!-- Input de búsqueda -->
+                    <input type="text" id="profesorSearch"
+                           placeholder="Buscar profesor por nombre..."
+                           class="w-full px-4 py-3 border border-gray-300 rounded-t-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+
+                    <!-- Select de profesores -->
+                    <select asp-for="IdProfesor" id="profesorSelect"
+                            class="w-full px-4 py-3 border-t-0 border border-gray-300 rounded-b-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                            size="5">
+                        <option value="">Cargando profesores...</option>
                     </select>
                     <span asp-validation-for="IdProfesor" class="text-sm text-red-500 mt-1"></span>
-                </div>
-
-                <!-- Curso Académico -->
-                <div>
-                    <label asp-for="IdCursoAcademico" class="block text-md font-medium text-gray-700 mb-2">
-                        <span class="flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                            </svg>
-                            Curso Académico
-                        </span>
-                    </label>
-                    <select asp-for="IdCursoAcademico"
-                            asp-items="ViewBag.CursosAcademicos"
-                            class="form-control">
-                        <option value="">Seleccione un curso</option>
-                    </select>
-                    <span asp-validation-for="IdCursoAcademico" class="text-sm text-red-500 mt-1"></span>
+                    <p class="mt-2 text-sm text-gray-500" id="profesorInfo">
+                        💡 Use el cuadro de búsqueda para filtrar profesores por nombre
+                    </p>
                 </div>
 
                 <!-- Botones -->
@@ -175,4 +205,274 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Datos de profesores y cursos desde el servidor
+        let profesores = [];
+        let cursos = [];
+
+        // Intentar parsear los datos de forma segura
+        try {
+            const profesoresData = '@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ProfesoresData ?? new List<object>()))';
+            const cursosData = '@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.CursosData ?? new List<object>()))';
+
+            if (profesoresData && profesoresData !== '[]') {
+                profesores = JSON.parse(profesoresData);
+            }
+
+            if (cursosData && cursosData !== '[]') {
+                cursos = JSON.parse(cursosData);
+            }
+
+            console.log('Profesores cargados:', profesores.length);
+            console.log('Cursos cargados:', cursos.length);
+        } catch (error) {
+            console.error('Error al parsear datos:', error);
+        }
+
+        // Al cargar el documento
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Inicializando formulario de edición...');
+            cargarProfesores();
+            configurarHoras();
+            configurarBusquedaProfesor();
+            configurarCursoAcademico();
+
+            // Cargar horas de fin basadas en la hora de inicio actual
+            setTimeout(() => {
+                actualizarHorasFin();
+                validarDuracion();
+            }, 100);
+        });
+
+        // Cargar todos los profesores inicialmente
+        function cargarProfesores() {
+            const selectProfesor = document.getElementById('profesorSelect');
+            if (!selectProfesor) {
+                console.error('Select de profesor no encontrado');
+                return;
+            }
+
+            const valorActual = selectProfesor.value; // Guardar valor seleccionado
+            selectProfesor.innerHTML = '<option value="">Seleccione un profesor</option>';
+
+            if (!profesores || profesores.length === 0) {
+                selectProfesor.innerHTML = '<option value="">No hay profesores disponibles</option>';
+                document.getElementById('profesorInfo').textContent = 'No hay profesores disponibles';
+                document.getElementById('profesorInfo').classList.add('text-red-500');
+                return;
+            }
+
+            profesores.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.textContent = p.nombre;
+                if (valorActual && p.id == valorActual) {
+                    option.selected = true; // Restaurar selección
+                }
+                selectProfesor.appendChild(option);
+            });
+
+            console.log('Profesores cargados en el select:', profesores.length);
+        }
+
+        // Configurar búsqueda de profesor
+        function configurarBusquedaProfesor() {
+            const searchInput = document.getElementById('profesorSearch');
+            const selectProfesor = document.getElementById('profesorSelect');
+            const profesorInfo = document.getElementById('profesorInfo');
+
+            if (!searchInput || !selectProfesor) {
+                console.error('Elementos de búsqueda no encontrados');
+                return;
+            }
+
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+                const valorActual = selectProfesor.value;
+
+                selectProfesor.innerHTML = '<option value="">Seleccione un profesor</option>';
+
+                if (!query) {
+                    // Si no hay búsqueda, mostrar todos
+                    profesores.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.id;
+                        option.textContent = p.nombre;
+                        if (valorActual && p.id == valorActual) {
+                            option.selected = true;
+                        }
+                        selectProfesor.appendChild(option);
+                    });
+                    profesorInfo.textContent = '💡 Use el cuadro de búsqueda para filtrar profesores por nombre';
+                    profesorInfo.className = 'mt-2 text-sm text-gray-500';
+                    return;
+                }
+
+                const profesoresFiltrados = profesores.filter(p =>
+                    p.nombre.toLowerCase().includes(query)
+                );
+
+                if (profesoresFiltrados.length === 0) {
+                    selectProfesor.innerHTML = '<option value="">No se encontraron profesores</option>';
+                    profesorInfo.textContent = 'No se encontraron profesores con ese nombre';
+                    profesorInfo.className = 'mt-2 text-sm text-red-500';
+                } else {
+                    profesoresFiltrados.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.id;
+                        option.textContent = p.nombre;
+                        if (valorActual && p.id == valorActual) {
+                            option.selected = true;
+                        }
+                        selectProfesor.appendChild(option);
+                    });
+
+                    profesorInfo.textContent = `Se encontraron ${profesoresFiltrados.length} profesor(es)`;
+                    profesorInfo.className = 'mt-2 text-sm text-green-500';
+                }
+            });
+        }
+
+        // Configurar ubicación automática según curso
+        function configurarCursoAcademico() {
+            const cursoSelect = document.getElementById('cursoSelect');
+            const locationInput = document.getElementById('locationInput');
+
+            if (!cursoSelect || !locationInput) return;
+
+            cursoSelect.addEventListener('change', function() {
+                const cursoId = parseInt(this.value);
+                const curso = cursos.find(c => c.id === cursoId);
+
+                if (curso && curso.ubicacion) {
+                    locationInput.value = curso.ubicacion;
+                }
+            });
+        }
+
+        // Configurar opciones de hora
+        function configurarHoras() {
+            const startTimeSelect = document.getElementById('startTimeSelect');
+            const endTimeSelect = document.getElementById('endTimeSelect');
+
+            if (!startTimeSelect || !endTimeSelect) return;
+
+            startTimeSelect.addEventListener('change', function() {
+                actualizarHorasFin();
+            });
+
+            endTimeSelect.addEventListener('change', function() {
+                validarDuracion();
+            });
+        }
+
+        // Actualizar horas de fin según hora de inicio
+        function actualizarHorasFin() {
+            const startTime = document.getElementById('startTimeSelect').value;
+            const endSelect = document.getElementById('endTimeSelect');
+            const valorActual = endSelect.value; 
+
+            if (!startTime) {
+                endSelect.innerHTML = '<option value="">Primero seleccione hora de inicio</option>';
+                return;
+            }
+
+            endSelect.innerHTML = '<option value="">Seleccione hora de fin</option>';
+
+            const horasDisponibles = [
+                { value: "08:00:00", text: "8:00 AM" },
+                { value: "09:00:00", text: "9:00 AM" },
+                { value: "10:00:00", text: "10:00 AM" },
+                { value: "11:00:00", text: "11:00 AM" },
+                { value: "12:00:00", text: "12:00 PM" },
+                { value: "13:00:00", text: "1:00 PM" },
+                { value: "14:00:00", text: "2:00 PM" },
+                { value: "15:00:00", text: "3:00 PM" },
+                { value: "16:00:00", text: "4:00 PM" },
+                { value: "17:00:00", text: "5:00 PM" },
+                { value: "18:00:00", text: "6:00 PM" }
+            ];
+
+            const startHour = parseInt(startTime.split(':')[0]);
+
+            horasDisponibles.forEach(hora => {
+                const endHour = parseInt(hora.value.split(':')[0]);
+                const duracion = endHour - startHour;
+
+                // Solo agregar si es posterior al inicio y máximo 2 horas
+                if (endHour > startHour && duracion <= 2) {
+                    const option = document.createElement('option');
+                    option.value = hora.value;
+                    option.textContent = hora.text;
+                    if (valorActual && hora.value === valorActual) {
+                        option.selected = true; 
+                    }
+                    endSelect.appendChild(option);
+                }
+            });
+
+            console.log('Horas de fin actualizadas para inicio:', startTime);
+        }
+
+        // Validar duración de la clase
+        function validarDuracion() {
+            const startTime = document.getElementById('startTimeSelect').value;
+            const endTime = document.getElementById('endTimeSelect').value;
+            const infoSpan = document.getElementById('duracionInfo');
+
+            if (!startTime || !endTime) {
+                infoSpan.classList.add('hidden');
+                return;
+            }
+
+            const startHour = parseInt(startTime.split(':')[0]);
+            const endHour = parseInt(endTime.split(':')[0]);
+            const duracion = endHour - startHour;
+
+            infoSpan.classList.remove('hidden');
+
+            if (duracion === 1) {
+                infoSpan.textContent = 'Duración: 1 hora';
+                infoSpan.className = 'text-sm text-green-500 mt-1';
+            } else if (duracion === 2) {
+                infoSpan.textContent = 'Duración: 2 horas';
+                infoSpan.className = 'text-sm text-green-500 mt-1';
+            } else if (duracion <= 0) {
+                infoSpan.textContent = 'La hora de fin debe ser posterior a la de inicio';
+                infoSpan.className = 'text-sm text-red-500 mt-1';
+            } else {
+                infoSpan.textContent = 'La clase no puede durar más de 2 horas';
+                infoSpan.className = 'text-sm text-red-500 mt-1';
+            }
+        }
+
+        // Validación antes de enviar
+        document.getElementById('formClase').addEventListener('submit', function(e) {
+            const startTime = document.getElementById('startTimeSelect').value;
+            const endTime = document.getElementById('endTimeSelect').value;
+
+            if (!startTime || !endTime) {
+                e.preventDefault();
+                alert('Por favor seleccione las horas de inicio y fin');
+                return false;
+            }
+
+            const startHour = parseInt(startTime.split(':')[0]);
+            const endHour = parseInt(endTime.split(':')[0]);
+            const duracion = endHour - startHour;
+
+            if (duracion <= 0) {
+                e.preventDefault();
+                alert('La hora de fin debe ser posterior a la hora de inicio');
+                return false;
+            }
+
+            if (duracion > 2) {
+                e.preventDefault();
+                alert('Una clase no puede durar más de 2 horas');
+                return false;
+            }
+        });
+    </script>
 }

@@ -9,6 +9,9 @@ namespace SIRGA.Application.DTOs.ResponseDto
         public Estudiante Estudiante { get; set; }
         public int IdCursoAcademico { get; set; }
         public CursoAcademico CursoAcademico { get; set; }
+        public string CursoAcademicoNombre { get; set; }
         public DateTime FechaInscripcion { get; set; }
+        public string EstudianteNombre { get; set; }
+        public string EstudianteMatricula { get; set; }
     }
 }

@@ -197,7 +197,7 @@ namespace SIRGA.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ==================== MÉTODOS PRIVADOS ====================
+        
         private async Task CargarDropdowns()
         {
             try
@@ -263,7 +263,7 @@ namespace SIRGA.Web.Controllers
 
                     ViewBag.CursosAcademicos = new SelectList(cursos, "Value", "Text");
 
-                    // ✨ NUEVO: Datos para JavaScript (ubicación automática)
+                    // Datos para JavaScript (ubicación automática)
                     ViewBag.CursosData = cursosResponse.Data
                         .Select(c => new
                         {

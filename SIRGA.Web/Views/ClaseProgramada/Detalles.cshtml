@@ -60,17 +60,33 @@
                 <div class="space-y-4">
                     <div>
                         <label class="text-sm font-medium text-gray-500">Día de la Semana</label>
-                        <p class="text-lg text-gray-900">@Model.WeekDay</p>
+                        <p class="text-lg text-gray-900 font-semibold">@Model.WeekDay</p>
                     </div>
 
                     <div>
                         <label class="text-sm font-medium text-gray-500">Hora de Inicio</label>
-                        <p class="text-lg text-gray-900">@Model.StartTime.ToString(@"hh\:mm tt")</p>
+                        <p class="text-lg text-gray-900">
+                            @{
+                                var horaInicio = Model.StartTime.Hours;
+                                var minutosInicio = Model.StartTime.Minutes;
+                                var periodoInicio = horaInicio >= 12 ? "PM" : "AM";
+                                var horaInicio12 = horaInicio > 12 ? horaInicio - 12 : (horaInicio == 0 ? 12 : horaInicio);
+                            }
+                            @horaInicio12:@minutosInicio.ToString("00") @periodoInicio
+                        </p>
                     </div>
 
                     <div>
                         <label class="text-sm font-medium text-gray-500">Hora de Finalización</label>
-                        <p class="text-lg text-gray-900">@Model.EndTime.ToString(@"hh\:mm tt")</p>
+                        <p class="text-lg text-gray-900">
+                            @{
+                                var horaFin = Model.EndTime.Hours;
+                                var minutosFin = Model.EndTime.Minutes;
+                                var periodoFin = horaFin >= 12 ? "PM" : "AM";
+                                var horaFin12 = horaFin > 12 ? horaFin - 12 : (horaFin == 0 ? 12 : horaFin);
+                            }
+                            @horaFin12:@minutosFin.ToString("00") @periodoFin
+                        </p>
                     </div>
 
                     <div>
@@ -87,6 +103,10 @@
                             }
                             @if (minutos > 0)
                             {
+                                if (horas > 0)
+                                {
+                                    <span> y </span>
+                                }
                                 <span>@minutos minuto@(minutos > 1 ? "s" : "")</span>
                             }
                         </p>
@@ -107,7 +127,7 @@
                 <div class="space-y-4">
                     <div>
                         <label class="text-sm font-medium text-gray-500">Salón / Aula</label>
-                        <p class="text-lg text-gray-900">@Model.Location</p>
+                        <p class="text-lg text-gray-900 font-semibold">@Model.Location</p>
                     </div>
 
                     <div class="bg-purple-50 border-l-4 border-purple-400 p-4 rounded">
@@ -176,7 +196,7 @@
 
                     <div class="pt-4">
                         <a asp-controller="Admin" asp-action="DetallesProfesor" asp-route-id="@Model.IdProfesor"
-                           class="inline-flex items-center text-purple-600 hover:text-purple-800 font-medium">
+                           class="inline-flex items-center text-purple-600 hover:text-purple-800 font-medium transition-colors duration-200">
                             Ver perfil completo del profesor
                             <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -206,7 +226,11 @@
                     <div class="text-center">
                         <div class="text-sm font-medium text-purple-600 mb-1">Horario</div>
                         <div class="text-lg font-bold text-purple-900">
-                            @Model.WeekDay - @Model.StartTime.ToString(@"hh\:mm") a @Model.EndTime.ToString(@"hh\:mm")
+                            @{
+                                var inicioHora12 = Model.StartTime.Hours > 12 ? Model.StartTime.Hours - 12 : (Model.StartTime.Hours == 0 ? 12 : Model.StartTime.Hours);
+                                var finHora12 = Model.EndTime.Hours > 12 ? Model.EndTime.Hours - 12 : (Model.EndTime.Hours == 0 ? 12 : Model.EndTime.Hours);
+                            }
+                            @Model.WeekDay - @inicioHora12:@Model.StartTime.Minutes.ToString("00") a @finHora12:@Model.EndTime.Minutes.ToString("00")
                         </div>
                     </div>
                     <div class="text-center">

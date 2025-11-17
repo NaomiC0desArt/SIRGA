@@ -24,7 +24,7 @@
 
         <!-- Formulario -->
         <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-            <form asp-action="Crear" method="post" class="space-y-6">
+            <form asp-action="Crear" method="post" class="space-y-6" id="formInscripcion">
                 <div asp-validation-summary="ModelOnly" class="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg p-4"></div>
 
                 <!-- Información -->
@@ -36,7 +36,7 @@
                         <div class="text-sm text-green-700">
                             <p class="font-semibold mb-1">Información importante:</p>
                             <ul class="list-disc list-inside space-y-1">
-                                <li>Selecciona el estudiante que deseas inscribir</li>
+                                <li>Usa el buscador para encontrar al estudiante por nombre o matrícula</li>
                                 <li>Elige el curso académico correspondiente</li>
                                 <li>La fecha de inscripción se registra automáticamente</li>
                             </ul>
@@ -44,7 +44,7 @@
                     </div>
                 </div>
 
-                <!-- Estudiante -->
+                <!-- Estudiante CON BÚSQUEDA -->
                 <div>
                     <label asp-for="IdEstudiante" class="block text-md font-medium text-gray-700 mb-2">
                         <span class="flex items-center">
@@ -54,13 +54,22 @@
                             Estudiante <span class="text-red-500">*</span>
                         </span>
                     </label>
-                    <select asp-for="IdEstudiante"
-                            asp-items="ViewBag.Estudiantes"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200">
-                        <option value="">Seleccione un estudiante</option>
+
+                    <!-- Input de búsqueda -->
+                    <input type="text" id="estudianteSearch"
+                           placeholder="Buscar por nombre o matrícula..."
+                           class="w-full px-4 py-3 border border-gray-300 rounded-t-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200">
+
+                    <!-- Select de estudiantes -->
+                    <select asp-for="IdEstudiante" id="estudianteSelect"
+                            class="w-full px-4 py-3 border-t-0 border border-gray-300 rounded-b-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                            size="5">
+                        <option value="">Cargando estudiantes...</option>
                     </select>
                     <span asp-validation-for="IdEstudiante" class="text-sm text-red-500 mt-1"></span>
-                    
+                    <p class="mt-2 text-sm text-gray-500" id="estudianteInfo">
+                        💡 Use el cuadro de búsqueda para filtrar estudiantes
+                    </p>
                 </div>
 
                 <!-- Curso Académico -->
@@ -79,7 +88,6 @@
                         <option value="">Seleccione un curso</option>
                     </select>
                     <span asp-validation-for="IdCursoAcademico" class="text-sm text-red-500 mt-1"></span>
-                    
                 </div>
 
                 <!-- Fecha de Inscripción -->
@@ -142,4 +150,102 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Datos de estudiantes desde el servidor
+        let estudiantes = [];
+
+        // Intentar parsear los datos de forma segura
+        try {
+            const estudiantesData = '@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.EstudiantesData ?? new List<object>()))';
+
+            if (estudiantesData && estudiantesData !== '[]') {
+                estudiantes = JSON.parse(estudiantesData);
+            }
+
+            console.log('Estudiantes cargados:', estudiantes.length);
+        } catch (error) {
+            console.error('Error al parsear datos de estudiantes:', error);
+        }
+
+        // Al cargar el documento
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Inicializando formulario de inscripción...');
+            cargarEstudiantes();
+            configurarBusquedaEstudiante();
+        });
+
+        // Cargar todos los estudiantes inicialmente
+        function cargarEstudiantes() {
+            const selectEstudiante = document.getElementById('estudianteSelect');
+            if (!selectEstudiante) {
+                console.error('Select de estudiante no encontrado');
+                return;
+            }
+
+            selectEstudiante.innerHTML = '<option value="">Seleccione un estudiante</option>';
+
+            if (!estudiantes || estudiantes.length === 0) {
+                selectEstudiante.innerHTML = '<option value="">No hay estudiantes disponibles</option>';
+                document.getElementById('estudianteInfo').textContent = '⚠️ No hay estudiantes disponibles';
+                document.getElementById('estudianteInfo').classList.add('text-red-500');
+                return;
+            }
+
+            estudiantes.forEach(e => {
+                const option = document.createElement('option');
+                option.value = e.id;
+                option.textContent = e.nombre;
+                selectEstudiante.appendChild(option);
+            });
+
+            console.log('Estudiantes cargados en el select:', estudiantes.length);
+        }
+
+        // Configurar búsqueda de estudiante
+        function configurarBusquedaEstudiante() {
+            const searchInput = document.getElementById('estudianteSearch');
+            const selectEstudiante = document.getElementById('estudianteSelect');
+            const estudianteInfo = document.getElementById('estudianteInfo');
+
+            if (!searchInput || !selectEstudiante) {
+                console.error('Elementos de búsqueda no encontrados');
+                return;
+            }
+
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+
+                selectEstudiante.innerHTML = '<option value="">Seleccione un estudiante</option>';
+
+                if (!query) {
+                    // Si no hay búsqueda, mostrar todos
+                    cargarEstudiantes();
+                    estudianteInfo.textContent = '💡 Use el cuadro de búsqueda para filtrar estudiantes';
+                    estudianteInfo.className = 'mt-2 text-sm text-gray-500';
+                    return;
+                }
+
+                const estudiantesFiltrados = estudiantes.filter(e =>
+                    e.nombre.toLowerCase().includes(query)
+                );
+
+                if (estudiantesFiltrados.length === 0) {
+                    selectEstudiante.innerHTML = '<option value="">No se encontraron estudiantes</option>';
+                    estudianteInfo.textContent = '⚠️ No se encontraron estudiantes con ese criterio';
+                    estudianteInfo.className = 'mt-2 text-sm text-red-500';
+                } else {
+                    estudiantesFiltrados.forEach(e => {
+                        const option = document.createElement('option');
+                        option.value = e.id;
+                        option.textContent = e.nombre;
+                        selectEstudiante.appendChild(option);
+                    });
+
+                    estudianteInfo.textContent = `✅ Se encontraron ${estudiantesFiltrados.length} estudiante(s)`;
+                    estudianteInfo.className = 'mt-2 text-sm text-green-500';
+                }
+            });
+        }
+    </script>
 }
