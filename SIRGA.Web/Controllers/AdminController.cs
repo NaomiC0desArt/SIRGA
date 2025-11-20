@@ -9,6 +9,7 @@ using SIRGA.Web.Services;
 using System.Security.Claims;
 using SIRGA.Web.Models.ClaseProgramada;
 using SIRGA.Web.Models.Inscripcion;
+using SIRGA.Web.Helpers;
 
 namespace SIRGA.Web.Controllers
 {
@@ -63,32 +64,99 @@ namespace SIRGA.Web.Controllers
 
         }
         #endregion
-        
+
         #region Estudiantes
-        [HttpGet]
-            public async Task<IActionResult> Estudiantes()
-            {
+            [HttpGet]
+            public async Task<IActionResult> Estudiantes(
+            string searchTerm = "",
+            string status = "",
+            string sortBy = "nombre",
+            int pageNumber = 1,
+            int pageSize = 10)
+        {
             try
             {
+                // Obtener todos los estudiantes
                 var response = await _apiService.GetAsync<ApiResponse<List<EstudianteDto>>>("api/Estudiante/GetAll");
 
                 if (response?.Success != true)
                 {
                     TempData["ErrorMessage"] = response?.Message ?? "Error al cargar los estudiantes";
-                    return View(new List<EstudianteDto>());
+                    return View(new PaginatedList<EstudianteDto>(new List<EstudianteDto>(), 0, 1, pageSize));
                 }
 
-                return View(response.Data ?? new List<EstudianteDto>());
+                var estudiantes = response.Data ?? new List<EstudianteDto>();
+
+                // Aplicar filtro de búsqueda
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    estudiantes = estudiantes.Where(e =>
+                        (e.FirstName != null && e.FirstName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                        (e.LastName != null && e.LastName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                        (e.Matricula != null && e.Matricula.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                        (e.Email != null && e.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                    ).ToList();
+                }
+
+                // Aplicar filtro de estado
+                if (!string.IsNullOrWhiteSpace(status))
+                {
+                    if (status == "activo")
+                        estudiantes = estudiantes.Where(e => e.IsActive).ToList();
+                    else if (status == "inactivo")
+                        estudiantes = estudiantes.Where(e => !e.IsActive).ToList();
+                    else if (status == "perfil-incompleto")
+                        estudiantes = estudiantes.Where(e => e.MustCompleteProfile).ToList();
+                    else if (status == "perfil-completo")
+                        estudiantes = estudiantes.Where(e => !e.MustCompleteProfile).ToList();
+                }
+
+                // Aplicar ordenamiento
+                estudiantes = sortBy?.ToLower() switch
+                {
+                    "nombre" => estudiantes.OrderBy(e => e.FirstName).ToList(),
+                    "apellido" => estudiantes.OrderBy(e => e.LastName).ToList(),
+                    "matricula" => estudiantes.OrderBy(e => e.Matricula).ToList(),
+                    "email" => estudiantes.OrderBy(e => e.Email).ToList(),
+                    "fecha-desc" => estudiantes.OrderByDescending(e => e.Id).ToList(),
+                    _ => estudiantes.OrderBy(e => e.FirstName).ToList()
+                };
+
+                // Calcular paginación
+                var totalCount = estudiantes.Count;
+                var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+                pageNumber = Math.Max(1, Math.Min(pageNumber, totalPages > 0 ? totalPages : 1));
+
+                // Aplicar paginación
+                var paginatedEstudiantes = estudiantes
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                // Crear el modelo paginado
+                var paginatedList = new PaginatedList<EstudianteDto>(
+                    paginatedEstudiantes,
+                    totalCount,
+                    pageNumber,
+                    pageSize
+                );
+
+                // Pasar parámetros al ViewBag
+                ViewBag.SearchTerm = searchTerm;
+                ViewBag.Status = status;
+                ViewBag.SortBy = sortBy;
+                ViewBag.PageSize = pageSize;
+
+                return View(paginatedList);
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = "Error de conexión con el servidor";
-                return View(new List<EstudianteDto>());
+                return View(new PaginatedList<EstudianteDto>(new List<EstudianteDto>(), 0, 1, pageSize));
             }
         }
-
-        [HttpPost]
-        public async Task<IActionResult> ActivarEstudiante(int id)
+            [HttpPost]
+            public async Task<IActionResult> ActivarEstudiante(int id)
         {
             try
             {
@@ -96,24 +164,23 @@ namespace SIRGA.Web.Controllers
 
                 if (response)
                 {
-                    TempData["SuccessMessage"] = "✅ Estudiante activado exitosamente";
+                    TempData["SuccessMessage"] = "Estudiante activado exitosamente";
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = "❌ Error al activar el estudiante";
+                    TempData["ErrorMessage"] = "Ocurrió un error al activar el estudiante. Intentelo nuevamente :(";
                 }
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Error al procesar la solicitud";
+                TempData["ErrorMessage"] = "Error al procesar la solicitud :(";
             }
 
             return RedirectToAction(nameof(Estudiantes));
         }
 
-        // ==================== NUEVO: DESACTIVAR ESTUDIANTE ====================
-        [HttpPost]
-        public async Task<IActionResult> DesactivarEstudiante(int id)
+            [HttpPost]
+            public async Task<IActionResult> DesactivarEstudiante(int id)
         {
             try
             {
@@ -125,7 +192,7 @@ namespace SIRGA.Web.Controllers
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = "Error al desactivar el estudiante";
+                    TempData["ErrorMessage"] = "Ocurrió un error al desactivar el estudiante";
                 }
             }
             catch (Exception ex)
@@ -136,8 +203,7 @@ namespace SIRGA.Web.Controllers
             return RedirectToAction(nameof(Estudiantes));
         }
 
-
-        [HttpGet]
+            [HttpGet]
             public IActionResult CrearEstudiante()
             {
             var model = new CreateEstudianteDto
@@ -160,8 +226,7 @@ namespace SIRGA.Web.Controllers
 
                     if (response?.Success == true)
                     {
-                        TempData["SuccessMessage"] = "Estudiante creado exitosamente";
-                    TempData["EstudianteInfo"] = $"📧 Email: {response.Data.Email}<br/>🎫 Matrícula: {response.Data.Matricula}<br/>🔑 Contraseña temporal enviada al correo";
+                        TempData["SuccessMessage"] = "El estudiante fue creado exitosamente";
                     return RedirectToAction(nameof(Estudiantes));
                     }
 
@@ -174,13 +239,13 @@ namespace SIRGA.Web.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, response?.Message ?? "Error al crear el estudiante");
+                    ModelState.AddModelError(string.Empty, response?.Message ?? "Ocurrió un error al crear el estudiante");
                 }
                 return View(model);
                 }
                 catch (Exception ex)
                 {
-                    TempData["ErrorMessage"] = "Error al procesar la solicitud";
+                    TempData["ErrorMessage"] = "Ocurrió un error al procesar la solicitud";
                     return View(model);
                 }
             }
@@ -231,13 +296,13 @@ namespace SIRGA.Web.Controllers
                         return RedirectToAction(nameof(Estudiantes));
                     }
 
-                    TempData["ErrorMessage"] = "Error al actualizar el estudiante";
+                    TempData["ErrorMessage"] = "Ocurrió un error al actualizar el estudiante";
                     ViewBag.EstudianteId = id;
                     return View(model);
                 }
                 catch (Exception ex)
                 {
-                    TempData["ErrorMessage"] = "Error al procesar la solicitud";
+                    TempData["ErrorMessage"] = "Ocurrió un error al procesar la solicitud";
                     ViewBag.EstudianteId = id;
                     return View(model);
                 }
@@ -256,12 +321,12 @@ namespace SIRGA.Web.Controllers
                     }
                     else
                     {
-                        TempData["ErrorMessage"] = "Error al eliminar el estudiante";
+                        TempData["ErrorMessage"] = "Ocurrió un error al eliminar el estudiante";
                     }
                 }
                 catch (Exception ex)
                 {
-                    TempData["ErrorMessage"] = "Error al procesar la solicitud";
+                    TempData["ErrorMessage"] = "Ocurrió un error al procesar la solicitud";
                 }
 
                 return RedirectToAction(nameof(Estudiantes));
@@ -281,21 +346,108 @@ namespace SIRGA.Web.Controllers
                 return View(response.Data);
             }
         #endregion
-        
+
         #region Profesores
         [HttpGet]
-            public async Task<IActionResult> Profesores()
+        public async Task<IActionResult> Profesores(
+        string searchTerm = "",
+        string status = "",
+        string specialty = "",
+        string sortBy = "nombre",
+        int pageNumber = 1,
+        int pageSize = 10)
+        {
+            try
             {
+                // oObtener todos los profesores
                 var response = await _apiService.GetAsync<ApiResponse<List<ProfesorDto>>>("api/Profesor/GetAll");
 
                 if (response?.Success != true)
                 {
-                    TempData["ErrorMessage"] = "Error al cargar los profesores";
-                    return View(new List<ProfesorDto>());
+                    TempData["ErrorMessage"] = response?.Message ?? "Ocurrió un error al cargar los profesores";
+                    return View(new PaginatedList<ProfesorDto>(new List<ProfesorDto>(), 0, 1, pageSize));
                 }
 
-                return View(response.Data);
+                var profesores = response.Data ?? new List<ProfesorDto>();
+
+                // filtro busqueda
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    profesores = profesores.Where(p =>
+                        (p.FirstName != null && p.FirstName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                        (p.LastName != null && p.LastName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                        (p.Email != null && p.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                        (p.Specialty != null && p.Specialty.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                    ).ToList();
+                }
+
+                // filtro estado
+                if (!string.IsNullOrWhiteSpace(status))
+                {
+                    if (status == "activo")
+                        profesores = profesores.Where(p => p.IsActive).ToList();
+                    else if (status == "inactivo")
+                        profesores = profesores.Where(p => !p.IsActive).ToList();
+                    else if (status == "perfil-completo")
+                        profesores = profesores.Where(p => !p.MustCompleteProfile).ToList();
+                    else if (status == "perfil-incompleto")
+                        profesores = profesores.Where(p => p.MustCompleteProfile).ToList();
+                }
+
+                // filtro especialidad
+                if (!string.IsNullOrWhiteSpace(specialty))
+                {
+                    profesores = profesores.Where(p =>
+                        p.Specialty != null && p.Specialty.Contains(specialty, StringComparison.OrdinalIgnoreCase)
+                    ).ToList();
+                }
+
+                // ordenar
+                profesores = sortBy?.ToLower() switch
+                {
+                    "nombre" => profesores.OrderBy(p => p.FirstName).ToList(),
+                    "apellido" => profesores.OrderBy(p => p.LastName).ToList(),
+                    "email" => profesores.OrderBy(p => p.Email).ToList(),
+                    "especialidad" => profesores.OrderBy(p => p.Specialty).ToList(),
+                    "fecha-desc" => profesores.OrderByDescending(p => p.Id).ToList(),
+                    _ => profesores.OrderBy(p => p.FirstName).ToList()
+                };
+
+
+                var totalCount = profesores.Count;
+                var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+                pageNumber = Math.Max(1, Math.Min(pageNumber, totalPages > 0 ? totalPages : 1));
+
+
+                var paginatedProfesores = profesores
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+
+                var paginatedList = new PaginatedList<ProfesorDto>(
+                    paginatedProfesores,
+                    totalCount,
+                    pageNumber,
+                    pageSize
+                );
+
+ 
+                ViewBag.SearchTerm = searchTerm;
+                ViewBag.Status = status;
+                ViewBag.Specialty = specialty;
+                ViewBag.SortBy = sortBy;
+                ViewBag.PageSize = pageSize;
+
+                return View(paginatedList);
             }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error de conexión con el servidor";
+                return View(new PaginatedList<ProfesorDto>(new List<ProfesorDto>(), 0, 1, pageSize));
+            }
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> ActivarProfesor(int id)
@@ -306,11 +458,11 @@ namespace SIRGA.Web.Controllers
 
                 if (response)
                 {
-                    TempData["SuccessMessage"] = "✅ Profesor activado exitosamente";
+                    TempData["SuccessMessage"] = "Profesor activado exitosamente";
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = "❌ Error al activar el profesor";
+                    TempData["ErrorMessage"] = "Ocurrió un error al activar el profesor";
                 }
             }
             catch (Exception ex)
@@ -321,7 +473,6 @@ namespace SIRGA.Web.Controllers
             return RedirectToAction(nameof(Profesores));
         }
 
-        // ==================== NUEVO: DESACTIVAR PROFESOR ====================
         [HttpPost]
         public async Task<IActionResult> DesactivarProfesor(int id)
         {
@@ -331,11 +482,11 @@ namespace SIRGA.Web.Controllers
 
                 if (response)
                 {
-                    TempData["SuccessMessage"] = "⛔ Profesor desactivado exitosamente";
+                    TempData["SuccessMessage"] = "Profesor desactivado exitosamente";
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = "❌ Error al desactivar el profesor";
+                    TempData["ErrorMessage"] = "Error al desactivar el profesor";
                 }
             }
             catch (Exception ex)
@@ -369,7 +520,7 @@ namespace SIRGA.Web.Controllers
                         return RedirectToAction(nameof(Profesores));
                     }
 
-                    TempData["ErrorMessage"] = response?.Message ?? "Error al crear el profesor";
+                    TempData["ErrorMessage"] = response?.Message ?? "Ocurrió un error al crear el profesor";
                     return View(model);
                 }
                 catch (Exception ex)
@@ -451,7 +602,7 @@ namespace SIRGA.Web.Controllers
                     }
                     else
                     {
-                        TempData["ErrorMessage"] = "Error al eliminar el profesor";
+                        TempData["ErrorMessage"] = "Ocurrió un erroral eliminar el profesor";
                     }
                 }
                 catch (Exception ex)

@@ -2,6 +2,12 @@
 
 @{
     ViewData["Title"] = "Gestión de Inscripciones";
+    var paginaActual = ViewBag.PaginaActual ?? 1;
+    var totalPaginas = ViewBag.TotalPaginas ?? 1;
+    var totalRegistros = ViewBag.TotalRegistros ?? 0;
+    var registrosPorPagina = ViewBag.RegistrosPorPagina ?? 10;
+    var busqueda = ViewBag.Busqueda ?? "";
+    var filtroCurso = ViewBag.FiltroCurso ?? "";
 }
 
 <div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8">
@@ -67,6 +73,86 @@
             </div>
         }
 
+        <!-- Filtros y Búsqueda -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 mb-6">
+            <form method="get" asp-action="Index" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Búsqueda por Estudiante -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Buscar Estudiante
+                        </label>
+                        <div class="relative">
+                            <input type="text"
+                                   name="busqueda"
+                                   value="@busqueda"
+                                   placeholder="Nombre o matrícula..."
+                                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Filtro por Curso -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Curso Académico
+                        </label>
+                        <select name="filtroCurso"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <option value="">Todos los cursos</option>
+                            @if (ViewBag.CursosDisponibles != null)
+                            {
+                                foreach (var curso in ViewBag.CursosDisponibles)
+                                {
+                                    <option value="@curso.Value" selected="@(filtroCurso == curso.Value)">@curso.Text</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Registros por página -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Registros por página
+                        </label>
+                        <select name="registrosPorPagina"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <option value="10" selected="@(registrosPorPagina == 10)">10</option>
+                            <option value="25" selected="@(registrosPorPagina == 25)">25</option>
+                            <option value="50" selected="@(registrosPorPagina == 50)">50</option>
+                            <option value="100" selected="@(registrosPorPagina == 100)">100</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-4 border-t">
+                    <div class="text-sm text-gray-600">
+                        @if (!string.IsNullOrEmpty(busqueda) || !string.IsNullOrEmpty(filtroCurso))
+                        {
+                            <span class="inline-flex items-center">
+                                <svg class="w-4 h-4 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                                </svg>
+                                Filtros activos
+                            </span>
+                        }
+                    </div>
+                    <div class="flex gap-2">
+                        <a asp-action="Index"
+                           class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
+                            Limpiar
+                        </a>
+                        <button type="submit"
+                                class="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors">
+                            Aplicar Filtros
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
         <!-- Tabla -->
         <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
             <div class="px-8 py-6 border-b border-gray-200">
@@ -82,7 +168,11 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Total: @Model.Count inscripciones
+                        <span>
+                            Mostrando <strong>@((paginaActual - 1) * registrosPorPagina + 1)</strong>
+                            - <strong>@Math.Min(paginaActual * registrosPorPagina, totalRegistros)</strong>
+                            de <strong>@totalRegistros</strong> registros
+                        </span>
                     </div>
                 </div>
             </div>
@@ -154,6 +244,81 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Paginación -->
+                @if (totalPaginas > 1)
+                {
+                    <div class="bg-gray-50 px-8 py-4 border-t border-gray-200">
+                        <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                            <div class="text-sm text-gray-600">
+                                Página <strong>@paginaActual</strong> de <strong>@totalPaginas</strong>
+                            </div>
+
+                            <nav class="flex gap-2">
+                                <!-- Primera página -->
+                                <a asp-action="Index"
+                                   asp-route-pagina="1"
+                                   asp-route-busqueda="@busqueda"
+                                   asp-route-filtroCurso="@filtroCurso"
+                                   asp-route-registrosPorPagina="@registrosPorPagina"
+                                   class="px-3 py-2 border border-gray-300 rounded-lg @(paginaActual == 1 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-50 text-gray-700")">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+                                    </svg>
+                                </a>
+
+                                <!-- Página anterior -->
+                                <a asp-action="Index"
+                                   asp-route-pagina="@(paginaActual - 1)"
+                                   asp-route-busqueda="@busqueda"
+                                   asp-route-filtroCurso="@filtroCurso"
+                                   asp-route-registrosPorPagina="@registrosPorPagina"
+                                   class="px-3 py-2 border border-gray-300 rounded-lg @(paginaActual == 1 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-50 text-gray-700")">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                    </svg>
+                                </a>
+
+                                <!-- Números de página -->
+                                @for (int i = Math.Max(1, paginaActual - 2); i <= Math.Min(totalPaginas, paginaActual + 2); i++)
+                                {
+                                    <a asp-action="Index"
+                                       asp-route-pagina="@i"
+                                       asp-route-busqueda="@busqueda"
+                                       asp-route-filtroCurso="@filtroCurso"
+                                       asp-route-registrosPorPagina="@registrosPorPagina"
+                                       class="px-4 py-2 border rounded-lg @(i == paginaActual ? "bg-green-500 text-white border-green-500" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50")">
+                                        @i
+                                    </a>
+                                }
+
+                                <!-- Página siguiente -->
+                                <a asp-action="Index"
+                                   asp-route-pagina="@(paginaActual + 1)"
+                                   asp-route-busqueda="@busqueda"
+                                   asp-route-filtroCurso="@filtroCurso"
+                                   asp-route-registrosPorPagina="@registrosPorPagina"
+                                   class="px-3 py-2 border border-gray-300 rounded-lg @(paginaActual == totalPaginas ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-50 text-gray-700")">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </a>
+
+                                <!-- Última página -->
+                                <a asp-action="Index"
+                                   asp-route-pagina="@totalPaginas"
+                                   asp-route-busqueda="@busqueda"
+                                   asp-route-filtroCurso="@filtroCurso"
+                                   asp-route-registrosPorPagina="@registrosPorPagina"
+                                   class="px-3 py-2 border border-gray-300 rounded-lg @(paginaActual == totalPaginas ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-50 text-gray-700")">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+                                    </svg>
+                                </a>
+                            </nav>
+                        </div>
+                    </div>
+                }
             }
             else
             {
@@ -163,15 +328,42 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No hay inscripciones registradas</h3>
-                    <p class="text-gray-500 mb-6">Presiona el botón "Nueva Inscripción" para agregar una</p>
-                    <a asp-action="Crear"
-                       class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg shadow-lg">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                        Crear Primera Inscripción
-                    </a>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">
+                        @if (!string.IsNullOrEmpty(busqueda) || !string.IsNullOrEmpty(filtroCurso))
+                        {
+                            <span>No se encontraron inscripciones con los filtros aplicados</span>
+                        }
+                        else
+                        {
+                            <span>No hay inscripciones registradas</span>
+                        }
+                    </h3>
+                    <p class="text-gray-500 mb-6">
+                        @if (!string.IsNullOrEmpty(busqueda) || !string.IsNullOrEmpty(filtroCurso))
+                        {
+                            <span>Intenta cambiar los filtros de búsqueda</span>
+                        }
+                        else
+                        {
+                            <span>Presiona el botón "Nueva Inscripción" para agregar una</span>
+                        }
+                    </p>
+                    <div class="flex justify-center gap-3">
+                        @if (!string.IsNullOrEmpty(busqueda) || !string.IsNullOrEmpty(filtroCurso))
+                        {
+                            <a asp-action="Index"
+                               class="inline-flex items-center px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg shadow-md">
+                                Limpiar Filtros
+                            </a>
+                        }
+                        <a asp-action="Crear"
+                           class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg shadow-lg">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Crear Primera Inscripción
+                        </a>
+                    </div>
                 </div>
             }
         </div>
@@ -189,15 +381,15 @@
             Swal.fire({
                 title: '¿Eliminar inscripción?',
                 html: `
-                    <div class="text-left space-y-3">
-                        <p class="text-gray-700">Estás a punto de eliminar la inscripción de:</p>
-                        <div class="bg-gray-100 p-3 rounded-lg">
-                            <p class="font-semibold text-gray-900">${estudiante}</p>
-                            <p class="text-sm text-gray-600">${curso}</p>
-                        </div>
-                        <p class="text-sm text-red-600">Esta acción no se puede deshacer.</p>
-                    </div>
-                `,
+                            <div class="text-left space-y-3">
+                                <p class="text-gray-700">Estás a punto de eliminar la inscripción de:</p>
+                                <div class="bg-gray-100 p-3 rounded-lg">
+                                    <p class="font-semibold text-gray-900">${estudiante}</p>
+                                    <p class="text-sm text-gray-600">${curso}</p>
+                                </div>
+                                <p class="text-sm text-red-600">Esta acción no se puede deshacer.</p>
+                            </div>
+                        `,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc2626',
