@@ -10,6 +10,9 @@ using System.Security.Claims;
 using SIRGA.Web.Models.ClaseProgramada;
 using SIRGA.Web.Models.Inscripcion;
 using SIRGA.Web.Helpers;
+using SIRGA.Web.Models.Asignatura;
+using SIRGA.Web.Models.CursoAcademico;
+using SIRGA.Web.Models.Grado;
 
 namespace SIRGA.Web.Controllers
 {
@@ -29,31 +32,46 @@ namespace SIRGA.Web.Controllers
         #region Dashboard
         public async Task<IActionResult> Index()
             {
-            try {
+            try
+            {
                 var userName = User.FindFirstValue(ClaimTypes.Name);
 
-                // Obtener contadores para el dashboard
+                // Obtener estadísticas de Usuarios
                 var estudiantesResponse = await _apiService.GetAsync<ApiResponse<List<EstudianteDto>>>("api/Estudiante/GetAll");
                 var profesoresResponse = await _apiService.GetAsync<ApiResponse<List<ProfesorDto>>>("api/Profesor/GetAll");
+
+                // Obtener estadísticas Académicas (NUEVO)
+                var asignaturasResponse = await _apiService.GetAsync<ApiResponse<List<AsignaturaDto>>>("api/Asignatura/GetAll");
+                var gradosResponse = await _apiService.GetAsync<ApiResponse<List<GradoDto>>>("api/Grado/GetAll");
+                var cursosResponse = await _apiService.GetAsync<ApiResponse<List<CursoAcademicoDto>>>("api/CursoAcademico/GetAll");
+                var clasesResponse = await _apiService.GetAsync<ApiResponse<List<ClaseProgramadaDto>>>("api/ClaseProgramada/GetAll");
+                var inscripcionesResponse = await _apiService.GetAsync<ApiResponse<List<InscripcionDto>>>("api/Inscripcion/GetAll");
 
                 var model = new AdminDashboardViewModel
                 {
                     UserName = userName,
+
+                    // Usuarios
                     TotalEstudiantes = estudiantesResponse?.Data?.Count ?? 0,
-                    TotalProfesores = profesoresResponse?.Data?.Count ?? 0,
                     EstudiantesActivos = estudiantesResponse?.Data?.Count(e => e.IsActive) ?? 0,
-                    ProfesoresActivos = profesoresResponse?.Data?.Count(p => p.IsActive) ?? 0
+                    TotalProfesores = profesoresResponse?.Data?.Count ?? 0,
+                    ProfesoresActivos = profesoresResponse?.Data?.Count(p => p.IsActive) ?? 0,
+
+                    // Académicas (NUEVO)
+                    TotalAsignaturas = asignaturasResponse?.Data?.Count ?? 0,
+                    TotalGrados = gradosResponse?.Data?.Count ?? 0,
+                    TotalCursosAcademicos = cursosResponse?.Data?.Count ?? 0,
+                    TotalClasesProgramadas = clasesResponse?.Data?.Count ?? 0,
+                    TotalInscripciones = inscripcionesResponse?.Data?.Count ?? 0
                 };
 
                 return View(model);
             }
-            catch(UnauthorizedAccessException)
+            catch (UnauthorizedAccessException)
             {
                 await HttpContext.SignOutAsync();
                 HttpContext.Session.Remove("JWTToken");
                 TempData["ErrorMessage"] = "Tu sesión ha expirado o el token es inválido. Por favor, inicia sesión de nuevo.";
-
-
                 return RedirectToAction("Login", "Account");
             }
             catch (Exception ex)
@@ -632,10 +650,19 @@ namespace SIRGA.Web.Controllers
     }
     public class AdminDashboardViewModel
         {
-            public string UserName { get; set; }
-            public int TotalEstudiantes { get; set; }
-            public int TotalProfesores { get; set; }
-            public int EstudiantesActivos { get; set; }
-            public int ProfesoresActivos { get; set; }
-        }
+        public string UserName { get; set; }
+
+        public int TotalEstudiantes { get; set; }
+        public int EstudiantesActivos { get; set; }
+        public int TotalProfesores { get; set; }
+        public int ProfesoresActivos { get; set; }
+
+        // NUEVAS ESTADÍSTICAS ACADÉMICAS
+        public int TotalAsignaturas { get; set; }
+        public int TotalGrados { get; set; }
+        public int TotalCursosAcademicos { get; set; }
+        public int TotalClasesProgramadas { get; set; }
+        public int TotalInscripciones { get; set; }
+        public int InscripcionesActivas { get; set; }
+    }
     }

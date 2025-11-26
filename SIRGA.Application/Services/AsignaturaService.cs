@@ -23,6 +23,11 @@ namespace SIRGA.Application.Services
         {
             try
             {
+                if (dto.Descripcion?.Length > 125)
+                {
+                    return ApiResponse<AsignaturaResponseDto>.ErrorResponse(
+                        "La descripción no puede exceder los 125 caracteres");
+                }
                 var response = new Asignatura
                 {
                     Nombre = dto.Nombre,
@@ -132,6 +137,12 @@ namespace SIRGA.Application.Services
         {
             try
             {
+                if (dto.Descripcion?.Length > 125)
+                {
+                    return ApiResponse<AsignaturaResponseDto>.ErrorResponse(
+                        "La descripción no puede exceder los 125 caracteres");
+                }
+
                 var asignatura = await _asignaturaRepository.GetByIdAsync(id);
                 if (asignatura == null)
                 {
