@@ -5,6 +5,6 @@ namespace SIRGA.Domain.Interfaces
 {
     public interface IAsignaturaRepository : IBaseRepository<Asignatura>
     {
-        
+        Task<int> GetProfesoresCountAsync(int asignaturaId);
     }
 }

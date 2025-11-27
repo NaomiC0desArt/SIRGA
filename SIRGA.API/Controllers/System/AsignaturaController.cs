@@ -60,5 +60,15 @@ namespace SIRGA.API.Controllers.System
             if (!result.Success) return NotFound(result);
             return Ok(result);
         }
+
+        [HttpGet("{id:int}/profesores-count")]
+        public async Task<IActionResult> GetProfesoresCount(int id)
+        {
+            var result = await _asignaturaService.GetProfesoresCountAsync(id);
+            if (!result.Success)
+                return NotFound(result);
+
+            return Ok(result);
+        }
     }
 }

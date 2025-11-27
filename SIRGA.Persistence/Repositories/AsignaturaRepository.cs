@@ -50,5 +50,14 @@ namespace SIRGA.Persistence.Repositories
             await _context.SaveChangesAsync();
             return asignatura;
         }
+
+        public async Task<int> GetProfesoresCountAsync(int asignaturaId)
+        {
+            return await _context.ClasesProgramadas
+                .Where(cp => cp.IdAsignatura == asignaturaId)
+                .Select(cp => cp.IdProfesor)
+                .Distinct() 
+                .CountAsync();
+        }
     }
 }

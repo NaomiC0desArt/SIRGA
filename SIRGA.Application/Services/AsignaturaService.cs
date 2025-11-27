@@ -171,5 +171,25 @@ namespace SIRGA.Application.Services
                 );
             }
         }
+
+        public async Task<ApiResponse<int>> GetProfesoresCountAsync(int asignaturaId)
+        {
+            try
+            {
+                var asignatura = await _asignaturaRepository.GetByIdAsync(asignaturaId);
+                if (asignatura == null)
+                {
+                    return ApiResponse<int>.ErrorResponse("Asignatura no encontrada");
+                }
+
+                var count = await _asignaturaRepository.GetProfesoresCountAsync(asignaturaId);
+                return ApiResponse<int>.SuccessResponse(count, "Cantidad de profesores obtenida exitosamente");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error al obtener cantidad de profesores: {ex}");
+                return ApiResponse<int>.ErrorResponse("Error al obtener cantidad de profesores");
+            }
+        }
     }
 }
