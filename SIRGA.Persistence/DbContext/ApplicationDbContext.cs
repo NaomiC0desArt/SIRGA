@@ -20,7 +20,14 @@ namespace SIRGA.Persistence.DbContext
 		public DbSet<ClaseProgramada> ClasesProgramadas { get; set; }
 		public DbSet<Inscripcion> Inscripciones { get; set; }
 
-		protected override void OnModelCreating(ModelBuilder builder)
+        #region "Modulo de Calificaciones"
+        public DbSet<AnioEscolar> AniosEscolares { get; set; }
+        //public DbSet<AnnualGrade> AnnualGrates { get; set; }
+        public DbSet<Periodo> Periodos { get; set; }
+        public DbSet<Calificacion> Calificaciones { get; set; }
+        #endregion
+
+        protected override void OnModelCreating(ModelBuilder builder)
 		{
 			base.OnModelCreating(builder);
 
