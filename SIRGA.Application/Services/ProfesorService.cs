@@ -497,7 +497,37 @@ namespace SIRGA.Application.Services
                 );
             }
         }
+        public async Task<ApiResponse<ProfesorResponseDto>> GetProfesorByApplicationUserIdAsync(string applicationUserId)
+        {
+            try
+            {
+                var profesor = await _profesorRepository.GetByApplicationUserIdAsync(applicationUserId);
+                if (profesor == null)
+                {
+                    return ApiResponse<ProfesorResponseDto>.ErrorResponse(
+                        "Profesor no encontrado"
+                    );
+                }
 
+                var user = await _userManager.FindByIdAsync(profesor.ApplicationUserId);
+                if (user == null)
+                {
+                    return ApiResponse<ProfesorResponseDto>.ErrorResponse(
+                        "Usuario asociado no encontrado"
+                    );
+                }
+
+                var response = MapToResponseDto(profesor, user);
+                return ApiResponse<ProfesorResponseDto>.SuccessResponse(response);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<ProfesorResponseDto>.ErrorResponse(
+                    "Error al obtener el profesor",
+                    new List<string> { ex.Message }
+                );
+            }
+        }
         private ProfesorResponseDto MapToResponseDto(Profesor profesor, ApplicationUser user)
         {
             return new ProfesorResponseDto

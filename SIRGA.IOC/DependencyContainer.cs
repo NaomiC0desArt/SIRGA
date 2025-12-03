@@ -32,6 +32,7 @@ namespace SIRGA.IOC
             services.AddScoped<ICursoAcademicoRepository, CursoAcademicoRepository>();
             services.AddScoped<IGradoRepository, GradoRepository>();
             services.AddScoped<IInscripcionRepository, InscripcionRepository>();
+            services.AddScoped<IAsistenciaRepository, AsistenciaRepository>();
 
             // servicios de Application
             services.AddScoped<IEstudianteService, EstudianteService>();
@@ -41,6 +42,7 @@ namespace SIRGA.IOC
             services.AddScoped<ICursoAcademicoService, CursoAcademicoService>();
             services.AddScoped<IGradoService, GradoService>();
             services.AddScoped<IInscripcionService, InscripcionService>();
+            services.AddScoped<IAsistenciaService, AsistenciaService>();
 
             // servicios de identity
             services.AddScoped<IAccountService, AccountService>();

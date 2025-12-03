@@ -19,8 +19,9 @@ namespace SIRGA.Persistence.DbContext
 		public DbSet<CursoAcademico> CursosAcademicos { get; set; }
 		public DbSet<ClaseProgramada> ClasesProgramadas { get; set; }
 		public DbSet<Inscripcion> Inscripciones { get; set; }
+        public DbSet<Asistencia> Asistencias { get; set; }
 
-		protected override void OnModelCreating(ModelBuilder builder)
+        protected override void OnModelCreating(ModelBuilder builder)
 		{
 			base.OnModelCreating(builder);
 
@@ -60,11 +61,66 @@ namespace SIRGA.Persistence.DbContext
                 .HasForeignKey<Profesor>(p => p.ApplicationUserId)
                 .IsRequired();
             });
-            
 
+            builder.Entity<Asistencia>(entity =>
+            {
+                entity.HasKey(a => a.Id);
 
-			// Para que en caso de que borremos un grado noborre los CursosAcademicos.
-			foreach (var relationship in builder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
+                entity.Property(a => a.Fecha)
+                    .IsRequired();
+
+                entity.Property(a => a.HoraRegistro)
+                    .IsRequired();
+
+                entity.Property(a => a.Estado)
+                    .IsRequired()
+                    .HasMaxLength(20);
+
+                entity.Property(a => a.Observaciones)
+                    .HasMaxLength(500);
+
+                entity.Property(a => a.Justificacion)
+                    .HasMaxLength(500);
+
+                // Relación con Estudiante
+                entity.HasOne(a => a.Estudiante)
+                    .WithMany()
+                    .HasForeignKey(a => a.IdEstudiante)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Relación con ClaseProgramada
+                entity.HasOne(a => a.ClaseProgramada)
+                    .WithMany()
+                    .HasForeignKey(a => a.IdClaseProgramada)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Relación con Profesor
+                entity.HasOne(a => a.Profesor)
+                    .WithMany()
+                    .HasForeignKey(a => a.IdProfesor)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Índice compuesto para evitar duplicados
+                entity.HasIndex(a => new { a.IdEstudiante, a.IdClaseProgramada, a.Fecha })
+                    .IsUnique()
+                    .HasDatabaseName("IX_Asistencia_Estudiante_Clase_Fecha");
+
+                // Índices adicionales para consultas frecuentes
+                entity.HasIndex(a => a.Fecha)
+                    .HasDatabaseName("IX_Asistencia_Fecha");
+
+                entity.HasIndex(a => a.IdClaseProgramada)
+                    .HasDatabaseName("IX_Asistencia_ClaseProgramada");
+
+                entity.HasIndex(a => a.IdEstudiante)
+                    .HasDatabaseName("IX_Asistencia_Estudiante");
+
+                entity.HasIndex(a => new { a.RequiereJustificacion, a.Justificacion })
+                    .HasDatabaseName("IX_Asistencia_RequiereJustificacion");
+            });
+
+            // Para que en caso de que borremos un grado noborre los CursosAcademicos.
+            foreach (var relationship in builder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
 			{
 				relationship.DeleteBehavior = DeleteBehavior.Restrict;
 			}

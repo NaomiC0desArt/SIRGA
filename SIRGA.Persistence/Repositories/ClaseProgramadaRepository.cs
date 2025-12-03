@@ -3,6 +3,7 @@ using SIRGA.Domain.Entities;
 using SIRGA.Domain.Interfaces;
 using SIRGA.Persistence.DbContext;
 using SIRGA.Persistence.Interfaces;
+using System.Linq.Expressions;
 
 namespace SIRGA.Persistence.Repositories
 {
@@ -114,6 +115,43 @@ namespace SIRGA.Persistence.Repositories
                               SchoolYear = curso.SchoolYear
                           }).FirstOrDefaultAsync();
         }
+        public async Task<List<ClaseProgramada>> GetClasesByProfesorAndDayAsync(int idProfesor, DayOfWeek diaSemana)
+        {
+            return await _context.ClasesProgramadas
+                .Include(c => c.Asignatura)
+                .Include(c => c.Profesor)
+                .Include(c => c.CursoAcademico)
+                    .ThenInclude(ca => ca.Grado)
+                .Where(c => c.IdProfesor == idProfesor && c.WeekDay == diaSemana)
+                .OrderBy(c => c.StartTime)
+                .ToListAsync();
+        }
 
+        // Implementar métodos faltantes de IBaseRepository
+        public async Task<List<ClaseProgramada>> GetAllByConditionAsync(Expression<Func<ClaseProgramada, bool>> predicate)
+        {
+            return await _context.ClasesProgramadas
+                .Include(c => c.Asignatura)
+                .Include(c => c.Profesor)
+                .Include(c => c.CursoAcademico)
+                    .ThenInclude(ca => ca.Grado)
+                .Where(predicate)
+                .ToListAsync();
+        }
+
+        public async Task<ClaseProgramada> GetByConditionAsync(Expression<Func<ClaseProgramada, bool>> predicate)
+        {
+            return await _context.ClasesProgramadas
+                .Include(c => c.Asignatura)
+                .Include(c => c.Profesor)
+                .Include(c => c.CursoAcademico)
+                    .ThenInclude(ca => ca.Grado)
+                .FirstOrDefaultAsync(predicate);
+        }
+
+        public async Task<bool> ExistsAsync(Expression<Func<ClaseProgramada, bool>> predicate)
+        {
+            return await _context.ClasesProgramadas.AnyAsync(predicate);
+        }
     }
 }

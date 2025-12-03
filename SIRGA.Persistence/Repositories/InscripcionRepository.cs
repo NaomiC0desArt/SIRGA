@@ -2,6 +2,7 @@
 using SIRGA.Domain.Entities;
 using SIRGA.Domain.Interfaces;
 using SIRGA.Persistence.DbContext;
+using System.Linq.Expressions;
 
 namespace SIRGA.Persistence.Repositories
 {
@@ -54,6 +55,30 @@ namespace SIRGA.Persistence.Repositories
             _context.Inscripciones.Update(inscripcion);
             await _context.SaveChangesAsync();
             return await GetByIdAsync(inscripcion.Id);
+        }
+
+        public async Task<List<Inscripcion>> GetAllByConditionAsync(Expression<Func<Inscripcion, bool>> predicate)
+        {
+            return await _context.Inscripciones
+                .Include(i => i.Estudiante)
+                .Include(i => i.CursoAcademico)
+                    .ThenInclude(c => c.Grado)
+                .Where(predicate)
+                .ToListAsync();
+        }
+
+        public async Task<Inscripcion> GetByConditionAsync(Expression<Func<Inscripcion, bool>> predicate)
+        {
+            return await _context.Inscripciones
+                .Include(i => i.Estudiante)
+                .Include(i => i.CursoAcademico)
+                    .ThenInclude(c => c.Grado)
+                .FirstOrDefaultAsync(predicate);
+        }
+
+        public async Task<bool> ExistsAsync(Expression<Func<Inscripcion, bool>> predicate)
+        {
+            return await _context.Inscripciones.AnyAsync(predicate);
         }
     }
 }
