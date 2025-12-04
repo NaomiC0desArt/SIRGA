@@ -208,6 +208,13 @@ namespace SIRGA.API.Controllers
             var result = await _asistenciaService.GetHistorialAsistenciaClaseAsync(
                 idClaseProgramada, fechaInicio, fechaFin);
 
+            _logger.LogInformation($"🔍 Historial - Total: {result.Data?.Count ?? 0}");
+            if (result.Data?.Any() == true)
+            {
+                var primera = result.Data.First();
+                _logger.LogInformation($"🔍 Primera - Estado: {primera.Estado}, Justificacion: {primera.Justificacion ?? "NULL"}");
+            }
+
             return Ok(result);
         }
 

@@ -1,6 +1,7 @@
 using Microsoft.OpenApi.Models;
 using SIRGA.Identity.Register;
 using SIRGA.IOC;
+using SIRGA.Persistence.Seeds;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,7 +66,12 @@ using (var scope = app.Services.CreateScope())
     await scope.ServiceProvider.RunIdentitySeeds();
 }
 
-//await app.Services.RunIdentitySeeds();
+if (app.Environment.IsDevelopment() &&
+    builder.Configuration.GetValue<bool>("SeedTestData"))
+{
+    using var scope = app.Services.CreateScope();
+    await TestDataSeeder.SeedTestData(scope.ServiceProvider);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

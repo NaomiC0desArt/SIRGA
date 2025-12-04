@@ -6,22 +6,28 @@ namespace SIRGA.Application.DTOs.Entities.Asistencia
 {
      public class RegistrarAsistenciaDto
     {
-        [Required]
+
+        [Required(ErrorMessage = "El ID del estudiante es requerido")]
         public int IdEstudiante { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "El ID de la clase es requerido")]
         public int IdClaseProgramada { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "La fecha es requerida")]
         public DateTime Fecha { get; set; }
 
-        [Required]
-        [RegularExpression("^(Presente|Ausente|Tarde|Justificado)$")]
+        [Required(ErrorMessage = "El estado es requerido")]
+        [RegularExpression("^(Presente|Ausente|Tarde|Justificado)$",
+            ErrorMessage = "El estado debe ser: Presente, Ausente o Tarde")]
         public string Estado { get; set; }
 
-        [MaxLength(500)]
+        [MaxLength(500, ErrorMessage = "Las observaciones no pueden exceder 500 caracteres")]
         public string? Observaciones { get; set; }
 
-        public bool RequiereJustificacion { get; set; } = false;
+        [MaxLength(500, ErrorMessage = "La justificación no puede exceder 500 caracteres")]
+        [MinLength(10, ErrorMessage = "La justificación debe tener al menos 10 caracteres")]
+        public string? Justificacion { get; set; }
+
+        public bool RequiereJustificacion { get; set; }
     }
 }

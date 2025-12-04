@@ -10,12 +10,20 @@
 
         <!-- Encabezado -->
         <div class="mb-6">
-            <a asp-action="Index" class="inline-flex items-center text-green-600 hover:text-green-700 font-medium mb-4">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                </svg>
-                Volver a Mis Clases
-            </a>
+            <div class="flex items-center gap-4 mb-4">
+                <a asp-action="Index" class="inline-flex items-center text-green-600 hover:text-green-700 font-medium">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Volver a Mis Clases
+                </a>
+                <a asp-action="Index" asp-controller="Profesor" class="inline-flex items-center text-purple-600 hover:text-purple-700 font-medium">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Ir al Panel Principal
+                </a>
+            </div>
 
             <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
                 <div class="flex items-center justify-between flex-wrap gap-4">
@@ -158,11 +166,12 @@
                                     <input type="hidden" class="asistencia-id-input" value="@(estudiante.AsistenciaId?.ToString() ?? "")">
                                 </td>
                                 <td class="px-6 py-4">
-                                    <input type="text"
-                                           class="observaciones-input w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-                                           placeholder="Observaciones..."
-                                           maxlength="500">
-                                </td>
+    <input type="text"
+           class="observaciones-input w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+           placeholder="Observaciones..."
+           maxlength="500">
+    <input type="hidden" class="justificacion-input" value="">
+</td>
                                 <td class="px-6 py-4 text-center">
                                     <button type="button"
                                             class="justificar-btn hidden px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all text-xs font-medium"
@@ -191,6 +200,54 @@
     </div>
 </div>
 
+<!-- Modal de Confirmación para Guardar -->
+<div id="modalConfirmacion" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+        <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 p-6 rounded-t-2xl">
+            <div class="flex items-center">
+                <svg class="w-10 h-10 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <h3 class="text-2xl font-bold text-white">Confirmar Registro</h3>
+            </div>
+        </div>
+        <div class="p-6">
+            <p class="text-gray-700 mb-4">
+                <strong>¿Estás seguro de que deseas guardar la asistencia?</strong>
+            </p>
+            <p class="text-sm text-gray-600 mb-4">
+                Una vez guardada, la asistencia <strong>no podrá ser modificada</strong> a menos que te comuniques con un administrador.
+            </p>
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                <p class="text-xs text-yellow-800">
+                    <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                    Asegúrate de que todos los estados estén correctos antes de continuar.
+                </p>
+            </div>
+        </div>
+        <div class="px-6 pb-6 flex gap-3">
+            <button type="button"
+                    onclick="cerrarModalConfirmacion()"
+                    class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-medium">
+                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                Revisar de Nuevo
+            </button>
+            <button type="button"
+                    onclick="confirmarGuardarAsistencia()"
+                    class="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all font-medium">
+                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Sí, Guardar
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Modal de Justificación -->
 <div id="modalJustificacion" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full">
@@ -200,7 +257,6 @@
         </div>
         <div class="p-6">
             <input type="hidden" id="justificarEstudianteId">
-            <input type="hidden" id="justificarAsistenciaId">
 
             <label class="block text-sm font-semibold text-gray-700 mb-2">
                 Justificación <span class="text-red-500">*</span>
@@ -210,7 +266,16 @@
                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Escriba la justificación de la ausencia o tardanza..."
                       maxlength="500"></textarea>
-            <p class="text-xs text-gray-500 mt-1">Máximo 500 caracteres</p>
+            <p class="text-xs text-gray-500 mt-1">Mínimo 10 caracteres, máximo 500</p>
+
+<div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+    <p class="text-xs text-blue-800">
+        <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+        </svg>
+        La justificación se guardará junto con la asistencia cuando hagas clic en "Guardar Asistencia Completa".
+    </p>
+</div>
         </div>
         <div class="px-6 pb-6 flex gap-3">
             <button type="button"
@@ -232,9 +297,9 @@
         const idClase = @idClase;
         const fecha = '@fecha.ToString("yyyy-MM-dd")';
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Marcar estados iniciales
-            document.querySelectorAll('.estado-input').forEach(function(input) {
+            document.querySelectorAll('.estado-input').forEach(function (input) {
                 if (input.value) {
                     const row = input.closest('tr');
                     const estadoBtn = row.querySelector(`[data-estado="${input.value}"]`);
@@ -280,7 +345,7 @@
         }
 
         function getButtonColors(estado) {
-            switch(estado) {
+            switch (estado) {
                 case 'Presente':
                     return { bg: 'bg-green-500', border: 'border-green-500' };
                 case 'Ausente':
@@ -293,149 +358,216 @@
         }
 
         function marcarTodos(estado) {
-            document.querySelectorAll('.estado-btn[data-estado="' + estado + '"]').forEach(function(btn) {
+            document.querySelectorAll('.estado-btn[data-estado="' + estado + '"]').forEach(function (btn) {
                 const row = btn.closest('tr');
                 seleccionarEstado(btn, row.dataset.estudianteId, estado);
             });
         }
 
         function abrirModalJustificacion(estudianteId, nombreCompleto) {
-            const row = document.querySelector(`tr[data-estudiante-id="${estudianteId}"]`);
-            const asistenciaId = row.querySelector('.asistencia-id-input').value;
+    const row = document.querySelector(`tr[data-estudiante-id="${estudianteId}"]`);
+    const estado = row.querySelector('.estado-input').value;
+    
+    // Verificar que haya un estado seleccionado
+    if (!estado) {
+        mostrarNotificacion('Primero debes seleccionar un estado (Ausente o Tarde)', 'warning');
+        return;
+    }
+    
+    // Solo permitir justificar Ausente o Tarde
+    if (estado !== 'Ausente' && estado !== 'Tarde') {
+        mostrarNotificacion('Solo se pueden justificar ausencias o tardanzas', 'warning');
+        return;
+    }
 
-            document.getElementById('justificarEstudianteId').value = estudianteId;
-            document.getElementById('justificarAsistenciaId').value = asistenciaId;
-            document.getElementById('modalEstudianteNombre').textContent = nombreCompleto;
-            document.getElementById('justificacionTexto').value = '';
-            document.getElementById('modalJustificacion').classList.remove('hidden');
-        }
+    document.getElementById('justificarEstudianteId').value = estudianteId;
+    document.getElementById('modalEstudianteNombre').textContent = nombreCompleto;
+    
+    // Cargar justificación existente si hay
+    const justificacionExistente = row.querySelector('.justificacion-input').value;
+    document.getElementById('justificacionTexto').value = justificacionExistente || '';
+    
+    document.getElementById('modalJustificacion').classList.remove('hidden');
+}
 
         function cerrarModalJustificacion() {
             document.getElementById('modalJustificacion').classList.add('hidden');
         }
 
-        async function guardarJustificacion() {
-            const asistenciaId = document.getElementById('justificarAsistenciaId').value;
-            const justificacion = document.getElementById('justificacionTexto').value.trim();
+        function guardarJustificacion() {
+    const estudianteId = document.getElementById('justificarEstudianteId').value;
+    const justificacion = document.getElementById('justificacionTexto').value.trim();
 
-            if (!justificacion) {
-                alert('Por favor, ingresa una justificación.');
-                return;
-            }
+    if (!justificacion) {
+        mostrarNotificacion('Por favor, ingresa una justificación.', 'error');
+        return;
+    }
 
-            if (!asistenciaId) {
-                alert('Primero debes guardar la asistencia antes de justificarla.');
-                return;
-            }
+    if (justificacion.length < 10) {
+        mostrarNotificacion('La justificación debe tener al menos 10 caracteres.', 'error');
+        return;
+    }
 
-            try {
-                const response = await fetch(`/api/Asistencia/${asistenciaId}/Justificar`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-                    },
-                    body: JSON.stringify({ justificacion: justificacion })
-                });
+    // Guardar la justificación en un campo oculto para enviarla junto con la asistencia
+    const row = document.querySelector(`tr[data-estudiante-id="${estudianteId}"]`);
+    const justificacionInput = row.querySelector('.justificacion-input');
+    justificacionInput.value = justificacion;
 
-                if (response.ok) {
-                    alert('Justificación guardada exitosamente');
-                    cerrarModalJustificacion();
+    // Cerrar modal y mostrar confirmación visual
+    cerrarModalJustificacion();
+    mostrarNotificacion('✓ Justificación agregada. Recuerda guardar la asistencia.', 'success');
+    
+    // Cambiar color de fondo para indicar que tiene justificación
+    row.classList.remove('bg-green-50', 'bg-red-50', 'bg-yellow-50');
+    row.classList.add('bg-blue-50');
+}
 
-                    // Actualizar el estado visual
-                    const estudianteId = document.getElementById('justificarEstudianteId').value;
-                    const row = document.querySelector(`tr[data-estudiante-id="${estudianteId}"]`);
-                    const buttons = row.querySelectorAll('.estado-btn');
 
-                    buttons.forEach(btn => {
-                        btn.classList.remove('bg-green-500', 'bg-red-500', 'bg-yellow-500', 'border-green-500', 'border-red-500', 'border-yellow-500', 'text-white');
-                        btn.classList.add('border-gray-300', 'text-gray-400');
-                    });
 
-                    row.classList.remove('bg-green-50', 'bg-red-50', 'bg-yellow-50');
-                    row.classList.add('bg-blue-50');
-                    row.querySelector('.estado-input').value = 'Justificado';
-                    row.querySelector('.justificar-btn').classList.add('hidden');
-                } else {
-                    const error = await response.json();
-                    alert('Error: ' + (error.message || 'No se pudo guardar la justificación'));
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al guardar la justificación');
-            }
+        function guardarAsistencia() {
+    // PRIMERO mostrar el modal de confirmación
+    document.getElementById('modalConfirmacion').classList.remove('hidden');
+}
+
+function cerrarModalConfirmacion() {
+    document.getElementById('modalConfirmacion').classList.add('hidden');
+}
+
+async function confirmarGuardarAsistencia() {
+    // Cerrar el modal
+    cerrarModalConfirmacion();
+
+    const asistencias = [];
+    let hayErrores = false;
+
+    document.querySelectorAll('#tablaAsistencia tr').forEach(function (row) {
+        const estudianteId = parseInt(row.dataset.estudianteId);
+        const estado = row.querySelector('.estado-input').value;
+        const observaciones = row.querySelector('.observaciones-input').value;
+        const justificacion = row.querySelector('.justificacion-input')?.value || null;
+
+        if (!estado) {
+            row.classList.add('bg-red-100');
+            hayErrores = true;
+            return;
         }
 
-        async function guardarAsistencia() {
-            const asistencias = [];
-            let hayErrores = false;
+        row.classList.remove('bg-red-100');
 
-            document.querySelectorAll('#tablaAsistencia tr').forEach(function(row) {
-                const estudianteId = parseInt(row.dataset.estudianteId);
-                const estado = row.querySelector('.estado-input').value;
-                const observaciones = row.querySelector('.observaciones-input').value;
+        asistencias.push({
+            idEstudiante: estudianteId,
+            estado: estado,
+            observaciones: observaciones || null,
+            justificacion: justificacion,
+            requiereJustificacion: estado === 'Ausente' || estado === 'Tarde'
+        });
+    });
 
-                if (!estado) {
-                    row.classList.add('bg-red-100');
-                    hayErrores = true;
-                    return;
-                }
+    if (hayErrores) {
+        mostrarNotificacion('Por favor, marca el estado de todos los estudiantes antes de guardar.', 'error');
+        return;
+    }
 
-                row.classList.remove('bg-red-100');
+    const data = {
+        idClaseProgramada: idClase,
+        fecha: fecha,
+        asistencias: asistencias
+    };
 
-                asistencias.push({
-                    idEstudiante: estudianteId,
-                    estado: estado,
-                    observaciones: observaciones || null,
-                    requiereJustificacion: estado === 'Ausente' || estado === 'Tarde'
-                });
-            });
+    try {
+        const response = await fetch('@Url.Action("RegistrarAsistenciaMasiva", "AsistenciaProfesor")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify(data)
+        });
 
-            if (hayErrores) {
-                alert('Por favor, marca el estado de todos los estudiantes antes de guardar.');
-                return;
-            }
+        const result = await response.json();
 
-            const data = {
-                idClaseProgramada: idClase,
-                fecha: fecha,
-                asistencias: asistencias
-            };
-
-            try {
-                const response = await fetch('@Url.Action("RegistrarAsistenciaMasiva", "AsistenciaProfesor")', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    alert('✓ Asistencia guardada exitosamente');
-                    window.location.href = '@Url.Action("Index", "AsistenciaProfesor")';
-                } else {
-                    alert('Error: ' + result.message);
-                    if (result.errors) {
-                        console.error(result.errors);
-                    }
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al guardar la asistencia. Por favor, intenta de nuevo.');
+        if (result.success) {
+            mostrarNotificacion('✓ Asistencia guardada exitosamente', 'success');
+            setTimeout(() => {
+                window.location.href = '@Url.Action("Index", "AsistenciaProfesor")';
+            }, 1500);
+        } else {
+            mostrarNotificacion('Error: ' + result.message, 'error');
+            if (result.errors) {
+                console.error(result.errors);
             }
         }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarNotificacion('Error al guardar la asistencia. Por favor, intenta de nuevo.', 'error');
+    }
+}
 
-        // Cerrar modal al hacer clic fuera
-        document.getElementById('modalJustificacion').addEventListener('click', function(e) {
+        // Cerrar modales al hacer clic fuera
+        document.getElementById('modalJustificacion').addEventListener('click', function (e) {
             if (e.target === this) {
                 cerrarModalJustificacion();
             }
         });
+
+        document.getElementById('modalConfirmacion').addEventListener('click', function (e) {
+            if (e.target === this) {
+                cerrarModalConfirmacion();
+            }
+        });
+
+        function mostrarNotificacion(mensaje, tipo = 'info') {
+    const colores = {
+        'success': 'bg-green-500',
+        'error': 'bg-red-500',
+        'warning': 'bg-yellow-500',
+        'info': 'bg-blue-500'
+    };
+
+    const iconos = {
+        'success': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>',
+        'error': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>',
+        'warning': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>',
+        'info': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
+    };
+
+    const notificacion = document.createElement('div');
+    notificacion.className = `fixed top-4 right-4 ${colores[tipo]} text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 z-50 animate-fade-in`;
+    notificacion.innerHTML = `
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            ${iconos[tipo]}
+        </svg>
+        <span class="font-medium">${mensaje}</span>
+    `;
+
+    document.body.appendChild(notificacion);
+
+    setTimeout(() => {
+        notificacion.style.opacity = '0';
+        notificacion.style.transform = 'translateX(100%)';
+        notificacion.style.transition = 'all 0.3s ease-out';
+        setTimeout(() => notificacion.remove(), 300);
+    }, 3000);
+}
     </script>
 }
+
+<style>
+    @@keyframes fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-in {
+        animation: fade-in 0.3s ease-out;
+    }
+</style>
 
 @Html.AntiForgeryToken()

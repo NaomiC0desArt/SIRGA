@@ -91,8 +91,19 @@ namespace SIRGA.Application.Services
                     Estado = dto.Estado,
                     Observaciones = dto.Observaciones,
                     RequiereJustificacion = requiereJustificacion,
-                    RegistradoPorId = registradoPorId
+                    RegistradoPorId = registradoPorId,
+
+                    // ✅ NUEVO: Si viene justificación, guardarla inmediatamente
+                    Justificacion = !string.IsNullOrWhiteSpace(dto.Justificacion) ? dto.Justificacion : null,
+                    FechaJustificacion = !string.IsNullOrWhiteSpace(dto.Justificacion) ? DateTime.Now : null,
+                    UsuarioJustificacionId = !string.IsNullOrWhiteSpace(dto.Justificacion) ? registradoPorId : null
                 };
+
+                // Si tiene justificación, cambiar el estado a "Justificado"
+                if (!string.IsNullOrWhiteSpace(dto.Justificacion))
+                {
+                    asistencia.Estado = "Justificado";
+                }
 
                 var resultado = await _asistenciaRepository.AddAsync(asistencia);
 
@@ -154,8 +165,27 @@ namespace SIRGA.Application.Services
                             Estado = asistenciaDto.Estado,
                             Observaciones = asistenciaDto.Observaciones,
                             RequiereJustificacion = requiereJustificacion,
-                            RegistradoPorId = registradoPorId
+                            RegistradoPorId = registradoPorId,
+
+                            // ✅ AHORA SÍ FUNCIONA: asistenciaDto tiene el campo Justificacion
+                            Justificacion = !string.IsNullOrWhiteSpace(asistenciaDto.Justificacion)
+                                ? asistenciaDto.Justificacion
+                                : null,
+                            FechaJustificacion = !string.IsNullOrWhiteSpace(asistenciaDto.Justificacion)
+                                ? DateTime.Now
+                                : null,
+                            UsuarioJustificacionId = !string.IsNullOrWhiteSpace(asistenciaDto.Justificacion)
+                                ? registradoPorId
+                                : null
                         };
+
+                        // Si tiene justificación, cambiar el estado a "Justificado"
+                        if (!string.IsNullOrWhiteSpace(asistenciaDto.Justificacion))
+                        {
+                            asistencia.Estado = "Justificado";
+                        }
+
+                        _logger.LogInformation($"🔍 Guardando asistencia - Estudiante: {asistenciaDto.IdEstudiante}, Estado: {asistencia.Estado}, Justificacion: {asistencia.Justificacion ?? "NULL"}");
 
                         var resultado = await _asistenciaRepository.AddAsync(asistencia);
                         asistenciasRegistradas.Add(resultado);

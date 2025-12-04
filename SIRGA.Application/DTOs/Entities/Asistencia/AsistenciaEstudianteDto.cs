@@ -14,6 +14,10 @@ namespace SIRGA.Application.DTOs.Entities.Asistencia
         [MaxLength(500)]
         public string? Observaciones { get; set; }
 
+        [MaxLength(500, ErrorMessage = "La justificación no puede exceder 500 caracteres")]
+        [MinLength(10, ErrorMessage = "La justificación debe tener al menos 10 caracteres")]
+        public string? Justificacion { get; set; }
+
         public bool RequiereJustificacion { get; set; } = false;
     }
 }
