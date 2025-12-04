@@ -1,0 +1,197 @@
+﻿@model SIRGA.Web.Models.Estudiante.HorarioSemanalViewModel
+
+@{
+    ViewData["Title"] = "Mi Horario";
+}
+
+<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
+    <div class="max-w-7xl mx-auto">
+
+        <!-- Encabezado -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center">
+                    <div class="h-16 w-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Mi Horario de Clases</h1>
+                        <p class="text-gray-600 mt-1">
+                            <strong>@Model.GradoSeccion</strong> - Período @Model.PeriodoAcademico
+                        </p>
+                    </div>
+                </div>
+                <a asp-action="Index" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Volver al Panel
+                </a>
+            </div>
+        </div>
+
+        <!-- Alertas -->
+        <partial name="_Alerts" />
+
+        @if (Model.HorarioSemanal != null && Model.HorarioSemanal.Any(d => d.Clases.Any()))
+        {
+            <!-- Vista de Horario Semanal -->
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+
+                <!-- Encabezado de días -->
+                <div class="grid grid-cols-1 lg:grid-cols-6 border-b border-gray-200 bg-gray-50">
+                    @foreach (var dia in Model.HorarioSemanal.Where(d => d.Clases.Any()))
+                    {
+                        var esHoy = dia.DiaSemana == DateTime.Now.ToString("dddd", new System.Globalization.CultureInfo("es-ES"));
+
+                        <div class="p-4 text-center border-b lg:border-b-0 lg:border-r border-gray-200 last:border-r-0 @(esHoy ? "bg-blue-50" : "")">
+                            <h3 class="font-bold text-gray-900 text-lg @(esHoy ? "text-blue-700" : "")">
+                                @dia.DiaSemana
+                            </h3>
+                            @if (esHoy)
+                            {
+                                <span class="inline-block mt-1 px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full">
+                                    Hoy
+                                </span>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <!-- Contenido del horario -->
+                <div class="grid grid-cols-1 lg:grid-cols-6">
+                    @foreach (var dia in Model.HorarioSemanal.Where(d => d.Clases.Any()))
+                    {
+                        var esHoy = dia.DiaSemana == DateTime.Now.ToString("dddd", new System.Globalization.CultureInfo("es-ES"));
+
+                        <div class="p-4 space-y-3 border-b lg:border-b-0 lg:border-r border-gray-100 last:border-r-0 min-h-[400px] @(esHoy ? "bg-blue-50 bg-opacity-30" : "")">
+                            @if (dia.Clases.Any())
+                            {
+                                @foreach (var clase in dia.Clases.OrderBy(c => c.HoraInicio))
+                                {
+                                    var colorBorde = clase.EsClaseActual ? "border-green-500" :
+                                    clase.EsProximaClase ? "border-orange-500" : "border-gray-200";
+                                    var colorFondo = clase.EsClaseActual ? "bg-green-50" :
+                                    clase.EsProximaClase ? "bg-orange-50" : "bg-white";
+
+                                    <div class="@colorFondo border-2 @colorBorde rounded-lg p-3 hover:shadow-md transition-shadow">
+
+                                        <!-- Horario -->
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center text-sm font-semibold text-gray-700">
+                                                <svg class="w-4 h-4 mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                @clase.HoraInicioFormateada
+                                            </div>
+                                            <span class="text-xs text-gray-500">
+                                                @clase.HoraFinFormateada
+                                            </span>
+                                        </div>
+
+                                        <!-- Asignatura -->
+                                        <h4 class="font-bold text-gray-900 mb-2 line-clamp-2">
+                                            @clase.NombreAsignatura
+                                        </h4>
+
+                                        <!-- Profesor -->
+                                        <div class="flex items-start text-sm text-gray-600 mb-2">
+                                            <svg class="w-4 h-4 mr-1 mt-0.5 flex-shrink-0 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                            </svg>
+                                            <span class="line-clamp-2">@clase.NombreProfesor</span>
+                                        </div>
+
+                                        <!-- Ubicación -->
+                                        <div class="flex items-center text-xs text-gray-500">
+                                            <svg class="w-3.5 h-3.5 mr-1 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            </svg>
+                                            @clase.Ubicacion
+                                        </div>
+
+                                        <!-- Indicadores de estado -->
+                                        @if (clase.EsClaseActual)
+                                        {
+                                            <div class="mt-2 pt-2 border-t border-green-200">
+                                                <span class="inline-flex items-center text-xs font-medium text-green-700">
+                                                    <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5 animate-pulse"></span>
+                                                    En curso
+                                                </span>
+                                            </div>
+                                        }
+                                        else if (clase.EsProximaClase)
+                                        {
+                                            <div class="mt-2 pt-2 border-t border-orange-200">
+                                                <span class="inline-flex items-center text-xs font-medium text-orange-700">
+                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+                                                    </svg>
+                                                    Próxima clase
+                                                </span>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="flex items-center justify-center h-full text-gray-400">
+                                    <div class="text-center">
+                                        <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                                        </svg>
+                                        <p class="text-sm">Sin clases</p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Leyenda -->
+            <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100 mt-6">
+                <h3 class="font-semibold text-gray-900 mb-3 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Leyenda
+                </h3>
+                <div class="flex flex-wrap gap-4">
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-green-500 rounded mr-2"></div>
+                        <span class="text-sm text-gray-600">Clase en curso</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-orange-500 rounded mr-2"></div>
+                        <span class="text-sm text-gray-600">Próxima clase</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-blue-100 rounded mr-2"></div>
+                        <span class="text-sm text-gray-600">Día actual</span>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Sin horario -->
+            <div class="bg-white rounded-2xl shadow-xl p-12 border border-gray-100 text-center">
+                <svg class="w-20 h-20 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">
+                    No hay horario disponible
+                </h3>
+                <p class="text-gray-500">
+                    Aún no se han programado clases para tu curso. Contacta con la administración para más información.
+                </p>
+            </div>
+        }
+
+    </div>
+</div>
