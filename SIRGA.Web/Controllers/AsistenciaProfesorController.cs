@@ -19,9 +19,6 @@ namespace SIRGA.Web.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Vista principal - Muestra las clases del día
-        /// </summary>
         [HttpGet]
         public async Task<IActionResult> Index(DateTime? fecha)
         {
@@ -29,7 +26,6 @@ namespace SIRGA.Web.Controllers
             {
                 var fechaConsulta = fecha ?? DateTime.Today;
 
-                // Obtener el profesor actual directamente desde el endpoint
                 var profesorResponse = await _apiService.GetAsync<ApiResponse<ProfesorDto>>("api/Profesor/Current");
 
                 if (profesorResponse?.Success != true || profesorResponse.Data == null)
@@ -62,9 +58,6 @@ namespace SIRGA.Web.Controllers
             }
         }
 
-        /// <summary>
-        /// Vista para tomar asistencia de una clase específica
-        /// </summary>
         [HttpGet]
         public async Task<IActionResult> TomarAsistencia(int idClase, DateTime? fecha)
         {
@@ -81,6 +74,14 @@ namespace SIRGA.Web.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
+                // ✅ NUEVO: Verificar si ya está registrada
+                var estudiantesConAsistencia = response.Data?.Where(e => e.YaRegistrada).ToList();
+                if (estudiantesConAsistencia?.Any() == true)
+                {
+                    _logger.LogInformation($"🔒 Asistencia ya registrada para clase {idClase} en fecha {fechaConsulta:yyyy-MM-dd}");
+                    TempData["InfoMessage"] = "Esta asistencia ya fue registrada. Solo puedes visualizarla.";
+                }
+
                 ViewBag.IdClase = idClase;
                 ViewBag.Fecha = fechaConsulta;
 
@@ -94,26 +95,48 @@ namespace SIRGA.Web.Controllers
             }
         }
 
-        /// <summary>
-        /// Registra la asistencia masiva
-        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegistrarAsistenciaMasiva([FromBody] RegistrarAsistenciaMasivaDto model)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                _logger.LogWarning("❌ Modelo inválido al registrar asistencia masiva");
+                return BadRequest(new { success = false, message = "Datos inválidos", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+            }
 
             try
             {
+                // ✅ VALIDACIÓN: Verificar si ya existe asistencia registrada
+                var estudiantesResponse = await _apiService.GetAsync<ApiResponse<List<EstudianteClaseDto>>>(
+                    $"api/Asistencia/Clase/{model.IdClaseProgramada}/Estudiantes?fecha={model.Fecha:yyyy-MM-dd}");
+
+                if (estudiantesResponse?.Success == true && estudiantesResponse.Data?.Any(e => e.YaRegistrada) == true)
+                {
+                    _logger.LogWarning($"Intento de duplicar asistencia para clase {model.IdClaseProgramada} en {model.Fecha:yyyy-MM-dd}");
+                    return Json(new
+                    {
+                        success = false,
+                        message = "La asistencia ya fue registrada para esta clase. No se permite duplicar registros."
+                    });
+                }
+
+                _logger.LogInformation($"Registrando asistencia masiva - Clase: {model.IdClaseProgramada}, Fecha: {model.Fecha:yyyy-MM-dd}, Total estudiantes: {model.Asistencias.Count}");
+
+                // Contar justificaciones
+                var conJustificacion = model.Asistencias.Count(a => !string.IsNullOrEmpty(a.Justificacion));
+                _logger.LogInformation($"📝 Asistencias con justificación: {conJustificacion}");
+
                 var response = await _apiService.PostAsync<RegistrarAsistenciaMasivaDto, ApiResponse<List<AsistenciaResponseDto>>>(
                     "api/Asistencia/Registrar-Masiva", model);
 
                 if (response?.Success == true)
                 {
+                    _logger.LogInformation($"✅ Asistencia masiva registrada exitosamente para clase {model.IdClaseProgramada}");
                     return Json(new { success = true, message = "Asistencia registrada exitosamente" });
                 }
 
+                _logger.LogWarning($"❌ Error al registrar asistencia: {response?.Message}");
                 return Json(new
                 {
                     success = false,
@@ -123,14 +146,11 @@ namespace SIRGA.Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al registrar asistencia masiva");
-                return Json(new { success = false, message = "Error al procesar la solicitud" });
+                _logger.LogError(ex, "❌ Excepción al registrar asistencia masiva");
+                return Json(new { success = false, message = "Error al procesar la solicitud: " + ex.Message });
             }
         }
 
-        /// <summary>
-        /// Registra asistencia individual
-        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegistrarAsistencia([FromBody] RegistrarAsistenciaDto model)
@@ -161,9 +181,6 @@ namespace SIRGA.Web.Controllers
             }
         }
 
-        /// <summary>
-        /// Justifica una asistencia
-        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> JustificarAsistencia(int id, [FromBody] JustificarAsistenciaDto model)
@@ -173,7 +190,6 @@ namespace SIRGA.Web.Controllers
 
             try
             {
-                // Usar el método PatchAsync con body
                 var response = await _apiService.PatchAsync($"api/Asistencia/{id}/Justificar", model);
 
                 if (response)
@@ -190,9 +206,6 @@ namespace SIRGA.Web.Controllers
             }
         }
 
-        /// <summary>
-        /// Muestra el historial de asistencia de una clase
-        /// </summary>
         [HttpGet]
         public async Task<IActionResult> Historial(int idClase, DateTime? fechaInicio, DateTime? fechaFin)
         {
