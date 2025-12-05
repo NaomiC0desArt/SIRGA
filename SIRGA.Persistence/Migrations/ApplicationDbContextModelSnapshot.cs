@@ -155,6 +155,28 @@ namespace SIRGA.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("SIRGA.Domain.Entities.AnioEscolar", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("AnioFin")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AnioInicio")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AniosEscolares");
+                });
+
             modelBuilder.Entity("SIRGA.Domain.Entities.Asignatura", b =>
                 {
                     b.Property<int>("Id")
@@ -162,6 +184,10 @@ namespace SIRGA.Persistence.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
@@ -171,9 +197,87 @@ namespace SIRGA.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("TipoAsignatura")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Asignaturas");
+                });
+
+            modelBuilder.Entity("SIRGA.Domain.Entities.Calificacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AsignaturaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CursoAcademicoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EstudianteId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("Examenes")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("ExamenesTeoricos")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("Exposiciones")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("NotaPeriodo")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("Participacion")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int>("PeriodoId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("Practicas")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("ProyectoFinal")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("Proyectos")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<bool>("Publicado")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("Tareas")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("Teoria")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AsignaturaId");
+
+                    b.HasIndex("CursoAcademicoId");
+
+                    b.HasIndex("PeriodoId");
+
+                    b.ToTable("Calificaciones");
                 });
 
             modelBuilder.Entity("SIRGA.Domain.Entities.ClaseProgramada", b =>
@@ -331,6 +435,33 @@ namespace SIRGA.Persistence.Migrations
                     b.HasIndex("IdEstudiante");
 
                     b.ToTable("Inscripciones");
+                });
+
+            modelBuilder.Entity("SIRGA.Domain.Entities.Periodo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AnioEscolarId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaFin")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaInicio")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Numero")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AnioEscolarId");
+
+                    b.ToTable("Periodos");
                 });
 
             modelBuilder.Entity("SIRGA.Domain.Entities.Profesor", b =>
@@ -519,6 +650,33 @@ namespace SIRGA.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SIRGA.Domain.Entities.Calificacion", b =>
+                {
+                    b.HasOne("SIRGA.Domain.Entities.Asignatura", "Asignatura")
+                        .WithMany()
+                        .HasForeignKey("AsignaturaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SIRGA.Domain.Entities.CursoAcademico", "CursoAcademico")
+                        .WithMany()
+                        .HasForeignKey("CursoAcademicoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SIRGA.Domain.Entities.Periodo", "Periodo")
+                        .WithMany()
+                        .HasForeignKey("PeriodoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Asignatura");
+
+                    b.Navigation("CursoAcademico");
+
+                    b.Navigation("Periodo");
+                });
+
             modelBuilder.Entity("SIRGA.Domain.Entities.ClaseProgramada", b =>
                 {
                     b.HasOne("SIRGA.Domain.Entities.Asignatura", "Asignatura")
@@ -583,6 +741,17 @@ namespace SIRGA.Persistence.Migrations
                     b.Navigation("CursoAcademico");
 
                     b.Navigation("Estudiante");
+                });
+
+            modelBuilder.Entity("SIRGA.Domain.Entities.Periodo", b =>
+                {
+                    b.HasOne("SIRGA.Domain.Entities.AnioEscolar", "AnioEscolar")
+                        .WithMany()
+                        .HasForeignKey("AnioEscolarId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AnioEscolar");
                 });
 
             modelBuilder.Entity("SIRGA.Domain.Entities.Profesor", b =>

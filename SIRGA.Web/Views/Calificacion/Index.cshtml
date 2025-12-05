@@ -1,0 +1,143 @@
+﻿@model IEnumerable<SIRGA.Application.DTOs.Entities.CalificacionDto>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Id)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EstudianteId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EstudianteNombre)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AsignaturaId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AsignaturaNombre)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CursoAcademicoId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PeriodoId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PeriodoNumero)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tareas)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ExamenesTeoricos)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Exposiciones)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Participacion)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Practicas)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ProyectoFinal)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Teoria)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Examenes)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Proyectos)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.NotaPeriodo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Publicado)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EstudianteId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EstudianteNombre)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AsignaturaId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AsignaturaNombre)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CursoAcademicoId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PeriodoId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PeriodoNumero)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tareas)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ExamenesTeoricos)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Exposiciones)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Participacion)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Practicas)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ProyectoFinal)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Teoria)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Examenes)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Proyectos)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.NotaPeriodo)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Publicado)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |
+                @Html.ActionLink("Details", "Details", new { id=item.Id }) |
+                @Html.ActionLink("Delete", "Delete", new { id=item.Id })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

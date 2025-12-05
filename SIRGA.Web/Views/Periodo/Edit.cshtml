@@ -1,0 +1,416 @@
+﻿@model SIRGA.Application.DTOs.Entities.PeriodoDto
+
+@{
+    ViewData["Title"] = "Editar Período";
+}
+
+<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
+    <div class="max-w-2xl mx-auto">
+
+        <!-- Header -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+            <div class="flex items-center">
+                <div class="h-12 w-12 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Editar Período</h1>
+                    <p class="text-gray-600 mt-1">Modifique la información del período académico</p>
+                    <div class="mt-2 flex items-center text-sm text-gray-500">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path>
+                        </svg>
+                        ID: @Model.Id
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            <form asp-action="Edit" method="post" class="space-y-6" id="formPeriodo">
+                <input type="hidden" asp-for="Id" />
+                <div asp-validation-summary="ModelOnly" class="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg p-4"></div>
+
+                <!-- Año Escolar -->
+                <div>
+                    <label asp-for="AnioEscolarId" class="block text-md font-medium text-gray-700 mb-2">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Año Escolar <span class="text-red-500">*</span>
+                        </span>
+                    </label>
+                    <select asp-for="AnioEscolarId"
+                            asp-items="ViewBag.AnioEscolares"
+                            id="anioEscolarSelect"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 form-select">
+                        <option value="">Seleccione un año escolar</option>
+                    </select>
+                    <span asp-validation-for="AnioEscolarId" class="text-sm text-red-500 mt-1"></span>
+                    <p class="mt-2 text-sm text-gray-500" id="anioEscolarInfo">
+                        💡 Seleccione el año escolar al que pertenece este período.
+                    </p>
+                </div>
+
+                <!-- Número del Período -->
+                <div>
+                    <label asp-for="Numero" class="block text-md font-medium text-gray-700 mb-2">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            Número del Período <span class="text-red-500">*</span>
+                        </span>
+                    </label>
+                    <select asp-for="Numero"
+                            id="numeroSelect"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200">
+                        <option value="">Seleccione el número</option>
+                        <option value=1>1 - Primer Período</option>
+                        <option value=2>2 - Segundo Período</option>
+                        <option value=3>3 - Tercer Período</option>
+                        <option value=4>4 - Cuarto Período</option>
+                    </select>
+                    <span asp-validation-for="Numero" class="text-sm text-red-500 mt-1"></span>
+                    <p class="mt-2 text-sm text-gray-500" id="periodoInfo">
+                        💡 Seleccione el número del período (1 al 4).
+                    </p>
+                </div>
+
+                <!-- Fecha de Inicio -->
+                <div>
+                    <label asp-for="FechaInicio" class="block text-md font-medium text-gray-700 mb-2">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Fecha de Inicio <span class="text-red-500">*</span>
+                        </span>
+                    </label>
+                    <input asp-for="FechaInicio"
+                           type="date"
+                           id="fechaInicioInput"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200" />
+                    <span asp-validation-for="FechaInicio" class="text-sm text-red-500 mt-1"></span>
+                    <p class="mt-2 text-sm text-gray-500" id="fechaInicioInfo">
+                        💡 Seleccione la fecha de inicio del período.
+                    </p>
+                </div>
+
+                <!-- Fecha de Fin -->
+                <div>
+                    <label asp-for="FechaFin" class="block text-md font-medium text-gray-700 mb-2">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Fecha de Fin <span class="text-red-500">*</span>
+                        </span>
+                    </label>
+                    <input asp-for="FechaFin"
+                           type="date"
+                           id="fechaFinInput"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200" />
+                    <span asp-validation-for="FechaFin" class="text-sm text-red-500 mt-1"></span>
+                    <p class="mt-2 text-sm text-gray-500" id="fechaFinInfo">
+                        💡 Seleccione la fecha de fin del período.
+                    </p>
+                </div>
+
+                <!-- Información del Período -->
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <label class="block text-md font-medium text-yellow-700 mb-2">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Resumen del Período
+                        </span>
+                    </label>
+                    <div id="periodoResumen" class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">ID:</span>
+                            <span class="font-medium text-gray-800">@Model.Id</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Duración:</span>
+                            <span id="duracionDias" class="font-medium text-yellow-800">- días</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Año Escolar:</span>
+                            <span id="anioEscolarNombre" class="font-medium text-yellow-800">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Período:</span>
+                            <span id="periodoNumeroNombre" class="font-medium text-yellow-800">-</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-yellow-600 mt-3">
+                        Revise que toda la información sea correcta antes de guardar los cambios.
+                    </p>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex justify-between gap-4 pt-6 border-t border-gray-200">
+                   
+                    <div class="flex gap-4">
+                        <a asp-action="Index"
+                           class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg shadow-md transition-all duration-200">
+                            Cancelar
+                        </a>
+                        <button type="submit"
+                                class="px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                            <span class="flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                                </svg>
+                                Guardar Cambios
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Al cargar el documento
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Inicializando formulario de edición de período...');
+
+            // Configurar eventos
+            configurarEventos();
+
+            // Inicializar resumen
+            actualizarResumen();
+
+            // Cargar datos iniciales
+            cargarDatosIniciales();
+        });
+
+        // Cargar datos iniciales del modelo
+        function cargarDatosIniciales() {
+            // Actualizar info de fechas con valores iniciales
+            const fechaInicioInput = document.getElementById('fechaInicioInput');
+            const fechaFinInput = document.getElementById('fechaFinInput');
+
+            if (fechaInicioInput && fechaInicioInput.value) {
+                fechaInicioInput.dispatchEvent(new Event('change'));
+            }
+
+            if (fechaFinInput && fechaFinInput.value) {
+                fechaFinInput.dispatchEvent(new Event('change'));
+            }
+        }
+
+        // Configurar todos los eventos
+        function configurarEventos() {
+            const anioEscolarSelect = document.getElementById('anioEscolarSelect');
+            const numeroSelect = document.getElementById('numeroSelect');
+            const fechaInicioInput = document.getElementById('fechaInicioInput');
+            const fechaFinInput = document.getElementById('fechaFinInput');
+
+            if (anioEscolarSelect) {
+                anioEscolarSelect.addEventListener('change', actualizarResumen);
+            }
+
+            if (numeroSelect) {
+                numeroSelect.addEventListener('change', actualizarResumen);
+            }
+
+            if (fechaInicioInput) {
+                fechaInicioInput.addEventListener('change', function() {
+                    actualizarResumen();
+                    validarFechas();
+                });
+            }
+
+            if (fechaFinInput) {
+                fechaFinInput.addEventListener('change', function() {
+                    actualizarResumen();
+                    validarFechas();
+                });
+            }
+        }
+
+        // Actualizar el resumen del período
+        function actualizarResumen() {
+            const anioEscolarSelect = document.getElementById('anioEscolarSelect');
+            const numeroSelect = document.getElementById('numeroSelect');
+            const fechaInicioInput = document.getElementById('fechaInicioInput');
+            const fechaFinInput = document.getElementById('fechaFinInput');
+
+            const anioEscolarNombre = document.getElementById('anioEscolarNombre');
+            const periodoNumeroNombre = document.getElementById('periodoNumeroNombre');
+            const duracionDias = document.getElementById('duracionDias');
+
+            // Actualizar año escolar
+            if (anioEscolarSelect && anioEscolarSelect.value) {
+                const selectedOption = anioEscolarSelect.options[anioEscolarSelect.selectedIndex];
+                anioEscolarNombre.textContent = selectedOption.text;
+            } else {
+                anioEscolarNombre.textContent = '-';
+            }
+
+            // Actualizar número del período
+            if (numeroSelect && numeroSelect.value) {
+                const periodos = {
+                    '1': 'Primer Período',
+                    '2': 'Segundo Período',
+                    '3': 'Tercer Período',
+                    '4': 'Cuarto Período'
+                };
+                periodoNumeroNombre.textContent = periodos[numeroSelect.value] || '-';
+            } else {
+                periodoNumeroNombre.textContent = '-';
+            }
+
+            // Calcular duración
+            if (fechaInicioInput && fechaInicioInput.value &&
+                fechaFinInput && fechaFinInput.value) {
+                const inicio = new Date(fechaInicioInput.value);
+                const fin = new Date(fechaFinInput.value);
+
+                if (inicio <= fin) {
+                    const diffTime = Math.abs(fin - inicio);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 para incluir ambos días
+                    duracionDias.textContent = `${diffDays} días`;
+                    duracionDias.className = 'font-medium text-green-600';
+                } else {
+                    duracionDias.textContent = 'Fecha inválida';
+                    duracionDias.className = 'font-medium text-red-600';
+                }
+            } else {
+                duracionDias.textContent = '- días';
+                duracionDias.className = 'font-medium text-yellow-800';
+            }
+        }
+
+        // Validar fechas
+        function validarFechas() {
+            const fechaInicioInput = document.getElementById('fechaInicioInput');
+            const fechaFinInput = document.getElementById('fechaFinInput');
+            const fechaInicioInfo = document.getElementById('fechaInicioInfo');
+            const fechaFinInfo = document.getElementById('fechaFinInfo');
+
+            if (!fechaInicioInput.value || !fechaFinInput.value) {
+                return;
+            }
+
+            const inicio = new Date(fechaInicioInput.value);
+            const fin = new Date(fechaFinInput.value);
+
+            if (inicio > fin) {
+                fechaInicioInfo.textContent = '❌ La fecha de inicio debe ser anterior a la fecha de fin';
+                fechaInicioInfo.className = 'mt-2 text-sm text-red-600';
+                fechaFinInfo.textContent = '❌ La fecha de fin debe ser posterior a la fecha de inicio';
+                fechaFinInfo.className = 'mt-2 text-sm text-red-600';
+            } else {
+                // Validar duración mínima (opcional)
+                const diffTime = Math.abs(fin - inicio);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+                if (diffDays < 7) {
+                    fechaInicioInfo.textContent = '⚠️ El período es muy corto (menos de 1 semana)';
+                    fechaInicioInfo.className = 'mt-2 text-sm text-yellow-600';
+                    fechaFinInfo.textContent = '⚠️ Considera ampliar la duración del período';
+                    fechaFinInfo.className = 'mt-2 text-sm text-yellow-600';
+                } else if (diffDays > 90) {
+                    fechaInicioInfo.textContent = '⚠️ El período es muy largo (más de 3 meses)';
+                    fechaInicioInfo.className = 'mt-2 text-sm text-yellow-600';
+                    fechaFinInfo.textContent = '⚠️ Considera reducir la duración del período';
+                    fechaFinInfo.className = 'mt-2 text-sm text-yellow-600';
+                } else {
+                    fechaInicioInfo.textContent = '✅ Fecha válida';
+                    fechaInicioInfo.className = 'mt-2 text-sm text-green-600';
+                    fechaFinInfo.textContent = '✅ Fecha válida';
+                    fechaFinInfo.className = 'mt-2 text-sm text-green-600';
+                }
+            }
+        }
+
+        // Validación antes de enviar
+        document.getElementById('formPeriodo').addEventListener('submit', function (e) {
+            const anioEscolarSelect = document.getElementById('anioEscolarSelect');
+            const numeroSelect = document.getElementById('numeroSelect');
+            const fechaInicioInput = document.getElementById('fechaInicioInput');
+            const fechaFinInput = document.getElementById('fechaFinInput');
+
+            // Validar campos requeridos
+            if (!anioEscolarSelect.value) {
+                e.preventDefault();
+                alert('Por favor seleccione un año escolar');
+                anioEscolarSelect.focus();
+                return false;
+            }
+
+            if (!numeroSelect.value) {
+                e.preventDefault();
+                alert('Por favor seleccione el número del período');
+                numeroSelect.focus();
+                return false;
+            }
+
+            if (!fechaInicioInput.value) {
+                e.preventDefault();
+                alert('Por favor seleccione la fecha de inicio');
+                fechaInicioInput.focus();
+                return false;
+            }
+
+            if (!fechaFinInput.value) {
+                e.preventDefault();
+                alert('Por favor seleccione la fecha de fin');
+                fechaFinInput.focus();
+                return false;
+            }
+
+            // Validar fechas
+            const inicio = new Date(fechaInicioInput.value);
+            const fin = new Date(fechaFinInput.value);
+
+            if (inicio > fin) {
+                e.preventDefault();
+                alert('La fecha de inicio debe ser anterior a la fecha de fin');
+                fechaInicioInput.focus();
+                return false;
+            }
+
+            // Validar duración
+            const diffTime = Math.abs(fin - inicio);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+            if (diffDays < 1) {
+                e.preventDefault();
+                alert('El período debe tener al menos 1 día de duración');
+                return false;
+            }
+
+            if (diffDays > 120) {
+                if (!confirm(`El período tiene ${diffDays} días (más de 4 meses). ¿Está seguro que desea continuar?`)) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+
+            // Confirmar edición
+            const periodoInfo = `Período ${numeroSelect.options[numeroSelect.selectedIndex].text} para el año ${anioEscolarSelect.options[anioEscolarSelect.selectedIndex].text}`;
+
+            if (!confirm(`¿Está seguro que desea guardar los cambios en ${periodoInfo}?`)) {
+                e.preventDefault();
+                return false;
+            }
+
+            return true;
+        });
+    </script>
+}

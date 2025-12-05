@@ -8,7 +8,7 @@
         public string AsignaturaNombre { get; set; }
         public int CursoAcademicoId { get; set; }
         public int PeriodoId { get; set; }
-        public string PeriodoNumero { get; set; }
+        public int PeriodoNumero { get; set; }
 
         // TEÓRICA
         public decimal? Tareas { get; set; }

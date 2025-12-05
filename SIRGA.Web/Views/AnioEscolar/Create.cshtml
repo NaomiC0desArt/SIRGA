@@ -1,0 +1,316 @@
+﻿@model SIRGA.Application.DTOs.Entities.AnioEscolarDto
+
+@{
+    ViewData["Title"] = "Crear Año Escolar";
+}
+
+<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
+    <div class="max-w-2xl mx-auto">
+
+        <!-- Header -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+            <div class="flex items-center">
+                <div class="h-12 w-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Crear Año Escolar</h1>
+                    <p class="text-gray-600 mt-1">Define un nuevo período académico</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            <form asp-action="Create" method="post" class="space-y-6" id="formAnioEscolar">
+                <div asp-validation-summary="ModelOnly" class="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg p-4"></div>
+
+                <!-- Año de Inicio -->
+                <div>
+                    <label asp-for="AnioInicio" class="block text-md font-medium text-gray-700 mb-2">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Año de Inicio <span class="text-red-500">*</span>
+                        </span>
+                    </label>
+                    <div class="relative">
+                        <input asp-for="AnioInicio"
+                               id="anioInicioInput"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                               placeholder="Ej: 2024"
+                               type="number"
+                               min="2000"
+                               max="2100" />
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <span asp-validation-for="AnioInicio" class="text-sm text-red-500 mt-1"></span>
+                    <p class="mt-2 text-sm text-gray-500">
+                        💡 El año de inicio debe ser un número entre 2000 y 2100.
+                    </p>
+                </div>
+
+                <!-- Año de Fin -->
+                <div>
+                    <label asp-for="AnioFin" class="block text-md font-medium text-gray-700 mb-2">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Año de Fin <span class="text-red-500">*</span>
+                        </span>
+                    </label>
+                    <div class="relative">
+                        <input asp-for="AnioFin"
+                               id="anioFinInput"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                               placeholder="Ej: 2025"
+                               type="number"
+                               min="2000"
+                               max="2100" />
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <span asp-validation-for="AnioFin" class="text-sm text-red-500 mt-1"></span>
+                    <p class="mt-2 text-sm text-gray-500" id="anioFinInfo">
+                        💡 El año de fin debe ser mayor al año de inicio.
+                    </p>
+                </div>
+
+                <!-- Período Mostrado (Calculado) -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <label class="block text-md font-medium text-blue-700 mb-2">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Período Escolar
+                        </span>
+                    </label>
+                    <div id="periodoMostrado" class="text-lg font-semibold text-blue-800">
+                        Ingrese los años para ver el período
+                    </div>
+                    <p class="text-sm text-blue-600 mt-2">
+                        Este será el nombre que aparecerá en el sistema para identificar este año escolar.
+                    </p>
+                </div>
+
+                <!-- Estado Activo -->
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            <input asp-for="Activo"
+                                   class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 transition-all duration-200"
+                                   id="activoCheckbox" />
+                        </div>
+                        <div class="ml-3">
+                            <label asp-for="Activo" class="text-md font-medium text-gray-700">
+                                <span class="flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Activo
+                                </span>
+                            </label>
+                            <p class="text-sm text-gray-500 mt-1">
+                                Marque esta casilla si este año escolar estará activo en el sistema.
+                                Solo un año escolar puede estar activo a la vez.
+                            </p>
+                            <div id="activoWarning" class="hidden mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-700">
+                                ⚠️ Habrá más de un año escolar activo. Se recomienda tener solo uno activo.
+                            </div>
+                        </div>
+                    </div>
+                    <span asp-validation-for="Activo" class="text-sm text-red-500 mt-1"></span>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex justify-end gap-4 pt-6 border-t border-gray-200">
+                    <a asp-action="Index"
+                       class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg shadow-md transition-all duration-200">
+                        Cancelar
+                    </a>
+                    <button type="submit"
+                            class="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Crear Año Escolar
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Al cargar el documento
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Inicializando formulario de año escolar...');
+
+            // Configurar eventos para los inputs de año
+            configurarInputsAnio();
+
+            // Configurar validación del checkbox activo
+            configurarValidacionActivo();
+        });
+
+        // Configurar inputs de año
+        function configurarInputsAnio() {
+            const anioInicioInput = document.getElementById('anioInicioInput');
+            const anioFinInput = document.getElementById('anioFinInput');
+            const anioFinInfo = document.getElementById('anioFinInfo');
+            const periodoMostrado = document.getElementById('periodoMostrado');
+
+            if (!anioInicioInput || !anioFinInput) return;
+
+            // Función para actualizar el período mostrado
+            function actualizarPeriodo() {
+                const anioInicio = anioInicioInput.value;
+                const anioFin = anioFinInput.value;
+
+                if (anioInicio && anioFin) {
+                    const inicioNum = parseInt(anioInicio);
+                    const finNum = parseInt(anioFin);
+
+                    if (finNum > inicioNum) {
+                        periodoMostrado.textContent = `${anioInicio} - ${anioFin}`;
+                        periodoMostrado.className = 'text-lg font-semibold text-green-700';
+                        anioFinInfo.textContent = '✅ Período válido';
+                        anioFinInfo.className = 'mt-2 text-sm text-green-600';
+                    } else if (finNum === inicioNum) {
+                        periodoMostrado.textContent = `${anioInicio} (Año único)`;
+                        periodoMostrado.className = 'text-lg font-semibold text-yellow-700';
+                        anioFinInfo.textContent = '⚠️ El año de fin debe ser mayor al año de inicio';
+                        anioFinInfo.className = 'mt-2 text-sm text-yellow-600';
+                    } else {
+                        periodoMostrado.textContent = 'Período inválido';
+                        periodoMostrado.className = 'text-lg font-semibold text-red-700';
+                        anioFinInfo.textContent = '❌ El año de fin debe ser mayor al año de inicio';
+                        anioFinInfo.className = 'mt-2 text-sm text-red-600';
+                    }
+                } else {
+                    periodoMostrado.textContent = 'Ingrese los años para ver el período';
+                    periodoMostrado.className = 'text-lg font-semibold text-blue-800';
+                    anioFinInfo.textContent = '💡 El año de fin debe ser mayor al año de inicio';
+                    anioFinInfo.className = 'mt-2 text-sm text-gray-500';
+                }
+            }
+
+            // Configurar eventos
+            anioInicioInput.addEventListener('input', actualizarPeriodo);
+            anioFinInput.addEventListener('input', actualizarPeriodo);
+            anioInicioInput.addEventListener('change', actualizarPeriodo);
+            anioFinInput.addEventListener('change', actualizarPeriodo);
+
+            // Validación adicional al perder foco
+            anioInicioInput.addEventListener('blur', function() {
+                if (this.value) {
+                    const valor = parseInt(this.value);
+                    if (valor < 2000 || valor > 2100) {
+                        this.setCustomValidity('El año debe estar entre 2000 y 2100');
+                        this.reportValidity();
+                    } else {
+                        this.setCustomValidity('');
+                    }
+                }
+            });
+
+            anioFinInput.addEventListener('blur', function() {
+                if (this.value && anioInicioInput.value) {
+                    const inicio = parseInt(anioInicioInput.value);
+                    const fin = parseInt(this.value);
+
+                    if (fin <= inicio) {
+                        this.setCustomValidity('El año de fin debe ser mayor al año de inicio');
+                        this.reportValidity();
+                    } else if (fin < 2000 || fin > 2100) {
+                        this.setCustomValidity('El año debe estar entre 2000 y 2100');
+                        this.reportValidity();
+                    } else {
+                        this.setCustomValidity('');
+                    }
+                }
+            });
+
+            // Inicializar el período
+            actualizarPeriodo();
+        }
+
+        // Configurar validación del checkbox activo
+        function configurarValidacionActivo() {
+            const activoCheckbox = document.getElementById('activoCheckbox');
+            const activoWarning = document.getElementById('activoWarning');
+
+            if (!activoCheckbox || !activoWarning) return;
+
+            activoCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    // Aquí podrías hacer una llamada AJAX para verificar
+                    // si ya existe un año escolar activo
+                    activoWarning.classList.remove('hidden');
+
+                    // Simulación: después de 3 segundos, ocultar la advertencia
+                    setTimeout(() => {
+                        activoWarning.classList.add('hidden');
+                    }, 3000);
+                } else {
+                    activoWarning.classList.add('hidden');
+                }
+            });
+        }
+
+        // Validación antes de enviar
+        document.getElementById('formAnioEscolar').addEventListener('submit', function (e) {
+            const anioInicio = document.getElementById('anioInicioInput').value;
+            const anioFin = document.getElementById('anioFinInput').value;
+
+            if (!anioInicio || !anioFin) {
+                e.preventDefault();
+                alert('Por favor complete ambos años');
+                return false;
+            }
+
+            const inicioNum = parseInt(anioInicio);
+            const finNum = parseInt(anioFin);
+
+            if (inicioNum < 2000 || inicioNum > 2100 || finNum < 2000 || finNum > 2100) {
+                e.preventDefault();
+                alert('Los años deben estar entre 2000 y 2100');
+                return false;
+            }
+
+            if (finNum <= inicioNum) {
+                e.preventDefault();
+                alert('El año de fin debe ser mayor al año de inicio');
+                return false;
+            }
+
+            // Validar que el año de fin sea consecutivo (opcional)
+            if (finNum !== inicioNum + 1) {
+                if (!confirm(`¿Está seguro que desea crear un período de ${finNum - inicioNum} años? Normalmente los años escolares duran 1 año.`)) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    </script>
+}

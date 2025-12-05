@@ -29,7 +29,7 @@ namespace SIRGA.Application.Services
                     CursoAcademicoId = dto.CursoAcademicoId,
                     PeriodoId = dto.PeriodoId
                 };
-                switch (response.Asignatura.TipoAsignatura.ToString())
+                switch (response.Asignatura.TipoAsignatura)
                 {
                     case "Teorica":
                         response.Tareas = dto.Tareas; // 40pts
@@ -136,7 +136,7 @@ namespace SIRGA.Application.Services
                         AsignaturaNombre = item.Asignatura.Nombre,
                         CursoAcademicoId = item.CursoAcademicoId,
                         PeriodoId = item.PeriodoId,
-                        PeriodoNumero = item.Periodo.Numero.ToString(),
+                        PeriodoNumero = item.Periodo.Numero,
                         Tareas = item.Tareas,
                         ExamenesTeoricos = item.ExamenesTeoricos,
                         Exposiciones = item.Exposiciones,

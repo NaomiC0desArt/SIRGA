@@ -1,6 +1,7 @@
 using Microsoft.OpenApi.Models;
 using SIRGA.Identity.Register;
 using SIRGA.IOC;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,11 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 
+});
+
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
 builder.Services.AddIdentityLayer(builder.Configuration);

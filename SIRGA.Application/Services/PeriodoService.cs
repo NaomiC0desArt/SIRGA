@@ -37,7 +37,7 @@ namespace SIRGA.Application.Services
 
                 var periodoResponse = new PeriodoResponseDto
                 {
-                    Numero = periodoCreado.Numero.ToString(),
+                    Numero = periodoCreado.Numero,
                     FechaInicio = periodoCreado.FechaInicio,
                     FechaFin = periodoCreado.FechaFin,
                     AnioEscolarId = periodoCreado.AnioEscolarId,
@@ -100,7 +100,7 @@ namespace SIRGA.Application.Services
                     periodoResponse.Add(new PeriodoResponseDto
                     {
                         Id = periodo.Id,
-                        Numero = periodo.Numero.ToString(),
+                        Numero = periodo.Numero,
                         FechaInicio = periodo.FechaInicio,
                         FechaFin = periodo.FechaFin,
                         AnioEscolarId = periodo.AnioEscolarId,
@@ -125,7 +125,7 @@ namespace SIRGA.Application.Services
                 var periodo = await _periodoRepository.GetByIdAsync(id);
                 if (periodo == null)
                 {
-                    return ApiResponse<PeriodoResponseDto>.ErrorResponse("Periodo encontrado");
+                    return ApiResponse<PeriodoResponseDto>.ErrorResponse("Periodo no encontrado");
                 }
                 //Obtener el Año Escolar
                 var anioEscolar = await _applicationDbContext.AniosEscolares
@@ -134,7 +134,7 @@ namespace SIRGA.Application.Services
                 var periodoResponse = new PeriodoResponseDto
                 {
                     Id = periodo.Id,
-                    Numero = periodo.Numero.ToString(),
+                    Numero = periodo.Numero,
                     FechaInicio = periodo.FechaInicio,
                     FechaFin = periodo.FechaFin,
                     AnioEscolarId = periodo.AnioEscolarId,
@@ -162,6 +162,7 @@ namespace SIRGA.Application.Services
                     return ApiResponse<PeriodoResponseDto>.ErrorResponse("Periodo no encontrado");
                 }
 
+                periodo.Id = dto.Id;
                 periodo.Numero = dto.Numero;
                 periodo.FechaInicio = dto.FechaInicio;
                 periodo.FechaFin = dto.FechaFin;
@@ -175,7 +176,7 @@ namespace SIRGA.Application.Services
                 var periodoResponse = new PeriodoResponseDto
                 {
                     Id = periodoUpdate.Id,
-                    Numero = periodoUpdate.Numero.ToString(),
+                    Numero = periodoUpdate.Numero,
                     FechaInicio = periodoUpdate.FechaInicio,
                     FechaFin = periodoUpdate.FechaFin,
                     AnioEscolarId = periodoUpdate.AnioEscolarId,

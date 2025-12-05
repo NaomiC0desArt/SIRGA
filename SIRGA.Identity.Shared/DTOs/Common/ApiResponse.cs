@@ -1,5 +1,8 @@
 ﻿
 
+
+using System.Web.Mvc;
+
 namespace SIRGA.Application.DTOs.Common
 {
     public class ApiResponse<T>
@@ -33,6 +36,10 @@ namespace SIRGA.Application.DTOs.Common
                 Errors = errors ?? new List<string>()
             };
         }
-    
+
+        public object Select(Func<object, SelectListItem> value)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

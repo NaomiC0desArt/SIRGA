@@ -1,0 +1,307 @@
+﻿@model SIRGA.Application.DTOs.Entities.AnioEscolarDto
+
+@{
+    ViewData["Title"] = "Editar Año Escolar";
+}
+
+<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
+    <div class="max-w-2xl mx-auto">
+
+        <!-- Header -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+            <div class="flex items-center">
+                <div class="h-12 w-12 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Editar Año Escolar</h1>
+                    <p class="text-gray-600 mt-1">
+                        Modifica el período académico existente
+                        <span class="text-blue-600 font-medium ml-2">ID: @Model.Id</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Información adicional para edición -->
+            @if (Model.Activo)
+            {
+                <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="text-green-700 font-medium">Este año escolar está actualmente ACTIVO</span>
+                    </div>
+                    <p class="text-sm text-green-600 mt-1 ml-7">
+                        Los cambios que realice afectarán a todas las operaciones del sistema.
+                    </p>
+                </div>
+            }
+        </div>
+
+        <!-- Formulario -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            <form asp-action="Edit" method="post" class="space-y-6" id="formAnioEscolar">
+                <input type="hidden" asp-for="Id" />
+
+                <div asp-validation-summary="ModelOnly" class="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg p-4"></div>
+
+                <!-- Año de Inicio (solo lectura) -->
+                <div>
+                    <label asp-for="AnioInicio" class="block text-md font-medium text-gray-700 mb-2">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Año de Inicio
+                        </span>
+                    </label>
+                    <div class="relative">
+                        <input asp-for="AnioInicio"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-gray-50 text-gray-700"
+                               type="number"
+                               readonly />
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">
+                        <span class="flex items-center">
+                            <svg class="w-4 h-4 mr-1 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            El año de inicio no se puede modificar.
+                        </span>
+                    </p>
+                </div>
+
+                <!-- Año de Fin (solo lectura) -->
+                <div>
+                    <label asp-for="AnioFin" class="block text-md font-medium text-gray-700 mb-2">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Año de Fin
+                        </span>
+                    </label>
+                    <div class="relative">
+                        <input asp-for="AnioFin"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-gray-50 text-gray-700"
+                               type="number"
+                               readonly />
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">
+                        <span class="flex items-center">
+                            <svg class="w-4 h-4 mr-1 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            El año de fin no se puede modificar.
+                        </span>
+                    </p>
+                </div>
+
+                <!-- Período Mostrado -->
+                <div class="@(Model.Activo ? "bg-green-50 border-green-200" : "bg-blue-50 border-blue-200") border rounded-lg p-4">
+                    <label class="block text-md font-medium @(Model.Activo ? "text-green-700" : "text-blue-700") mb-2">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2 @(Model.Activo ? "text-green-500" : "text-blue-500")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Período Escolar
+                        </span>
+                    </label>
+                    <div class="text-lg font-semibold @(Model.Activo ? "text-green-800" : "text-blue-800")">
+                        @Model.AnioInicio - @Model.AnioFin
+                    </div>
+                    <p class="text-sm @(Model.Activo ? "text-green-600" : "text-blue-600") mt-2">
+                        Este es el nombre que aparece en el sistema para identificar este año escolar.
+                    </p>
+                </div>
+
+                <!-- Estado Activo -->
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            <input asp-for="Activo"
+                                   class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 transition-all duration-200"
+                                   id="activoCheckbox" />
+                        </div>
+                        <div class="ml-3">
+                            <label asp-for="Activo" class="text-md font-medium text-gray-700">
+                                <span class="flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Activo
+                                </span>
+                            </label>
+                            <p class="text-sm text-gray-500 mt-1">
+                                @if (Model.Activo)
+                                {
+                                    <text>Este año escolar está actualmente activo. Desmarque para desactivarlo.</text>
+                                }
+                                else
+                                {
+                                    <text>Este año escolar está inactivo. Márquelo para activarlo.</text>
+                                }
+                                <br />
+                                <span class="font-medium">Solo un año escolar puede estar activo a la vez.</span>
+                            </p>
+                            <div id="activoWarning" class="hidden mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-700">
+                                ⚠️ Habrá más de un año escolar activo. Se recomienda tener solo uno activo.
+                            </div>
+                            @if (Model.Activo)
+                            {
+                                <div class="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
+                                    ⓘ Al desactivar este año escolar, asegúrese de tener otro año activo para continuar las operaciones.
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <span asp-validation-for="Activo" class="text-sm text-red-500 mt-1"></span>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex justify-between gap-4 pt-6 border-t border-gray-200">
+                    <div>
+                        <button type="button"
+                                onclick="confirmarEliminacion()"
+                                class="px-6 py-3 bg-red-50 hover:bg-red-100 text-red-700 font-semibold rounded-lg shadow-md transition-all duration-200 border border-red-200">
+                            <span class="flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                Eliminar
+                            </span>
+                        </button>
+                    </div>
+                    <div class="flex gap-4">
+                        <a asp-action="Index"
+                           class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg shadow-md transition-all duration-200">
+                            Cancelar
+                        </a>
+                        <button type="submit"
+                                class="px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                            <span class="flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                                </svg>
+                                Guardar Cambios
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Al cargar el documento
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Inicializando formulario de edición...');
+
+            // Configurar validación del checkbox activo
+            configurarValidacionActivo();
+        });
+
+        // Configurar validación del checkbox activo
+        function configurarValidacionActivo() {
+            const activoCheckbox = document.getElementById('activoCheckbox');
+            const activoWarning = document.getElementById('activoWarning');
+            const esActivo = @Json.Serialize(Model.Activo);
+
+            if (!activoCheckbox || !activoWarning) return;
+
+            // Mostrar advertencia si se marca como activo y ya está activo
+            if (esActivo && activoCheckbox.checked) {
+                activoWarning.textContent = 'Este año escolar ya está activo. Desmarque para desactivarlo.';
+                activoWarning.className = 'mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700';
+                activoWarning.classList.remove('hidden');
+            }
+
+            activoCheckbox.addEventListener('change', function() {
+                if (this.checked && !esActivo) {
+                    // Si se marca como activo y no estaba activo
+                    activoWarning.textContent = '⚠️ Habrá más de un año escolar activo. Se recomienda tener solo uno activo.';
+                    activoWarning.className = 'mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-700';
+                    activoWarning.classList.remove('hidden');
+                } else if (!this.checked && esActivo) {
+                    // Si se desmarca y estaba activo
+                    activoWarning.textContent = 'ⓘ Este año escolar se desactivará. Asegúrese de tener otro año activo.';
+                    activoWarning.className = 'mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700';
+                    activoWarning.classList.remove('hidden');
+                } else {
+                    activoWarning.classList.add('hidden');
+                }
+            });
+        }
+
+        // Confirmar eliminación
+        function confirmarEliminacion() {
+            const esActivo = @Json.Serialize(Model.Activo);
+            const anioInicio = @Model.AnioInicio;
+            const anioFin = @Model.AnioFin;
+            const id = @Model.Id;
+
+            let mensaje = `¿Está seguro que desea eliminar el año escolar ${anioInicio}-${anioFin}?`;
+
+            if (esActivo) {
+                mensaje += '\n\n⚠️ ADVERTENCIA: Este año escolar está ACTIVO. No podrá eliminarlo mientras esté activo.';
+                alert(mensaje);
+                return;
+            }
+
+            mensaje += '\n\nEsta acción no se puede deshacer.';
+
+            if (confirm(mensaje)) {
+                // Redirigir a la acción de eliminación
+                window.location.href = '@Url.Action("Delete", new { id = Model.Id })';
+            }
+        }
+
+        // Validación antes de enviar
+        document.getElementById('formAnioEscolar').addEventListener('submit', function (e) {
+            const esActivo = @Json.Serialize(Model.Activo);
+            const checkboxActivo = document.getElementById('activoCheckbox').checked;
+            const anioInicio = @Model.AnioInicio;
+            const anioFin = @Model.AnioFin;
+
+            if (esActivo && !checkboxActivo) {
+                // Si estaba activo y se va a desactivar
+                if (!confirm(`¿Está seguro que desea DESACTIVAR el año escolar ${anioInicio}-${anioFin}?\n\nAsegúrese de tener otro año escolar activo para continuar las operaciones.`)) {
+                    e.preventDefault();
+                    return false;
+                }
+            } else if (!esActivo && checkboxActivo) {
+                // Si estaba inactivo y se va a activar
+                if (!confirm(`¿Está seguro que desea ACTIVAR el año escolar ${anioInicio}-${anioFin}?\n\nSolo un año escolar puede estar activo a la vez.`)) {
+                    e.preventDefault();
+                    return false;
+                }
+            } else {
+                // Solo cambio de estado
+                if (!confirm(`¿Está seguro que desea guardar los cambios en el año escolar ${anioInicio}-${anioFin}?`)) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    </script>
+}

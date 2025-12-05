@@ -67,15 +67,21 @@ namespace SIRGA.Persistence.DbContext
                 .HasForeignKey<Profesor>(p => p.ApplicationUserId)
                 .IsRequired();
             });
-            
 
-
-			// Para que en caso de que borremos un grado noborre los CursosAcademicos.
-			foreach (var relationship in builder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
+            // Para que en caso de que borremos un grado noborre los CursosAcademicos.
+            foreach (var relationship in builder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
 			{
 				relationship.DeleteBehavior = DeleteBehavior.Restrict;
 			}
 		}
 
-	}
+        //Configurar la precision de los decimales en Calificacion
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+        {
+            configurationBuilder.Properties<decimal>()
+                .HavePrecision(5, 2);
+        }
+
+
+    }
 }

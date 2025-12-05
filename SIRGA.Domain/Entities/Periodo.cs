@@ -8,7 +8,7 @@ namespace SIRGA.Domain.Entities
     {
         [Key]
         public int Id { get; set; }
-        public NumeroPeriodo Numero { get; set; } // 1–4
+        public int Numero { get; set; } // 1–4
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
         public int AnioEscolarId { get; set; }

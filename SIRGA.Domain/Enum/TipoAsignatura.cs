@@ -2,8 +2,8 @@
 {
     public enum TipoAsignatura
     {
-        Teorica,
-        Practica,
-        TeoricoPractica
+        Teorica = 1,
+        Practica = 2,
+        TeoricoPractica = 3
     }
 }

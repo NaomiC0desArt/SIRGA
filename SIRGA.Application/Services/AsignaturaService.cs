@@ -34,7 +34,7 @@ namespace SIRGA.Application.Services
             // Generar número aleatorio de 3 dígitos
             int numero = _random.Next(100, 1000); // 100 hasta 999
 
-            return $"{letras}{numero}";
+            return $"{letras}-{numero}";
         }
 
         public async Task<ApiResponse<AsignaturaResponseDto>> CreateAsync(AsignaturaDto dto)
