@@ -7,11 +7,11 @@ namespace SIRGA.Infraestructure.Services
 {
     public class EmailGeneratorService : IEmailGeneratorService
     {
-        public string GenerateEstudianteEmail(string matricula, int anoDeIngreso)
+        public string GenerateEstudianteEmail(string matricula)
         {
             // Formato: {matricula}{anoDeIngreso}@SIGA.edu.do
             // Ejemplo: 000120231@SIGA.edu.do
-            return $"{matricula}{anoDeIngreso}@SIGA.edu.do";
+            return $"{matricula}@SIGA.edu.do";
         }
 
         public string GenerateProfesorEmail(string firstName, string lastName)

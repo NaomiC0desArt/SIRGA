@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using SIRGA.Domain.Entities;
 using SIRGA.Identity.Shared.Entities;
+using System.Reflection.Emit;
 
 namespace SIRGA.Persistence.DbContext
 {
@@ -20,6 +21,8 @@ namespace SIRGA.Persistence.DbContext
 		public DbSet<ClaseProgramada> ClasesProgramadas { get; set; }
 		public DbSet<Inscripcion> Inscripciones { get; set; }
         public DbSet<Asistencia> Asistencias { get; set; }
+        public DbSet<ActividadExtracurricular> ActividadesExtracurriculares { get; set; }
+        public DbSet<InscripcionActividad> InscripcionesActividades { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
 		{
@@ -119,6 +122,35 @@ namespace SIRGA.Persistence.DbContext
                     .HasDatabaseName("IX_Asistencia_RequiereJustificacion");
             });
 
+            builder.Entity<ActividadExtracurricular>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(e => e.ProfesorEncargado)
+                    .WithMany()
+                    .HasForeignKey(e => e.IdProfesorEncargado)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasMany(e => e.Inscripciones)
+                    .WithOne(i => i.Actividad)
+                    .HasForeignKey(i => i.IdActividad)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<InscripcionActividad>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(e => e.Estudiante)
+                    .WithMany()
+                    .HasForeignKey(e => e.IdEstudiante)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Actividad)
+                    .WithMany(a => a.Inscripciones)
+                    .HasForeignKey(e => e.IdActividad)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
             // Para que en caso de que borremos un grado noborre los CursosAcademicos.
             foreach (var relationship in builder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
 			{

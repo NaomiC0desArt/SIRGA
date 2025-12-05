@@ -14,6 +14,7 @@ namespace SIRGA.Application.DTOs.Entities.Asistencia
         public int? EstudiantesPresentes { get; set; }
         public int? EstudiantesAusentes { get; set; }
         public int? EstudiantesTarde { get; set; }
+        public int? EstudiantesJustificados { get; set; }
 
         // Info del grado
         public string GradoNombre { get; set; }

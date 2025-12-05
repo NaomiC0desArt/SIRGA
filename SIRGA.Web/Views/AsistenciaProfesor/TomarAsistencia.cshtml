@@ -295,7 +295,7 @@
 @section Scripts {
     <script>
         const idClase = @ViewBag.IdClase;
-const fecha = '@((DateTime)ViewBag.Fecha).ToString("yyyy-MM-dd")';
+        const fecha = '@ViewBag.Fecha.ToString("yyyy-MM-dd")';
 const asistenciaYaRegistrada = @(Model.Any(e => e.YaRegistrada) ? "true" : "false");
 
 document.addEventListener('DOMContentLoaded', function () {

@@ -6,35 +6,6 @@
     var fechaFin = ViewBag.FechaFin as DateTime? ?? DateTime.Today;
 }
 
-@if (Model != null && Model.Any())
-{
-    <div class="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-6">
-        <h3 class="font-bold text-yellow-800 mb-2">🔍 DEBUG INFO (eliminar en producción)</h3>
-        <div class="text-sm">
-            <p><strong>Total registros:</strong> @Model.Count</p>
-            @{
-                var justificados = Model.Count(a => a.Estado == "Justificado");
-                var conJustificacion = Model.Count(a => !string.IsNullOrEmpty(a.Justificacion));
-            }
-            <p><strong>Con estado "Justificado":</strong> @justificados</p>
-            <p><strong>Con texto de justificación:</strong> @conJustificacion</p>
-
-            @if (Model.Any())
-            {
-                var primera = Model.First();
-                <hr class="my-2 border-yellow-300" />
-                <p><strong>Primera asistencia:</strong></p>
-                <ul class="ml-4">
-                    <li>ID: @primera.Id</li>
-                    <li>Estudiante: @primera.EstudianteNombreCompleto</li>
-                    <li>Estado: <strong>@primera.Estado</strong></li>
-                    <li>Justificacion: <strong>@(primera.Justificacion ?? "NULL")</strong></li>
-                    <li>FechaJustificacion: @(primera.FechaJustificacion?.ToString("dd/MM/yyyy HH:mm") ?? "NULL")</li>
-                </ul>
-            }
-        </div>
-    </div>
-}
 
 <div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
     <div class="max-w-7xl mx-auto">

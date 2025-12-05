@@ -8,7 +8,7 @@ namespace SIRGA.Application.Interfaces.Services
 {
     public interface IEmailGeneratorService
     {
-        string GenerateEstudianteEmail(string matricula, int anoDeIngreso);
+        string GenerateEstudianteEmail(string matricula);
         string GenerateProfesorEmail(string firstName, string lastName);
     }
 }

@@ -182,6 +182,16 @@
                                             </span>
                                             <span class="text-sm font-bold text-yellow-600">@clase.EstudiantesTarde</span>
                                         </div>
+                                        @if (clase.EstudiantesJustificados.HasValue && clase.EstudiantesJustificados > 0)
+                                        {
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-xs text-gray-600 flex items-center">
+                                                    <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                                                    Justificados
+                                                </span>
+                                                <span class="text-sm font-bold text-blue-600">@clase.EstudiantesJustificados</span>
+                                            </div>
+                                        }
                                     </div>
                                 </div>
                             }

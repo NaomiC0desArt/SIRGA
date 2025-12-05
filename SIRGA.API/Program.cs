@@ -82,6 +82,7 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "SIRGA API v1");
     });
 }
+app.UseStaticFiles();
 
 app.UseHttpsRedirection();
 

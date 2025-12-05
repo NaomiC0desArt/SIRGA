@@ -337,6 +337,7 @@ namespace SIRGA.Application.Services
                         EstudiantesPresentes = asistenciasList.Count(a => a.Estado == "Presente"),
                         EstudiantesAusentes = asistenciasList.Count(a => a.Estado == "Ausente"),
                         EstudiantesTarde = asistenciasList.Count(a => a.Estado == "Tarde"),
+                        EstudiantesJustificados = asistenciasList.Count(a => a.Estado == "Justificado"),
                         GradoNombre = clase.CursoAcademico.Grado.GradeName,
                         GradoSeccion = clase.CursoAcademico.Grado.Section
                     });

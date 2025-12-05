@@ -1,5 +1,6 @@
 
 using Microsoft.AspNetCore.DataProtection;
+using SIRGA.Web.Helpers;
 using SIRGA.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<ImageUrlHelper>();
 
 // AGREGAR Data Protection para evitar errores de cookies
 builder.Services.AddDataProtection()

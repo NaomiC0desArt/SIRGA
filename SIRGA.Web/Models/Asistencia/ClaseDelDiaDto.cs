@@ -13,6 +13,7 @@
         public int? EstudiantesPresentes { get; set; }
         public int? EstudiantesAusentes { get; set; }
         public int? EstudiantesTarde { get; set; }
+        public int? EstudiantesJustificados { get; set; }
 
         public string GradoNombre { get; set; }
         public string GradoSeccion { get; set; }

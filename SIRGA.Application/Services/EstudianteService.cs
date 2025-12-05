@@ -137,7 +137,7 @@ namespace SIRGA.Application.Services
                 var yearOfEntry = dto.YearOfEntry ?? DateTime.Now.Year;
 
                 
-                var email = _emailGenerator.GenerateEstudianteEmail(matricula, yearOfEntry);
+                var email = _emailGenerator.GenerateEstudianteEmail(matricula);
 
                 
                 var existingUser = await _userManager.FindByEmailAsync(email);

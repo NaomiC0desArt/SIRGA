@@ -12,6 +12,7 @@ namespace SIRGA.Web.Models.Asistencia
         public string Estado { get; set; }
 
         public string? Observaciones { get; set; }
+        public string? Justificacion { get; set; }
         public bool RequiereJustificacion { get; set; } = false;
     }
 }
