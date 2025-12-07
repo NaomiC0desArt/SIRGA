@@ -2,7 +2,7 @@
 
 namespace SIRGA.Application.Interfaces.Base
 {
-    public interface IBaseServices<TEntityDto, TResponse> 
+    public interface IBaseServices<TEntityDto, TResponse> where TResponse : class
     {
         Task<ApiResponse<TResponse>> CreateAsync(TEntityDto dto);
         Task<ApiResponse<TResponse>> GetByIdAsync(int id);

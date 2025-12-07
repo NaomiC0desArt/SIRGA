@@ -28,14 +28,12 @@ namespace SIRGA.Persistence.DbContext
 		{
 			base.OnModelCreating(builder);
 
-            // relacion de estudiantes y profesores con ApplicationUserId"
+            // relacion de estudiantes y profesores con ApplicationUserId
 
-            // Configuración específica de Estudiante
             builder.Entity<Estudiante>(entity =>
             {
                 entity.HasKey(e => e.Id);
 
-                // Matrícula única y requerida
                 entity.Property(e => e.Matricula)
                     .IsRequired()
                     .HasMaxLength(4);
@@ -43,14 +41,12 @@ namespace SIRGA.Persistence.DbContext
                 entity.HasIndex(e => e.Matricula)
                     .IsUnique();
 
-                // Relación con ApplicationUser
                 entity.HasOne<ApplicationUser>()
                 .WithOne()
                 .HasForeignKey<Estudiante>(e => e.ApplicationUserId)
                 .IsRequired();
             });
 
-            // Configuración específica de Profesor
             builder.Entity<Profesor>(entity =>
             {
                 entity.HasKey(p => p.Id);
@@ -58,7 +54,6 @@ namespace SIRGA.Persistence.DbContext
                 entity.Property(p => p.Specialty)
                     .HasMaxLength(200);
 
-                // Relación con ApplicationUser
                 entity.HasOne<ApplicationUser>()
                 .WithOne()
                 .HasForeignKey<Profesor>(p => p.ApplicationUserId)
@@ -85,30 +80,25 @@ namespace SIRGA.Persistence.DbContext
                 entity.Property(a => a.Justificacion)
                     .HasMaxLength(500);
 
-                // Relación con Estudiante
                 entity.HasOne(a => a.Estudiante)
                     .WithMany()
                     .HasForeignKey(a => a.IdEstudiante)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                // Relación con ClaseProgramada
                 entity.HasOne(a => a.ClaseProgramada)
                     .WithMany()
                     .HasForeignKey(a => a.IdClaseProgramada)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                // Relación con Profesor
                 entity.HasOne(a => a.Profesor)
                     .WithMany()
                     .HasForeignKey(a => a.IdProfesor)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                // Índice compuesto para evitar duplicados
                 entity.HasIndex(a => new { a.IdEstudiante, a.IdClaseProgramada, a.Fecha })
                     .IsUnique()
                     .HasDatabaseName("IX_Asistencia_Estudiante_Clase_Fecha");
 
-                // Índices adicionales para consultas frecuentes
                 entity.HasIndex(a => a.Fecha)
                     .HasDatabaseName("IX_Asistencia_Fecha");
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SIRGA.Application.Interfaces.Entities;
+using SIRGA.Application.Interfaces.Usuarios;
 using SIRGA.Domain.Interfaces;
 using System.Security.Claims;
 
@@ -12,40 +13,27 @@ namespace SIRGA.API.Controllers.System
     public class HorarioController : ControllerBase
     {
         private readonly IHorarioEstudianteService _horarioService;
-        private readonly IEstudianteRepository _estudianteRepository;
+        private readonly IEstudianteService _estudianteService;
 
         public HorarioController(
             IHorarioEstudianteService horarioService,
-            IEstudianteRepository estudianteRepository)
+            IEstudianteService estudianteService)
         {
             _horarioService = horarioService;
-            _estudianteRepository = estudianteRepository;
+            _estudianteService = estudianteService;
         }
 
         [HttpGet("Mi-Horario")]
         public async Task<IActionResult> GetMiHorario()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized(new { message = "Usuario no autenticado" });
-            }
-
-            // Obtener el estudiante por ApplicationUserId
-            var estudiante = await _estudianteRepository.GetByApplicationUserIdAsync(userId);
-
-            if (estudiante == null)
-            {
+            var estudianteId = await GetEstudianteIdFromUser();
+            if (estudianteId == null)
                 return NotFound(new { message = "Estudiante no encontrado" });
-            }
 
-            var result = await _horarioService.GetHorarioByEstudianteIdAsync(estudiante.Id);
+            var result = await _horarioService.GetHorarioByEstudianteIdAsync(estudianteId.Value);
 
             if (!result.Success)
-            {
                 return BadRequest(result);
-            }
 
             return Ok(result);
         }
@@ -53,27 +41,15 @@ namespace SIRGA.API.Controllers.System
         [HttpGet("Clases-Hoy")]
         public async Task<IActionResult> GetClasesHoy()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized(new { message = "Usuario no autenticado" });
-            }
-
-            var estudiante = await _estudianteRepository.GetByApplicationUserIdAsync(userId);
-
-            if (estudiante == null)
-            {
+            var estudianteId = await GetEstudianteIdFromUser();
+            if (estudianteId == null)
                 return NotFound(new { message = "Estudiante no encontrado" });
-            }
 
             var diaActual = DateTime.Now.DayOfWeek;
-            var result = await _horarioService.GetClasesDelDiaAsync(estudiante.Id, diaActual);
+            var result = await _horarioService.GetClasesDelDiaAsync(estudianteId.Value, diaActual);
 
             if (!result.Success)
-            {
                 return BadRequest(result);
-            }
 
             return Ok(result);
         }
@@ -81,34 +57,34 @@ namespace SIRGA.API.Controllers.System
         [HttpGet("Clases-Por-Dia/{dia}")]
         public async Task<IActionResult> GetClasesPorDia(string dia)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized(new { message = "Usuario no autenticado" });
-            }
-
-            var estudiante = await _estudianteRepository.GetByApplicationUserIdAsync(userId);
-
-            if (estudiante == null)
-            {
+            var estudianteId = await GetEstudianteIdFromUser();
+            if (estudianteId == null)
                 return NotFound(new { message = "Estudiante no encontrado" });
-            }
 
-            // Convertir string a DayOfWeek
             if (!Enum.TryParse<DayOfWeek>(dia, true, out var diaSemana))
-            {
                 return BadRequest(new { message = "Día inválido" });
-            }
 
-            var result = await _horarioService.GetClasesDelDiaAsync(estudiante.Id, diaSemana);
+            var result = await _horarioService.GetClasesDelDiaAsync(estudianteId.Value, diaSemana);
 
             if (!result.Success)
-            {
                 return BadRequest(result);
-            }
 
             return Ok(result);
         }
+
+        #region Helper Methods
+        private async Task<int?> GetEstudianteIdFromUser()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+                return null;
+
+            var result = await _estudianteService.GetEstudianteIdByUserIdAsync(userId);
+
+            // extraer el valor del ApiResponse
+            return result.Success ? result.Data : null;
+        }
+        #endregion
     }
 }

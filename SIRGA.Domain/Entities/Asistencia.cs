@@ -19,9 +19,9 @@ namespace SIRGA.Domain.Entities
 
         [Required]
         [MaxLength(20)]
-        public string Estado { get; set; } // Presente, Ausente, Tarde, Justificado
+        public string Estado { get; set; }
 
-        [MaxLength(500)]
+        [MaxLength(125)]
         public string? Observaciones { get; set; }
 
         public bool RequiereJustificacion { get; set; } = false;
@@ -31,9 +31,9 @@ namespace SIRGA.Domain.Entities
 
         public DateTime? FechaJustificacion { get; set; }
 
-        public string? UsuarioJustificacionId { get; set; } // Admin que justificó
+        public string? UsuarioJustificacionId { get; set; }
 
-        // Foreign Keys
+
         public int IdEstudiante { get; set; }
         [ForeignKey("IdEstudiante")]
         public Estudiante Estudiante { get; set; }
@@ -46,9 +46,9 @@ namespace SIRGA.Domain.Entities
         [ForeignKey("IdProfesor")]
         public Profesor Profesor { get; set; }
 
-        // Auditoría
-        public string RegistradoPorId { get; set; } // Usuario que registró (Profesor o Admin)
+
+        public string RegistradoPorId { get; set; } // persona que registro la asistencia
         public DateTime? UltimaModificacion { get; set; }
-        public string? ModificadoPorId { get; set; } // Admin que modificó
+        public string? ModificadoPorId { get; set; } // admin que modificó la asistencia
     }
 }

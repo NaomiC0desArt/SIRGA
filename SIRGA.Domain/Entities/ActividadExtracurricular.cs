@@ -39,22 +39,20 @@ namespace SIRGA.Domain.Entities
         public string Ubicacion { get; set; }
 
         [Required]
-        [MaxLength(7)] // Para formato #RRGGBB
+        [MaxLength(7)] // formato #RRGGBB
         public string ColorTarjeta { get; set; }
 
         [MaxLength(500)]
-        public string RutaImagen { get; set; } // Opcional
+        public string RutaImagen { get; set; }
 
         public bool EstaActiva { get; set; } = true;
 
         public DateTime FechaCreacion { get; set; } = DateTime.Now;
 
-        // Foreign Keys
         public int IdProfesorEncargado { get; set; }
         [ForeignKey("IdProfesorEncargado")]
         public Profesor ProfesorEncargado { get; set; }
 
-        // Navegación
         public ICollection<InscripcionActividad> Inscripciones { get; set; }
     }
 }

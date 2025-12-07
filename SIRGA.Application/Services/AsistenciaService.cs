@@ -9,14 +9,13 @@ using SIRGA.Application.Interfaces.Entities;
 using SIRGA.Domain.Entities;
 using SIRGA.Domain.Interfaces;
 using SIRGA.Identity.Shared.Entities;
-using SIRGA.Persistence.Interfaces;
 
 namespace SIRGA.Application.Services
 {
     public class AsistenciaService : IAsistenciaService
     {
         private readonly IAsistenciaRepository _asistenciaRepository;
-        private readonly IClaseProgramadaRepositoryExtended _claseProgramadaRepository;
+        private readonly IClaseProgramadaRepository _claseProgramadaRepository;
         private readonly IEstudianteRepository _estudianteRepository;
         private readonly IProfesorRepository _profesorRepository;
         private readonly IInscripcionRepository _inscripcionRepository;
@@ -25,7 +24,7 @@ namespace SIRGA.Application.Services
 
         public AsistenciaService(
             IAsistenciaRepository asistenciaRepository,
-            IClaseProgramadaRepositoryExtended claseProgramadaRepository,
+            IClaseProgramadaRepository claseProgramadaRepository,
             IEstudianteRepository estudianteRepository,
             IProfesorRepository profesorRepository,
             IInscripcionRepository inscripcionRepository,

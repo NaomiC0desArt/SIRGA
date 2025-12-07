@@ -4,96 +4,244 @@ using SIRGA.Application.DTOs.Common;
 using SIRGA.Application.DTOs.Entities;
 using SIRGA.Application.DTOs.ResponseDto;
 using SIRGA.Application.Interfaces.Entities;
+using SIRGA.Application.Services.Base;
 using SIRGA.Domain.Entities;
 using SIRGA.Domain.Interfaces;
-using SIRGA.Persistence.Interfaces;
 
 namespace SIRGA.Application.Services
 {
-    public class ClaseProgramadaService : IClaseProgramadaService
+    public class ClaseProgramadaService : BaseService<ClaseProgramada, ClaseProgramadaDto, ClaseProgramadaResponseDto>, IClaseProgramadaService
     {
-        private readonly IClaseProgramadaRepositoryExtended _claseProgramadaRepository;
-        private readonly ILogger<ClaseProgramadaService> _logger;
+        private readonly IClaseProgramadaRepository _claseProgramadaRepository;
 
-        public ClaseProgramadaService(IClaseProgramadaRepositoryExtended claseProgramadaRepository, ILogger<ClaseProgramadaService> logger)
+        public ClaseProgramadaService(
+            IClaseProgramadaRepository claseProgramadaRepository,
+            ILogger<ClaseProgramadaService> logger)
+            : base(claseProgramadaRepository, logger)
         {
             _claseProgramadaRepository = claseProgramadaRepository;
-            _logger = logger;
         }
-        #region Create
-        public async Task<ApiResponse<ClaseProgramadaResponseDto>> CreateAsync(ClaseProgramadaDto dto)
+
+        protected override string EntityName => "Clase Programada";
+
+        #region Mapeos
+        protected override ClaseProgramada MapDtoToEntity(ClaseProgramadaDto dto)
+        {
+            return new ClaseProgramada
+            {
+                StartTime = dto.StartTime,
+                EndTime = dto.EndTime,
+                WeekDay = ConvertirDiaADayOfWeek(dto.WeekDay),
+                Location = dto.Location,
+                IdAsignatura = dto.IdAsignatura,
+                IdProfesor = dto.IdProfesor,
+                IdCursoAcademico = dto.IdCursoAcademico
+            };
+        }
+
+        protected override ClaseProgramadaResponseDto MapEntityToResponse(ClaseProgramada entity)
+        {
+            // Para el método base que usa GetByIdAsync (entidades simples)
+            return new ClaseProgramadaResponseDto
+            {
+                Id = entity.Id,
+                StartTime = entity.StartTime,
+                EndTime = entity.EndTime,
+                WeekDay = ConvertirDayOfWeekADia(entity.WeekDay),
+                Location = entity.Location,
+                IdAsignatura = entity.IdAsignatura,
+                IdProfesor = entity.IdProfesor,
+                IdCursoAcademico = entity.IdCursoAcademico
+            };
+        }
+
+        protected override void UpdateEntityFromDto(ClaseProgramada entity, ClaseProgramadaDto dto)
+        {
+            entity.StartTime = dto.StartTime;
+            entity.EndTime = dto.EndTime;
+            entity.WeekDay = ConvertirDiaADayOfWeek(dto.WeekDay);
+            entity.Location = dto.Location;
+            entity.IdAsignatura = dto.IdAsignatura;
+            entity.IdProfesor = dto.IdProfesor;
+            entity.IdCursoAcademico = dto.IdCursoAcademico;
+        }
+        #endregion
+
+        #region Validaciones
+        protected override async Task<ApiResponse<ClaseProgramadaResponseDto>> ValidateCreateAsync(ClaseProgramadaDto dto)
+        {
+            return await ValidarClase(dto, null);
+        }
+
+        protected override async Task<ApiResponse<ClaseProgramadaResponseDto>> ValidateUpdateAsync(int id, ClaseProgramadaDto dto)
+        {
+            return await ValidarClase(dto, id);
+        }
+
+        private async Task<ApiResponse<ClaseProgramadaResponseDto>> ValidarClase(ClaseProgramadaDto dto, int? excludeClaseId)
+        {
+            // Validar horarios
+            if (dto.EndTime <= dto.StartTime)
+            {
+                return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
+                    "La hora de fin debe ser posterior a la hora de inicio"
+                );
+            }
+
+            var duracion = dto.EndTime - dto.StartTime;
+            if (duracion.TotalHours > 2)
+            {
+                return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
+                    "Una clase no puede durar más de 2 horas"
+                );
+            }
+
+            // Validar conflictos de profesor
+            var conflicto = await ValidarConflictoProfesor(
+                dto.IdProfesor,
+                dto.WeekDay,
+                dto.StartTime,
+                dto.EndTime,
+                excludeClaseId
+            );
+
+            if (conflicto != null)
+            {
+                return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
+                    $"El profesor ya tiene una clase programada el {dto.WeekDay} de {conflicto.StartTime:hh\\:mm} a {conflicto.EndTime:hh\\:mm}"
+                );
+            }
+
+            return null;
+        }
+
+        private async Task<ClaseProgramada> ValidarConflictoProfesor(
+            int idProfesor,
+            string weekDay,
+            TimeSpan startTime,
+            TimeSpan endTime,
+            int? excludeClaseId = null)
+        {
+            var dayOfWeek = ConvertirDiaADayOfWeek(weekDay);
+            var todasLasClases = await _claseProgramadaRepository.GetAllAsync();
+
+            return todasLasClases.FirstOrDefault(c =>
+                c.IdProfesor == idProfesor &&
+                c.WeekDay == dayOfWeek &&
+                (!excludeClaseId.HasValue || c.Id != excludeClaseId.Value) &&
+                (
+                    (startTime >= c.StartTime && startTime < c.EndTime) ||
+                    (endTime > c.StartTime && endTime <= c.EndTime) ||
+                    (startTime <= c.StartTime && endTime >= c.EndTime)
+                )
+            );
+        }
+        #endregion
+
+        #region Hooks Post-Operación
+        protected override async Task<ClaseProgramada> AfterCreateAsync(ClaseProgramada entity)
+        {
+            // Recargar la entidad con todos los detalles
+            var claseConDetalles = await _claseProgramadaRepository.GetByIdWithDetailsAsync(entity.Id);
+            return ConvertirDetallesAEntidad(claseConDetalles, entity);
+        }
+
+        protected override async Task<ClaseProgramada> AfterUpdateAsync(ClaseProgramada entity)
+        {
+            // Recargar la entidad con todos los detalles
+            var claseConDetalles = await _claseProgramadaRepository.GetByIdWithDetailsAsync(entity.Id);
+            return ConvertirDetallesAEntidad(claseConDetalles, entity);
+        }
+
+        private ClaseProgramada ConvertirDetallesAEntidad(
+            Domain.ReadModels.ClaseProgramadaConDetalles detalles,
+            ClaseProgramada entityBase)
+        {
+            // Crear una entidad enriquecida para el mapeo
+            var entity = entityBase;
+
+            // Asignar las propiedades de navegación si están disponibles
+            // Esto permite que MapEntityToResponse tenga acceso a los datos completos
+            if (detalles != null)
+            {
+                // Aquí podrías cargar las entidades relacionadas si es necesario
+                // Por ahora, almacenamos la info en propiedades dinámicas o usamos otro approach
+            }
+
+            return entity;
+        }
+        #endregion
+
+        #region Overrides para manejar detalles
+        public override async Task<ApiResponse<ClaseProgramadaResponseDto>> GetByIdAsync(int id)
         {
             try
             {
-                if (dto.EndTime <= dto.StartTime)
-                {
-                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
-                        "La hora de fin debe ser posterior a la hora de inicio");
-                }
-
-                var duracion = dto.EndTime - dto.StartTime;
-                if (duracion.TotalHours > 2)
-                {
-                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
-                        "Una clase no puede durar más de 2 horas");
-                }
-
-                var conflicto = await ValidarConflictoProfesor(
-                    dto.IdProfesor,
-                    dto.WeekDay,
-                    dto.StartTime,
-                    dto.EndTime);
-
-                if (conflicto != null)
-                {
-                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
-                        $"El profesor ya tiene una clase programada el {dto.WeekDay} de {conflicto.StartTime:hh\\:mm} a {conflicto.EndTime:hh\\:mm}");
-                }
-
-                var nuevaClase = new ClaseProgramada
-                {
-                    StartTime = dto.StartTime,
-                    EndTime = dto.EndTime,
-                    WeekDay = ConvertirDiaADayOfWeek(dto.WeekDay),
-                    Location = dto.Location,
-                    IdAsignatura = dto.IdAsignatura,
-                    IdProfesor = dto.IdProfesor,
-                    IdCursoAcademico = dto.IdCursoAcademico
-                };
-
-                await _claseProgramadaRepository.AddAsync(nuevaClase);
-
-                // ✅ Obtener la clase con detalles después de crearla
-                var claseConDetalles = await _claseProgramadaRepository.GetByIdWithDetailsAsync(nuevaClase.Id);
+                var claseConDetalles = await _claseProgramadaRepository.GetByIdWithDetailsAsync(id);
 
                 if (claseConDetalles == null)
-                {
-                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
-                        "Error al obtener los detalles de la clase creada");
-                }
+                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse($"{EntityName} no encontrada");
 
-                var response = new ClaseProgramadaResponseDto
-                {
-                    Id = claseConDetalles.Id,
-                    StartTime = claseConDetalles.StartTime,
-                    EndTime = claseConDetalles.EndTime,
-                    WeekDay = ConvertirDayOfWeekADia(claseConDetalles.WeekDay),
-                    Location = claseConDetalles.Location,
-                    IdAsignatura = claseConDetalles.IdAsignatura,
-                    AsignaturaNombre = claseConDetalles.AsignaturaNombre,
-                    IdProfesor = claseConDetalles.IdProfesor,
-                    ProfesorNombre = $"{claseConDetalles.ProfesorFirstName} {claseConDetalles.ProfesorLastName}",
-                    IdCursoAcademico = claseConDetalles.IdCursoAcademico,
-                    CursoAcademicoNombre = $"{claseConDetalles.GradoNombre} {claseConDetalles.GradoSeccion}"
-                };
-                return ApiResponse<ClaseProgramadaResponseDto>.SuccessResponse(response, "Clase programada creada exitosamente");
+                var response = MapDetallesAResponse(claseConDetalles);
+                return ApiResponse<ClaseProgramadaResponseDto>.SuccessResponse(
+                    response,
+                    $"{EntityName} obtenida exitosamente"
+                );
             }
             catch (Exception ex)
             {
-                return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse("Error al crear la clase programada");
+                _logger.LogError(ex, $"Error al obtener {EntityName}");
+                return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
+                    $"Error al obtener {EntityName}",
+                    new List<string> { ex.Message }
+                );
             }
         }
+
+        public override async Task<ApiResponse<List<ClaseProgramadaResponseDto>>> GetAllAsync()
+        {
+            try
+            {
+                var clasesConDetalles = await _claseProgramadaRepository.GetAllWithDetailsAsync();
+                _logger.LogInformation($"{EntityName}s obtenidas: {clasesConDetalles.Count}");
+
+                var responses = clasesConDetalles.Select(MapDetallesAResponse).ToList();
+
+                return ApiResponse<List<ClaseProgramadaResponseDto>>.SuccessResponse(
+                    responses,
+                    $"{EntityName}s obtenidas exitosamente"
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al obtener {EntityName}s");
+                return ApiResponse<List<ClaseProgramadaResponseDto>>.ErrorResponse(
+                    $"Error al obtener {EntityName}s",
+                    new List<string> { ex.Message }
+                );
+            }
+        }
+
+        private ClaseProgramadaResponseDto MapDetallesAResponse(Domain.ReadModels.ClaseProgramadaConDetalles detalles)
+        {
+            return new ClaseProgramadaResponseDto
+            {
+                Id = detalles.Id,
+                StartTime = detalles.StartTime,
+                EndTime = detalles.EndTime,
+                WeekDay = ConvertirDayOfWeekADia(detalles.WeekDay),
+                Location = detalles.Location,
+                IdAsignatura = detalles.IdAsignatura,
+                AsignaturaNombre = detalles.AsignaturaNombre,
+                IdProfesor = detalles.IdProfesor,
+                ProfesorNombre = $"{detalles.ProfesorFirstName} {detalles.ProfesorLastName}",
+                IdCursoAcademico = detalles.IdCursoAcademico,
+                CursoAcademicoNombre = $"{detalles.GradoNombre} {detalles.GradoSeccion}"
+            };
+        }
         #endregion
+
+        #region Helpers
         private DayOfWeek ConvertirDiaADayOfWeek(string dia)
         {
             return dia switch
@@ -123,202 +271,6 @@ namespace SIRGA.Application.Services
                 _ => "Desconocido"
             };
         }
-
-        public async Task<ApiResponse<bool>> DeleteAsync(int id)
-        {
-            try
-            {
-                var claseProgramada = await _claseProgramadaRepository.GetByIdAsync(id);
-                if(claseProgramada == null)
-                {
-                    return ApiResponse<bool>.ErrorResponse("Error Encontrando la clase");
-                }
-                await _claseProgramadaRepository.DeleteAsync(id);
-
-                return ApiResponse<bool>.SuccessResponse(true, "Clase Programada eliminada exitosamente");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<bool>.ErrorResponse(
-                    "Error al eliminar la clase programada",
-                    new List<string> { ex.Message }
-                );
-            }
-        }
-
-        public async Task<ApiResponse<List<ClaseProgramadaResponseDto>>> GetAllAsync()
-        {
-            try
-            {
-                var clasesProgramadas = await _claseProgramadaRepository.GetAllWithDetailsAsync();
-                _logger.LogInformation($"Clases programada obtenidas: {clasesProgramadas.Count}");
-
-                var clasesResponse = clasesProgramadas.Select(c => new ClaseProgramadaResponseDto
-                {
-                    Id = c.Id,
-                    StartTime = c.StartTime,
-                    EndTime = c.EndTime,
-                    WeekDay = ConvertirDayOfWeekADia(c.WeekDay),
-                    Location = c.Location,
-                    IdAsignatura = c.IdAsignatura,
-                    AsignaturaNombre = c.AsignaturaNombre,
-                    IdProfesor = c.IdProfesor,
-                    ProfesorNombre = $"{c.ProfesorFirstName} {c.ProfesorLastName}", 
-                    IdCursoAcademico = c.IdCursoAcademico,
-                    CursoAcademicoNombre = $"{c.GradoNombre} {c.GradoSeccion}"
-                }).ToList();
-
-
-                _logger.LogInformation("Todas las clases programadas procesadas correctamente");
-                return ApiResponse<List<ClaseProgramadaResponseDto>>.SuccessResponse(clasesResponse, "Clases obtenidas exitosamente");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<ClaseProgramadaResponseDto>>.ErrorResponse(
-                    "Error al obtener las clases programadas",
-                    new List<string> { ex.Message });
-            }
-        }
-
-        public async Task<ApiResponse<ClaseProgramadaResponseDto>> GetByIdAsync(int id)
-        {
-            try
-            {
-                var claseProgramada = await _claseProgramadaRepository.GetByIdWithDetailsAsync(id);
-
-                if (claseProgramada == null)
-                {
-                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse("Clase no encontrada");
-                }
-
-                var claseProgramadaResponse = new ClaseProgramadaResponseDto
-                {
-                    Id = claseProgramada.Id,
-                    StartTime = claseProgramada.StartTime,
-                    EndTime = claseProgramada.EndTime,
-                    WeekDay = ConvertirDayOfWeekADia(claseProgramada.WeekDay),
-                    Location = claseProgramada.Location,
-                    IdAsignatura = claseProgramada.IdAsignatura,
-                    AsignaturaNombre = claseProgramada.AsignaturaNombre,
-                    IdProfesor = claseProgramada.IdProfesor,
-                    ProfesorNombre = $"{claseProgramada.ProfesorFirstName} {claseProgramada.ProfesorLastName}",
-                    IdCursoAcademico = claseProgramada.IdCursoAcademico,
-                    CursoAcademicoNombre = $"{claseProgramada.GradoNombre} {claseProgramada.GradoSeccion}"
-                };
-
-                return ApiResponse<ClaseProgramadaResponseDto>.SuccessResponse(claseProgramadaResponse, "Clase programada obtenida exitosamente");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
-                    "Error al obtener la clase programada",
-                    new List<string> { ex.Message });
-            }
-        }
-
-        public async Task<ApiResponse<ClaseProgramadaResponseDto>> UpdateAsync(int id, ClaseProgramadaDto dto)
-        {
-            try
-            {
-                var claseExistente = await _claseProgramadaRepository.GetByIdAsync(id);
-                if (claseExistente == null)
-                {
-                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse("Clase no encontrada");
-                }
-
-                if (dto.EndTime <= dto.StartTime)
-                {
-                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
-                        "La hora de fin debe ser posterior a la hora de inicio");
-                }
-
-                var duracion = dto.EndTime - dto.StartTime;
-                if (duracion.TotalHours > 2)
-                {
-                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
-                        "Una clase no puede durar más de 2 horas");
-                }
-
-                var conflicto = await ValidarConflictoProfesor(
-                    dto.IdProfesor,
-                    dto.WeekDay,
-                    dto.StartTime,
-                    dto.EndTime,
-                    id);
-
-                if (conflicto != null)
-                {
-                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
-                        $"El profesor ya tiene una clase programada el {dto.WeekDay} de {conflicto.StartTime:hh\\:mm} a {conflicto.EndTime:hh\\:mm}");
-                }
-                claseExistente.StartTime = dto.StartTime;
-                claseExistente.EndTime = dto.EndTime;
-                claseExistente.WeekDay = ConvertirDiaADayOfWeek(dto.WeekDay);
-                claseExistente.Location = dto.Location;
-                claseExistente.IdAsignatura = dto.IdAsignatura;
-                claseExistente.IdProfesor = dto.IdProfesor;
-                claseExistente.IdCursoAcademico = dto.IdCursoAcademico;
-
-                await _claseProgramadaRepository.UpdateAsync(claseExistente);
-
-                var claseConDetalles = await _claseProgramadaRepository.GetByIdWithDetailsAsync(id);
-
-                if (claseConDetalles == null)
-                {
-                    return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
-                        "Error al obtener los detalles de la clase actualizada");
-                }
-
-                var response = new ClaseProgramadaResponseDto
-                {
-                    Id = claseConDetalles.Id,
-                    StartTime = claseConDetalles.StartTime,
-                    EndTime = claseConDetalles.EndTime,
-                    WeekDay = ConvertirDayOfWeekADia(claseConDetalles.WeekDay),
-                    Location = claseConDetalles.Location,
-                    IdAsignatura = claseConDetalles.IdAsignatura,
-                    AsignaturaNombre = claseConDetalles.AsignaturaNombre,
-                    IdProfesor = claseConDetalles.IdProfesor,
-                    ProfesorNombre = $"{claseConDetalles.ProfesorFirstName} {claseConDetalles.ProfesorLastName}",
-                    IdCursoAcademico = claseConDetalles.IdCursoAcademico,
-                    CursoAcademicoNombre = $"{claseConDetalles.GradoNombre} {claseConDetalles.GradoSeccion}"
-                };
-
-
-                return ApiResponse<ClaseProgramadaResponseDto>.SuccessResponse(response, "Clase programada actualizada exitosamente");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ClaseProgramadaResponseDto>.ErrorResponse(
-                    "Error al actualizar la clase",
-                    new List<string> { ex.Message }
-                );
-            }
-        }
-
-        private async Task<ClaseProgramada> ValidarConflictoProfesor(
-            int idProfesor,
-            string weekDay,
-            TimeSpan startTime,
-            TimeSpan endTime,
-            int? excludeClaseId = null)
-        {
-            var dayOfWeek = ConvertirDiaADayOfWeek(weekDay);
-            var todasLasClases = await _claseProgramadaRepository.GetAllAsync();
-
-            return todasLasClases.FirstOrDefault(c =>
-                c.IdProfesor == idProfesor &&
-                c.WeekDay == dayOfWeek &&
-                (!excludeClaseId.HasValue || c.Id != excludeClaseId.Value) && // Excluir clase actual en UPDATE
-                (
-                    // Caso 1: Nueva clase empieza durante una clase existente
-                    (startTime >= c.StartTime && startTime < c.EndTime) ||
-                    // Caso 2: Nueva clase termina durante una clase existente
-                    (endTime > c.StartTime && endTime <= c.EndTime) ||
-                    // Caso 3: Nueva clase engloba completamente una clase existente
-                    (startTime <= c.StartTime && endTime >= c.EndTime)
-                )
-            );
-        }
+        #endregion
     }
 }

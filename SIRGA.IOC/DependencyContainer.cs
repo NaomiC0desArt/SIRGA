@@ -5,6 +5,7 @@ using SIRGA.Application.Interfaces.Services;
 using SIRGA.Application.Interfaces.Services.Email;
 using SIRGA.Application.Interfaces.Usuarios;
 using SIRGA.Application.Services;
+using SIRGA.Application.Services.IA;
 using SIRGA.Domain.Interfaces;
 using SIRGA.Identity.Interfaces;
 using SIRGA.Identity.Services;
@@ -12,7 +13,6 @@ using SIRGA.Identity.Shared.Interfaces;
 using SIRGA.Infraestructure.Services;
 using SIRGA.Infraestructure.Services.Email;
 using SIRGA.Infraestructure.Settings;
-using SIRGA.Persistence.Interfaces;
 using SIRGA.Persistence.Repositories;
 using SIRGA.Persistence.Repositories.Usuarios;
 
@@ -28,7 +28,7 @@ namespace SIRGA.IOC
             services.AddScoped<IEstudianteRepository, EstudianteRepository>();
             services.AddScoped<IProfesorRepository, ProfesorRepository>();
             services.AddScoped<IAsignaturaRepository, AsignaturaRepository>();
-            services.AddScoped<IClaseProgramadaRepositoryExtended, ClaseProgramadaRepository>();
+            services.AddScoped<IClaseProgramadaRepository, ClaseProgramadaRepository>();
             services.AddScoped<ICursoAcademicoRepository, CursoAcademicoRepository>();
             services.AddScoped<IGradoRepository, GradoRepository>();
             services.AddScoped<IInscripcionRepository, InscripcionRepository>();
@@ -48,6 +48,12 @@ namespace SIRGA.IOC
             services.AddScoped<IHorarioEstudianteService, HorarioEstudianteService>();
             services.AddScoped<IActividadExtracurricularService, ActividadExtracurricularService>();
             services.AddScoped<IHorarioEstudianteService, HorarioEstudianteService>();
+
+
+           //servicios de ia
+            services.AddScoped<IActividadRecomendadorService, ActividadRecomendadorService>();
+            services.AddScoped<IChatbotService, ChatbotService>();
+            services.AddHttpClient(); // Para llamadas HTTP a APIs externas
 
             // servicios de identity
             services.AddScoped<IAccountService, AccountService>();

@@ -1,120 +1,180 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SIRGA.Domain.Entities;
 using SIRGA.Domain.Interfaces;
+using SIRGA.Domain.ReadModels;
 using SIRGA.Persistence.DbContext;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+using SIRGA.Persistence.Repositories.Base;
 
 namespace SIRGA.Persistence.Repositories
 {
-    public class ActividadExtracurricularRepository : IActividadExtracurricularRepository
+    public class ActividadExtracurricularRepository : GenericRepository<ActividadExtracurricular>, IActividadExtracurricularRepository
     {
-        private readonly ApplicationDbContext _context;
-
-        public ActividadExtracurricularRepository(ApplicationDbContext context)
+        public ActividadExtracurricularRepository(ApplicationDbContext context) : base(context)
         {
-            _context = context;
         }
 
-        public async Task<ActividadExtracurricular> AddAsync(ActividadExtracurricular entity)
-        {
-            await _context.ActividadesExtracurriculares.AddAsync(entity);
-            await _context.SaveChangesAsync();
-            return await GetByIdAsync(entity.Id);
-        }
-
-        public async Task<bool> DeleteAsync(int id)
-        {
-            var actividad = await GetByIdAsync(id);
-            if (actividad == null) return false;
-
-            _context.ActividadesExtracurriculares.Remove(actividad);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<bool> ExistsAsync(Expression<Func<ActividadExtracurricular, bool>> predicate)
-        {
-            return await _context.ActividadesExtracurriculares.AnyAsync(predicate);
-        }
-
-        public async Task<List<ActividadExtracurricular>> GetAllAsync()
+        
+        public async Task<ActividadExtracurricular> GetActividadConDetallesAsync(int id)
         {
             return await _context.ActividadesExtracurriculares
-                .Include(a => a.ProfesorEncargado)
-                .Include(a => a.Inscripciones)
-                .ToListAsync();
-        }
-
-        public async Task<List<ActividadExtracurricular>> GetAllByConditionAsync(Expression<Func<ActividadExtracurricular, bool>> predicate)
-        {
-            return await _context.ActividadesExtracurriculares
-                .Include(a => a.ProfesorEncargado)
-                .Include(a => a.Inscripciones)
-                .Where(predicate)
-                .ToListAsync();
-        }
-
-        public async Task<ActividadExtracurricular> GetByConditionAsync(Expression<Func<ActividadExtracurricular, bool>> predicate)
-        {
-            return await _context.ActividadesExtracurriculares
-                .Include(a => a.ProfesorEncargado)
-                .Include(a => a.Inscripciones)
-                .FirstOrDefaultAsync(predicate);
-        }
-
-        public async Task<ActividadExtracurricular> GetByIdAsync(int id)
-        {
-            return await _context.ActividadesExtracurriculares
-                .Include(a => a.ProfesorEncargado)
-                .Include(a => a.Inscripciones)
+                .Include(a => a.Inscripciones.Where(i => i.EstaActiva))
+                    .ThenInclude(i => i.Estudiante)
                 .FirstOrDefaultAsync(a => a.Id == id);
-        }
-
-        public async Task<ActividadExtracurricular> UpdateAsync(ActividadExtracurricular entity)
-        {
-            _context.ActividadesExtracurriculares.Update(entity);
-            await _context.SaveChangesAsync();
-            return await GetByIdAsync(entity.Id);
         }
 
         public async Task<List<ActividadExtracurricular>> GetActividadesActivasAsync()
         {
             return await _context.ActividadesExtracurriculares
-                .Include(a => a.ProfesorEncargado)
-                .Include(a => a.Inscripciones)
                 .Where(a => a.EstaActiva)
+                .Include(a => a.Inscripciones.Where(i => i.EstaActiva))
                 .ToListAsync();
         }
 
         public async Task<List<ActividadExtracurricular>> GetActividadesPorCategoriaAsync(string categoria)
         {
             return await _context.ActividadesExtracurriculares
-                .Include(a => a.ProfesorEncargado)
-                .Include(a => a.Inscripciones)
-                .Where(a => a.EstaActiva && a.Categoria == categoria)
+                .Where(a => a.Categoria == categoria && a.EstaActiva)
+                .Include(a => a.Inscripciones.Where(i => i.EstaActiva))
                 .ToListAsync();
         }
 
-        public async Task<ActividadExtracurricular> GetActividadConDetallesAsync(int id)
+       
+        public async Task<ActividadConDetalles> GetActividadDetalladaAsync(int id)
         {
             return await _context.ActividadesExtracurriculares
-                .Include(a => a.ProfesorEncargado)
-                .Include(a => a.Inscripciones)
-                    .ThenInclude(i => i.Estudiante)
-                .FirstOrDefaultAsync(a => a.Id == id);
+                .Where(a => a.Id == id)
+                .Join(_context.Profesores,
+                    a => a.IdProfesorEncargado,
+                    p => p.Id,
+                    (a, p) => new { a, p })
+                .Join(_context.Users,
+                    x => x.p.ApplicationUserId,
+                    u => u.Id,
+                    (x, u) => new ActividadConDetalles
+                    {
+                        Id = x.a.Id,
+                        Nombre = x.a.Nombre,
+                        Descripcion = x.a.Descripcion,
+                        Categoria = x.a.Categoria,
+                        Requisitos = x.a.Requisitos,
+                        HoraInicio = x.a.HoraInicio,
+                        HoraFin = x.a.HoraFin,
+                        DiaSemana = x.a.DiaSemana,
+                        Ubicacion = x.a.Ubicacion,
+                        ColorTarjeta = x.a.ColorTarjeta,
+                        RutaImagen = x.a.RutaImagen,
+                        EstaActiva = x.a.EstaActiva,
+                        FechaCreacion = x.a.FechaCreacion,
+                        IdProfesorEncargado = x.p.Id,
+                        ProfesorNombre = u.FirstName,
+                        ProfesorApellido = u.LastName,
+                        TotalInscritos = _context.InscripcionesActividades
+                            .Count(i => i.IdActividad == x.a.Id && i.EstaActiva)
+                    })
+                .FirstOrDefaultAsync();
         }
 
-        public async Task<List<Estudiante>> GetEstudiantesInscritosAsync(int idActividad)
+        public async Task<List<ActividadConDetalles>> GetAllActividadesDetalladasAsync()
         {
-            return await _context.InscripcionesActividades
-                .Where(i => i.IdActividad == idActividad && i.EstaActiva)
-                .Include(i => i.Estudiante)
-                .Select(i => i.Estudiante)
+            return await _context.ActividadesExtracurriculares
+                .Join(_context.Profesores,
+                    a => a.IdProfesorEncargado,
+                    p => p.Id,
+                    (a, p) => new { a, p })
+                .Join(_context.Users,
+                    x => x.p.ApplicationUserId,
+                    u => u.Id,
+                    (x, u) => new ActividadConDetalles
+                    {
+                        Id = x.a.Id,
+                        Nombre = x.a.Nombre,
+                        Descripcion = x.a.Descripcion,
+                        Categoria = x.a.Categoria,
+                        Requisitos = x.a.Requisitos,
+                        HoraInicio = x.a.HoraInicio,
+                        HoraFin = x.a.HoraFin,
+                        DiaSemana = x.a.DiaSemana,
+                        Ubicacion = x.a.Ubicacion,
+                        ColorTarjeta = x.a.ColorTarjeta,
+                        RutaImagen = x.a.RutaImagen,
+                        EstaActiva = x.a.EstaActiva,
+                        FechaCreacion = x.a.FechaCreacion,
+                        IdProfesorEncargado = x.p.Id,
+                        ProfesorNombre = u.FirstName,
+                        ProfesorApellido = u.LastName,
+                        TotalInscritos = _context.InscripcionesActividades
+                            .Count(i => i.IdActividad == x.a.Id && i.EstaActiva)
+                    })
+                .ToListAsync();
+        }
+
+        public async Task<List<ActividadConDetalles>> GetActividadesActivasDetalladasAsync()
+        {
+            return await _context.ActividadesExtracurriculares
+                .Where(a => a.EstaActiva)
+                .Join(_context.Profesores,
+                    a => a.IdProfesorEncargado,
+                    p => p.Id,
+                    (a, p) => new { a, p })
+                .Join(_context.Users,
+                    x => x.p.ApplicationUserId,
+                    u => u.Id,
+                    (x, u) => new ActividadConDetalles
+                    {
+                        Id = x.a.Id,
+                        Nombre = x.a.Nombre,
+                        Descripcion = x.a.Descripcion,
+                        Categoria = x.a.Categoria,
+                        Requisitos = x.a.Requisitos,
+                        HoraInicio = x.a.HoraInicio,
+                        HoraFin = x.a.HoraFin,
+                        DiaSemana = x.a.DiaSemana,
+                        Ubicacion = x.a.Ubicacion,
+                        ColorTarjeta = x.a.ColorTarjeta,
+                        RutaImagen = x.a.RutaImagen,
+                        EstaActiva = x.a.EstaActiva,
+                        FechaCreacion = x.a.FechaCreacion,
+                        IdProfesorEncargado = x.p.Id,
+                        ProfesorNombre = u.FirstName,
+                        ProfesorApellido = u.LastName,
+                        TotalInscritos = _context.InscripcionesActividades
+                            .Count(i => i.IdActividad == x.a.Id && i.EstaActiva)
+                    })
+                .ToListAsync();
+        }
+
+        public async Task<List<ActividadConDetalles>> GetActividadesPorCategoriaDetalladasAsync(string categoria)
+        {
+            return await _context.ActividadesExtracurriculares
+                .Where(a => a.Categoria == categoria && a.EstaActiva)
+                .Join(_context.Profesores,
+                    a => a.IdProfesorEncargado,
+                    p => p.Id,
+                    (a, p) => new { a, p })
+                .Join(_context.Users,
+                    x => x.p.ApplicationUserId,
+                    u => u.Id,
+                    (x, u) => new ActividadConDetalles
+                    {
+                        Id = x.a.Id,
+                        Nombre = x.a.Nombre,
+                        Descripcion = x.a.Descripcion,
+                        Categoria = x.a.Categoria,
+                        Requisitos = x.a.Requisitos,
+                        HoraInicio = x.a.HoraInicio,
+                        HoraFin = x.a.HoraFin,
+                        DiaSemana = x.a.DiaSemana,
+                        Ubicacion = x.a.Ubicacion,
+                        ColorTarjeta = x.a.ColorTarjeta,
+                        RutaImagen = x.a.RutaImagen,
+                        EstaActiva = x.a.EstaActiva,
+                        FechaCreacion = x.a.FechaCreacion,
+                        IdProfesorEncargado = x.p.Id,
+                        ProfesorNombre = u.FirstName,
+                        ProfesorApellido = u.LastName,
+                        TotalInscritos = _context.InscripcionesActividades
+                            .Count(i => i.IdActividad == x.a.Id && i.EstaActiva)
+                    })
                 .ToListAsync();
         }
     }

@@ -11,10 +11,10 @@ namespace SIRGA.Application.DTOs.Entities.Asistencia
         [RegularExpression("^(Presente|Ausente|Tarde|Justificado)$")]
         public string Estado { get; set; }
 
-        [MaxLength(500)]
+        [MaxLength(125)]
         public string? Observaciones { get; set; }
 
-        [MaxLength(500, ErrorMessage = "La justificación no puede exceder 500 caracteres")]
+        [MaxLength(350, ErrorMessage = "La justificación no puede exceder 500 caracteres")]
         [MinLength(10, ErrorMessage = "La justificación debe tener al menos 10 caracteres")]
         public string? Justificacion { get; set; }
 

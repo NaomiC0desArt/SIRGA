@@ -21,7 +21,7 @@ namespace SIRGA.Persistence.Repositories
                     .ThenInclude(c => c.Asignatura)
                 .Where(a => a.IdClaseProgramada == idClaseProgramada &&
                             a.Fecha.Date == fecha.Date)
-                .OrderBy(a => a.Estudiante.ApplicationUserId) // Ordenar alfabéticamente
+                .OrderBy(a => a.Estudiante.ApplicationUserId) 
                 .ToListAsync();
         }
 

@@ -7,31 +7,22 @@ using SIRGA.Application.Interfaces.Entities;
 using SIRGA.Domain.Entities;
 using SIRGA.Domain.Interfaces;
 using SIRGA.Persistence.DbContext;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace SIRGA.Application.Services
 {
     public class ActividadExtracurricularService : IActividadExtracurricularService
     {
         private readonly IActividadExtracurricularRepository _actividadRepository;
         private readonly IInscripcionActividadRepository _inscripcionRepository;
-        private readonly ApplicationDbContext _context;
         private readonly ILogger<ActividadExtracurricularService> _logger;
         private readonly string _uploadsPath;
 
         public ActividadExtracurricularService(
             IActividadExtracurricularRepository actividadRepository,
             IInscripcionActividadRepository inscripcionRepository,
-            ApplicationDbContext context,
             ILogger<ActividadExtracurricularService> logger)
         {
             _actividadRepository = actividadRepository;
             _inscripcionRepository = inscripcionRepository;
-            _context = context;
             _logger = logger;
             _uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "actividades");
 
@@ -42,47 +33,24 @@ namespace SIRGA.Application.Services
             }
         }
 
+        #region CRUD Operations
         public async Task<ApiResponse<ActividadExtracurricularDto>> CreateAsync(CreateActividadDto dto, IFormFile imagen = null)
         {
             try
             {
-                _logger.LogInformation("=== INICIANDO CREACION DE ACTIVIDAD EN EL SERVICIO ===");
-                _logger.LogInformation("Datos recibidos: {@Dto}", dto);
+                _logger.LogInformation("Iniciando creación de actividad: {Nombre}", dto.Nombre);
 
                 // Validar horario (2:00 PM - 8:00 PM)
-                if (dto.HoraInicio < TimeSpan.FromHours(14) || dto.HoraFin > TimeSpan.FromHours(20))
-                {
-                    _logger.LogWarning("Horario inválido: {HoraInicio} - {HoraFin}", dto.HoraInicio, dto.HoraFin);
-                    return ApiResponse<ActividadExtracurricularDto>.ErrorResponse(
-                        "El horario debe estar entre las 2:00 PM y las 8:00 PM");
-                }
+                var validacionHorario = ValidarHorario(dto.HoraInicio, dto.HoraFin);
+                if (validacionHorario != null)
+                    return validacionHorario;
 
-                if (dto.HoraFin <= dto.HoraInicio)
-                {
-                    _logger.LogWarning("Hora fin menor o igual a hora inicio");
-                    return ApiResponse<ActividadExtracurricularDto>.ErrorResponse(
-                        "La hora de fin debe ser posterior a la hora de inicio");
-                }
-
-                // Verificar que el profesor existe
-                _logger.LogInformation("Verificando existencia del profesor ID: {IdProfesor}", dto.IdProfesorEncargado);
-                var profesorExists = await _context.Profesores.AnyAsync(p => p.Id == dto.IdProfesorEncargado);
-
-                if (!profesorExists)
-                {
-                    _logger.LogError("Profesor no encontrado con ID: {IdProfesor}", dto.IdProfesorEncargado);
-                    return ApiResponse<ActividadExtracurricularDto>.ErrorResponse(
-                        $"El profesor con ID {dto.IdProfesorEncargado} no existe");
-                }
-
-                _logger.LogInformation("✓ Profesor encontrado");
-
+                // Guardar imagen si existe
                 string rutaImagen = null;
                 if (imagen != null)
                 {
-                    _logger.LogInformation("Guardando imagen: {FileName}, Tamaño: {Size}", imagen.FileName, imagen.Length);
+                    _logger.LogInformation("Guardando imagen: {FileName}", imagen.FileName);
                     rutaImagen = await GuardarImagenAsync(imagen);
-                    _logger.LogInformation("✓ Imagen guardada en: {RutaImagen}", rutaImagen);
                 }
 
                 var actividad = new ActividadExtracurricular
@@ -102,55 +70,21 @@ namespace SIRGA.Application.Services
                     FechaCreacion = DateTime.Now
                 };
 
-                _logger.LogInformation("Objeto actividad creado: {@Actividad}", new
-                {
-                    actividad.Nombre,
-                    actividad.Categoria,
-                    actividad.IdProfesorEncargado,
-                    actividad.DiaSemana,
-                    actividad.HoraInicio,
-                    actividad.HoraFin
-                });
+                await _actividadRepository.AddAsync(actividad);
+                _logger.LogInformation("✓ Actividad creada con ID: {Id}", actividad.Id);
 
-                _logger.LogInformation("Intentando guardar en la base de datos...");
+                // Obtener actividad con detalles
+                var actividadConDetalles = await _actividadRepository.GetActividadDetalladaAsync(actividad.Id);
+                var actividadDto = MapActividadConDetallesADto(actividadConDetalles);
 
-                try
-                {
-                    await _actividadRepository.AddAsync(actividad);
-                    _logger.LogInformation("✓✓✓ Actividad guardada exitosamente con ID: {Id}", actividad.Id);
-                }
-                catch (Exception dbEx)
-                {
-                    _logger.LogError(dbEx, "!!! ERROR AL GUARDAR EN LA BASE DE DATOS !!!");
-                    _logger.LogError("Tipo de excepción: {Type}", dbEx.GetType().Name);
-                    _logger.LogError("Mensaje: {Message}", dbEx.Message);
-
-                    if (dbEx.InnerException != null)
-                    {
-                        _logger.LogError("Inner Exception: {InnerMessage}", dbEx.InnerException.Message);
-                        _logger.LogError("Inner Exception Type: {InnerType}", dbEx.InnerException.GetType().Name);
-
-                        if (dbEx.InnerException.InnerException != null)
-                        {
-                            _logger.LogError("Inner Inner Exception: {InnerInnerMessage}",
-                                dbEx.InnerException.InnerException.Message);
-                        }
-                    }
-
-                    throw; // Re-lanzar para que sea capturado por el catch externo
-                }
-
-                var actividadDto = await MapToDto(actividad);
                 return ApiResponse<ActividadExtracurricularDto>.SuccessResponse(
                     actividadDto,
                     "Actividad creada exitosamente");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "ERROR GENERAL al crear actividad extracurricular");
-                _logger.LogError("Stack Trace: {StackTrace}", ex.StackTrace);
+                _logger.LogError(ex, "Error al crear actividad extracurricular");
 
-                // Mensaje más específico para el usuario
                 string userMessage = "Error al crear la actividad";
                 List<string> errors = new List<string> { ex.Message };
 
@@ -158,7 +92,6 @@ namespace SIRGA.Application.Services
                 {
                     errors.Add(ex.InnerException.Message);
 
-                    // Mensajes más amigables para errores comunes
                     if (ex.InnerException.Message.Contains("FOREIGN KEY"))
                     {
                         userMessage = "Error de referencia: El profesor seleccionado no es válido";
@@ -171,9 +104,7 @@ namespace SIRGA.Application.Services
                     }
                 }
 
-                return ApiResponse<ActividadExtracurricularDto>.ErrorResponse(
-                    userMessage,
-                    errors);
+                return ApiResponse<ActividadExtracurricularDto>.ErrorResponse(userMessage, errors);
             }
         }
 
@@ -188,22 +119,13 @@ namespace SIRGA.Application.Services
                 }
 
                 // Validar horario
-                if (dto.HoraInicio < TimeSpan.FromHours(14) || dto.HoraFin > TimeSpan.FromHours(20))
-                {
-                    return ApiResponse<ActividadExtracurricularDto>.ErrorResponse(
-                        "El horario debe estar entre las 2:00 PM y las 8:00 PM");
-                }
-
-                if (dto.HoraFin <= dto.HoraInicio)
-                {
-                    return ApiResponse<ActividadExtracurricularDto>.ErrorResponse(
-                        "La hora de fin debe ser posterior a la hora de inicio");
-                }
+                var validacionHorario = ValidarHorario(dto.HoraInicio, dto.HoraFin);
+                if (validacionHorario != null)
+                    return validacionHorario;
 
                 // Actualizar imagen si se proporciona una nueva
                 if (imagen != null)
                 {
-                    // Eliminar imagen anterior si existe
                     if (!string.IsNullOrEmpty(actividad.RutaImagen))
                     {
                         EliminarImagen(actividad.RutaImagen);
@@ -211,6 +133,7 @@ namespace SIRGA.Application.Services
                     actividad.RutaImagen = await GuardarImagenAsync(imagen);
                 }
 
+                // Actualizar campos
                 actividad.Nombre = dto.Nombre;
                 actividad.Descripcion = dto.Descripcion;
                 actividad.Categoria = dto.Categoria;
@@ -225,7 +148,10 @@ namespace SIRGA.Application.Services
 
                 await _actividadRepository.UpdateAsync(actividad);
 
-                var actividadDto = await MapToDto(actividad);
+                // Obtener actividad con detalles
+                var actividadConDetalles = await _actividadRepository.GetActividadDetalladaAsync(id);
+                var actividadDto = MapActividadConDetallesADto(actividadConDetalles);
+
                 return ApiResponse<ActividadExtracurricularDto>.SuccessResponse(
                     actividadDto,
                     "Actividad actualizada exitosamente");
@@ -266,27 +192,24 @@ namespace SIRGA.Application.Services
                     new List<string> { ex.Message });
             }
         }
+        #endregion
 
-        // Continuación en Parte 2...
+        #region Consultas
         public async Task<ApiResponse<ActividadDetalleDto>> GetByIdAsync(int id, int? estudianteId = null)
         {
             try
             {
-                var actividad = await _actividadRepository.GetActividadConDetallesAsync(id);
-                if (actividad == null)
+                var actividadConDetalles = await _actividadRepository.GetActividadDetalladaAsync(id);
+                if (actividadConDetalles == null)
                 {
                     return ApiResponse<ActividadDetalleDto>.ErrorResponse("Actividad no encontrada");
                 }
 
-                var profesor = await _context.Profesores
-                    .FirstOrDefaultAsync(p => p.Id == actividad.IdProfesorEncargado);
+                // Obtener estudiantes inscritos
+                var estudiantesInscritos = await _inscripcionRepository
+                    .GetInscripcionesPorActividadConDetallesAsync(id);
 
-                var profesorUser = profesor != null
-                    ? await _context.Users.FirstOrDefaultAsync(u => u.Id == profesor.ApplicationUserId)
-                    : null;
-
-                var estudiantesInscritos = await ObtenerEstudiantesInscritos(id);
-
+                // Verificar si el estudiante está inscrito
                 bool estaInscrito = false;
                 if (estudianteId.HasValue)
                 {
@@ -295,23 +218,27 @@ namespace SIRGA.Application.Services
 
                 var detalleDto = new ActividadDetalleDto
                 {
-                    Id = actividad.Id,
-                    Nombre = actividad.Nombre,
-                    Descripcion = actividad.Descripcion,
-                    Categoria = actividad.Categoria,
-                    Requisitos = actividad.Requisitos,
-                    HoraInicio = actividad.HoraInicio,
-                    HoraFin = actividad.HoraFin,
-                    DiaSemana = ConvertirDayOfWeekADia(actividad.DiaSemana),
-                    Ubicacion = actividad.Ubicacion,
-                    ColorTarjeta = actividad.ColorTarjeta,
-                    RutaImagen = actividad.RutaImagen,
-                    EstaActiva = actividad.EstaActiva,
-                    NombreProfesor = profesorUser != null
-                        ? $"{profesorUser.FirstName} {profesorUser.LastName}"
-                        : "N/A",
-                    TotalInscritos = estudiantesInscritos.Count,
-                    EstudiantesInscritos = estudiantesInscritos,
+                    Id = actividadConDetalles.Id,
+                    Nombre = actividadConDetalles.Nombre,
+                    Descripcion = actividadConDetalles.Descripcion,
+                    Categoria = actividadConDetalles.Categoria,
+                    Requisitos = actividadConDetalles.Requisitos,
+                    HoraInicio = actividadConDetalles.HoraInicio,
+                    HoraFin = actividadConDetalles.HoraFin,
+                    DiaSemana = ConvertirDayOfWeekADia(actividadConDetalles.DiaSemana),
+                    Ubicacion = actividadConDetalles.Ubicacion,
+                    ColorTarjeta = actividadConDetalles.ColorTarjeta,
+                    RutaImagen = actividadConDetalles.RutaImagen,
+                    EstaActiva = actividadConDetalles.EstaActiva,
+                    NombreProfesor = actividadConDetalles.ProfesorNombreCompleto,
+                    TotalInscritos = actividadConDetalles.TotalInscritos,
+                    EstudiantesInscritos = estudiantesInscritos.Select(e => new EstudianteInscritoDto
+                    {
+                        IdEstudiante = e.IdEstudiante,
+                        NombreCompleto = e.EstudianteNombreCompleto,
+                        Matricula = e.EstudianteMatricula,
+                        FechaInscripcion = e.FechaInscripcion
+                    }).ToList(),
                     EstaInscrito = estaInscrito
                 };
 
@@ -330,12 +257,12 @@ namespace SIRGA.Application.Services
         {
             try
             {
-                var actividades = await _actividadRepository.GetAllAsync();
+                var actividadesConDetalles = await _actividadRepository.GetAllActividadesDetalladasAsync();
                 var actividadesDto = new List<ActividadExtracurricularDto>();
 
-                foreach (var actividad in actividades)
+                foreach (var actividad in actividadesConDetalles)
                 {
-                    var dto = await MapToDto(actividad, estudianteId);
+                    var dto = await MapActividadConDetallesADtoConInscripcion(actividad, estudianteId);
                     actividadesDto.Add(dto);
                 }
 
@@ -354,12 +281,12 @@ namespace SIRGA.Application.Services
         {
             try
             {
-                var actividades = await _actividadRepository.GetActividadesActivasAsync();
+                var actividadesConDetalles = await _actividadRepository.GetActividadesActivasDetalladasAsync();
                 var actividadesDto = new List<ActividadExtracurricularDto>();
 
-                foreach (var actividad in actividades)
+                foreach (var actividad in actividadesConDetalles)
                 {
-                    var dto = await MapToDto(actividad, estudianteId);
+                    var dto = await MapActividadConDetallesADtoConInscripcion(actividad, estudianteId);
                     actividadesDto.Add(dto);
                 }
 
@@ -378,12 +305,13 @@ namespace SIRGA.Application.Services
         {
             try
             {
-                var actividades = await _actividadRepository.GetActividadesPorCategoriaAsync(categoria);
+                var actividadesConDetalles = await _actividadRepository
+                    .GetActividadesPorCategoriaDetalladasAsync(categoria);
                 var actividadesDto = new List<ActividadExtracurricularDto>();
 
-                foreach (var actividad in actividades)
+                foreach (var actividad in actividadesConDetalles)
                 {
-                    var dto = await MapToDto(actividad, estudianteId);
+                    var dto = await MapActividadConDetallesADtoConInscripcion(actividad, estudianteId);
                     actividadesDto.Add(dto);
                 }
 
@@ -402,21 +330,16 @@ namespace SIRGA.Application.Services
         {
             try
             {
-                var inscripciones = await _inscripcionRepository.GetInscripcionesPorActividadAsync(idActividad);
-                var estudiantesDto = new List<EstudianteInscritoDto>();
+                var inscripciones = await _inscripcionRepository
+                    .GetInscripcionesPorActividadConDetallesAsync(idActividad);
 
-                foreach (var inscripcion in inscripciones)
+                var estudiantesDto = inscripciones.Select(i => new EstudianteInscritoDto
                 {
-                    var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == inscripcion.Estudiante.ApplicationUserId);
-
-                    estudiantesDto.Add(new EstudianteInscritoDto
-                    {
-                        IdEstudiante = inscripcion.IdEstudiante,
-                        NombreCompleto = user != null ? $"{user.FirstName} {user.LastName}" : "N/A",
-                        Matricula = inscripcion.Estudiante.Matricula,
-                        FechaInscripcion = inscripcion.FechaInscripcion
-                    });
-                }
+                    IdEstudiante = i.IdEstudiante,
+                    NombreCompleto = i.EstudianteNombreCompleto,
+                    Matricula = i.EstudianteMatricula,
+                    FechaInscripcion = i.FechaInscripcion
+                }).ToList();
 
                 return ApiResponse<List<EstudianteInscritoDto>>.SuccessResponse(estudiantesDto);
             }
@@ -428,7 +351,9 @@ namespace SIRGA.Application.Services
                     new List<string> { ex.Message });
             }
         }
+        #endregion
 
+        #region Inscripciones
         public async Task<ApiResponse<bool>> InscribirEstudianteAsync(int idActividad, int idEstudiante)
         {
             try
@@ -508,24 +433,30 @@ namespace SIRGA.Application.Services
                     new List<string> { ex.Message });
             }
         }
+        #endregion
 
-        private async Task<ActividadExtracurricularDto> MapToDto(ActividadExtracurricular actividad, int? estudianteId = null)
+        #region Helpers - Validación
+        private ApiResponse<ActividadExtracurricularDto> ValidarHorario(TimeSpan horaInicio, TimeSpan horaFin)
         {
-            var profesor = await _context.Profesores
-                .FirstOrDefaultAsync(p => p.Id == actividad.IdProfesorEncargado);
-
-            var profesorUser = profesor != null
-                ? await _context.Users.FirstOrDefaultAsync(u => u.Id == profesor.ApplicationUserId)
-                : null;
-
-            var totalInscritos = actividad.Inscripciones?.Count(i => i.EstaActiva) ?? 0;
-
-            bool estaInscrito = false;
-            if (estudianteId.HasValue)
+            if (horaInicio < TimeSpan.FromHours(14) || horaFin > TimeSpan.FromHours(20))
             {
-                estaInscrito = await _inscripcionRepository.EstaInscritoAsync(estudianteId.Value, actividad.Id);
+                return ApiResponse<ActividadExtracurricularDto>.ErrorResponse(
+                    "El horario debe estar entre las 2:00 PM y las 8:00 PM");
             }
 
+            if (horaFin <= horaInicio)
+            {
+                return ApiResponse<ActividadExtracurricularDto>.ErrorResponse(
+                    "La hora de fin debe ser posterior a la hora de inicio");
+            }
+
+            return null;
+        }
+        #endregion
+
+        #region Helpers - Mapeo
+        private ActividadExtracurricularDto MapActividadConDetallesADto(Domain.ReadModels.ActividadConDetalles actividad)
+        {
             return new ActividadExtracurricularDto
             {
                 Id = actividad.Id,
@@ -541,34 +472,28 @@ namespace SIRGA.Application.Services
                 RutaImagen = actividad.RutaImagen,
                 EstaActiva = actividad.EstaActiva,
                 IdProfesorEncargado = actividad.IdProfesorEncargado,
-                NombreProfesor = profesorUser != null
-                    ? $"{profesorUser.FirstName} {profesorUser.LastName}"
-                    : "N/A",
-                TotalInscritos = totalInscritos,
-                EstaInscrito = estaInscrito
+                NombreProfesor = actividad.ProfesorNombreCompleto,
+                TotalInscritos = actividad.TotalInscritos,
+                EstaInscrito = false
             };
         }
 
-        private async Task<List<EstudianteInscritoDto>> ObtenerEstudiantesInscritos(int idActividad)
+        private async Task<ActividadExtracurricularDto> MapActividadConDetallesADtoConInscripcion(
+            Domain.ReadModels.ActividadConDetalles actividad,
+            int? estudianteId)
         {
-            var inscripciones = await _inscripcionRepository.GetInscripcionesPorActividadAsync(idActividad);
-            var estudiantesDto = new List<EstudianteInscritoDto>();
+            var dto = MapActividadConDetallesADto(actividad);
 
-            foreach (var inscripcion in inscripciones)
+            if (estudianteId.HasValue)
             {
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == inscripcion.Estudiante.ApplicationUserId);
-
-                estudiantesDto.Add(new EstudianteInscritoDto
-                {
-                    IdEstudiante = inscripcion.IdEstudiante,
-                    NombreCompleto = user != null ? $"{user.FirstName} {user.LastName}" : "N/A",
-                    Matricula = inscripcion.Estudiante.Matricula,
-                    FechaInscripcion = inscripcion.FechaInscripcion
-                });
+                dto.EstaInscrito = await _inscripcionRepository.EstaInscritoAsync(estudianteId.Value, actividad.Id);
             }
 
-            return estudiantesDto;
+            return dto;
         }
+        #endregion
+
+        #region Helpers - Conversión
         private DayOfWeek ConvertirDiaADayOfWeek(string dia)
         {
             return dia switch
@@ -598,7 +523,9 @@ namespace SIRGA.Application.Services
                 _ => "Desconocido"
             };
         }
+        #endregion
 
+        #region Helpers - Archivos
         private async Task<string> GuardarImagenAsync(IFormFile imagen)
         {
             var fileName = $"{Guid.NewGuid()}{Path.GetExtension(imagen.FileName)}";
@@ -627,5 +554,6 @@ namespace SIRGA.Application.Services
                 _logger.LogWarning(ex, $"No se pudo eliminar la imagen: {rutaImagen}");
             }
         }
+        #endregion
     }
 }

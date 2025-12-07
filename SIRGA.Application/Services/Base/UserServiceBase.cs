@@ -2,11 +2,6 @@
 using SIRGA.Application.DTOs.Common;
 using SIRGA.Domain.Interfaces;
 using SIRGA.Identity.Shared.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SIRGA.Application.Services.Base
 {

@@ -2,50 +2,28 @@
 using SIRGA.Domain.Entities;
 using SIRGA.Domain.Interfaces;
 using SIRGA.Persistence.DbContext;
+using SIRGA.Persistence.Repositories.Base;
 
 namespace SIRGA.Persistence.Repositories
 {
-    public class CursoAcademicoRepository : ICursoAcademicoRepository
+    public class CursoAcademicoRepository : GenericRepository<CursoAcademico>, ICursoAcademicoRepository
     {
         private readonly ApplicationDbContext _context;
 
-        public CursoAcademicoRepository(ApplicationDbContext context)
+        public CursoAcademicoRepository(ApplicationDbContext context) : base(context) { }
+
+        public async Task<List<CursoAcademico>> GetAllWithGradoAsync()
         {
-            _context = context;
+            return await _dbSet
+                .Include(c => c.Grado)
+                .ToListAsync();
         }
 
-        public async Task<CursoAcademico> AddAsync(CursoAcademico cursoAcademico)
+        public async Task<CursoAcademico?> GetByIdWithGradoAsync(int id)
         {
-            await _context.CursosAcademicos.AddAsync(cursoAcademico);
-            await _context.SaveChangesAsync();
-            return cursoAcademico;
-        }
-
-        public async Task<bool> DeleteAsync(int id)
-        {
-            var cursoAcademinico = await GetByIdAsync(id);
-            if (cursoAcademinico == null) { return false; }
-
-            _context.CursosAcademicos.Remove(cursoAcademinico);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<List<CursoAcademico>> GetAllAsync()
-        {
-            return await _context.CursosAcademicos.Include(c => c.Grado).ToListAsync();
-        }
-
-        public async Task<CursoAcademico> GetByIdAsync(int id)
-        {
-            return await _context.CursosAcademicos.Include(c => c.Grado).FirstOrDefaultAsync(c=>c.Id == id);
-        }
-
-        public async Task<CursoAcademico> UpdateAsync(CursoAcademico cursoAcademico)
-        {
-            _context.CursosAcademicos.Update(cursoAcademico);
-            await _context.SaveChangesAsync();
-            return cursoAcademico;
+            return await _dbSet
+                .Include(c => c.Grado)
+                .FirstOrDefaultAsync(c => c.Id == id);
         }
     }
 }

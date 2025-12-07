@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SIRGA.Application.DTOs.Entities.ActividadExtracurricular;
 using SIRGA.Application.Interfaces.Entities;
+using SIRGA.Application.Interfaces.Usuarios;
 using SIRGA.Domain.Interfaces;
 using System.Security.Claims;
 
@@ -14,21 +15,20 @@ namespace SIRGA.API.Controllers.System
     public class ActividadExtracurricularController : ControllerBase
     {
         private readonly IActividadExtracurricularService _actividadService;
-        private readonly IEstudianteRepository _estudianteRepository;
+        private readonly IEstudianteService _estudianteService; 
         private readonly ILogger<ActividadExtracurricularController> _logger;
 
         public ActividadExtracurricularController(
             IActividadExtracurricularService actividadService,
-            IEstudianteRepository estudianteRepository,
+            IEstudianteService estudianteService, 
             ILogger<ActividadExtracurricularController> logger)
         {
             _actividadService = actividadService;
-            _estudianteRepository = estudianteRepository;
+            _estudianteService = estudianteService;
             _logger = logger;
         }
 
-        // ============ ENDPOINTS ADMIN ============
-
+        #region Admin Endpoints
         [Authorize(Roles = "Admin")]
         [HttpGet("Admin/GetAll")]
         public async Task<IActionResult> GetAllAdmin()
@@ -50,13 +50,6 @@ namespace SIRGA.API.Controllers.System
         [HttpPost("Admin/Crear")]
         public async Task<IActionResult> Create([FromForm] CreateActividadDto dto, IFormFile imagen = null)
         {
-            _logger.LogInformation("=== REQUEST RECIBIDO EN API ===");
-            _logger.LogInformation("Datos del formulario recibidos");
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values
@@ -68,16 +61,13 @@ namespace SIRGA.API.Controllers.System
                 return BadRequest(new { errors });
             }
 
-            _logger.LogInformation("ModelState válido, llamando al servicio...");
             var result = await _actividadService.CreateAsync(dto, imagen);
 
             if (!result.Success)
             {
-                _logger.LogWarning("Servicio retornó error: {Message}", result.Message);
+                _logger.LogWarning("Error al crear actividad: {Message}", result.Message);
                 return BadRequest(result);
             }
-
-            _logger.LogInformation("✓ Actividad creada exitosamente");
 
             return Ok(result);
         }
@@ -102,8 +92,6 @@ namespace SIRGA.API.Controllers.System
             if (!result.Success) return NotFound(result);
             return Ok(result);
         }
-
-        // ============ GESTIÓN DE INSCRIPCIONES (ADMIN) ============
 
         [Authorize(Roles = "Admin")]
         [HttpGet("Admin/{idActividad:int}/Estudiantes")]
@@ -130,20 +118,18 @@ namespace SIRGA.API.Controllers.System
             if (!result.Success) return BadRequest(result);
             return Ok(result);
         }
+        #endregion
 
-        // ============ ENDPOINTS ESTUDIANTE ============
-
+        #region Estudiante Endpoints
         [Authorize(Roles = "Estudiante")]
         [HttpGet("Estudiante/Disponibles")]
         public async Task<IActionResult> GetActividadesDisponibles()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var estudiante = await _estudianteRepository.GetByApplicationUserIdAsync(userId);
-
-            if (estudiante == null)
+            var estudianteId = await GetEstudianteIdFromUser();
+            if (estudianteId == null)
                 return NotFound(new { message = "Estudiante no encontrado" });
 
-            var result = await _actividadService.GetActividadesActivasAsync(estudiante.Id);
+            var result = await _actividadService.GetActividadesActivasAsync(estudianteId.Value);
             return Ok(result);
         }
 
@@ -151,13 +137,11 @@ namespace SIRGA.API.Controllers.System
         [HttpGet("Estudiante/Por-Categoria/{categoria}")]
         public async Task<IActionResult> GetPorCategoria(string categoria)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var estudiante = await _estudianteRepository.GetByApplicationUserIdAsync(userId);
-
-            if (estudiante == null)
+            var estudianteId = await GetEstudianteIdFromUser();
+            if (estudianteId == null)
                 return NotFound(new { message = "Estudiante no encontrado" });
 
-            var result = await _actividadService.GetPorCategoriaAsync(categoria, estudiante.Id);
+            var result = await _actividadService.GetPorCategoriaAsync(categoria, estudianteId.Value);
             return Ok(result);
         }
 
@@ -165,13 +149,11 @@ namespace SIRGA.API.Controllers.System
         [HttpGet("Estudiante/{id:int}/Detalle")]
         public async Task<IActionResult> GetDetalle(int id)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var estudiante = await _estudianteRepository.GetByApplicationUserIdAsync(userId);
-
-            if (estudiante == null)
+            var estudianteId = await GetEstudianteIdFromUser();
+            if (estudianteId == null)
                 return NotFound(new { message = "Estudiante no encontrado" });
 
-            var result = await _actividadService.GetByIdAsync(id, estudiante.Id);
+            var result = await _actividadService.GetByIdAsync(id, estudianteId.Value);
             if (!result.Success) return NotFound(result);
             return Ok(result);
         }
@@ -180,13 +162,11 @@ namespace SIRGA.API.Controllers.System
         [HttpPost("Estudiante/{id:int}/Inscribirse")]
         public async Task<IActionResult> Inscribirse(int id)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var estudiante = await _estudianteRepository.GetByApplicationUserIdAsync(userId);
-
-            if (estudiante == null)
+            var estudianteId = await GetEstudianteIdFromUser();
+            if (estudianteId == null)
                 return NotFound(new { message = "Estudiante no encontrado" });
 
-            var result = await _actividadService.InscribirseAsync(id, estudiante.Id);
+            var result = await _actividadService.InscribirseAsync(id, estudianteId.Value);
             if (!result.Success) return BadRequest(result);
             return Ok(result);
         }
@@ -195,15 +175,28 @@ namespace SIRGA.API.Controllers.System
         [HttpPost("Estudiante/{id:int}/Desinscribirse")]
         public async Task<IActionResult> Desinscribirse(int id)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var estudiante = await _estudianteRepository.GetByApplicationUserIdAsync(userId);
-
-            if (estudiante == null)
+            var estudianteId = await GetEstudianteIdFromUser();
+            if (estudianteId == null)
                 return NotFound(new { message = "Estudiante no encontrado" });
 
-            var result = await _actividadService.DesinscribirseAsync(id, estudiante.Id);
+            var result = await _actividadService.DesinscribirseAsync(id, estudianteId.Value);
             if (!result.Success) return BadRequest(result);
             return Ok(result);
         }
+        #endregion
+
+        #region Helper Methods
+        private async Task<int?> GetEstudianteIdFromUser()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+                return null;
+
+            var result = await _estudianteService.GetEstudianteIdByUserIdAsync(userId);
+
+            return result.Success ? result.Data : null;
+        }
+        #endregion
     }
 }

@@ -5,31 +5,21 @@ using SIRGA.Application.DTOs.UserManagement.Estudiante;
 using SIRGA.Application.Interfaces.Entities;
 using SIRGA.Domain.Interfaces;
 using SIRGA.Persistence.DbContext;
-using SIRGA.Persistence.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace SIRGA.Application.Services
 {
     public class HorarioEstudianteService :  IHorarioEstudianteService
     {
         private readonly IInscripcionRepository _inscripcionRepository;
-        private readonly IClaseProgramadaRepositoryExtended _claseProgramadaRepository;
-        private readonly ApplicationDbContext _context;
+        private readonly IClaseProgramadaRepository _claseProgramadaRepository;
         private readonly ILogger<HorarioEstudianteService> _logger;
 
         public HorarioEstudianteService(
             IInscripcionRepository inscripcionRepository,
-            IClaseProgramadaRepositoryExtended claseProgramadaRepository,
-            ApplicationDbContext context,
+            IClaseProgramadaRepository claseProgramadaRepository,
             ILogger<HorarioEstudianteService> logger)
         {
             _inscripcionRepository = inscripcionRepository;
             _claseProgramadaRepository = claseProgramadaRepository;
-            _context = context;
             _logger = logger;
         }
 
@@ -37,7 +27,7 @@ namespace SIRGA.Application.Services
         {
             try
             {
-                // 1. Obtener la inscripción activa del estudiante
+                // 1. Obtener inscripción activa del estudiante
                 var inscripcion = await _inscripcionRepository.GetByConditionAsync(
                     i => i.IdEstudiante == estudianteId
                 );
@@ -49,10 +39,9 @@ namespace SIRGA.Application.Services
                     );
                 }
 
-                // 2. Obtener todas las clases del curso académico
-                var clasesProgramadas = await _claseProgramadaRepository.GetAllByConditionAsync(
-                    c => c.IdCursoAcademico == inscripcion.IdCursoAcademico
-                );
+                // 2. Obtener todas las clases del curso académico con detalles
+                var clasesProgramadas = await _claseProgramadaRepository
+                    .GetClasesPorCursoAcademicoAsync(inscripcion.IdCursoAcademico);
 
                 if (!clasesProgramadas.Any())
                 {
@@ -69,18 +58,9 @@ namespace SIRGA.Application.Services
                     );
                 }
 
-                // 3. Obtener información adicional de profesores
-                var profesoresIds = clasesProgramadas.Select(c => c.IdProfesor).Distinct().ToList();
-                var profesores = await _context.Profesores
-                    .Where(p => profesoresIds.Contains(p.Id))
-                    .ToDictionaryAsync(p => p.Id);
-
-                var profesoresUsers = await _context.Users
-                    .Where(u => profesores.Values.Select(p => p.ApplicationUserId).Contains(u.Id))
-                    .ToDictionaryAsync(u => u.Id);
-
-                // 4. Organizar por día de la semana
-                var diasSemana = new[] {
+                // 3. Organizar por día de la semana
+                var diasSemana = new[]
+                {
                     DayOfWeek.Monday,
                     DayOfWeek.Tuesday,
                     DayOfWeek.Wednesday,
@@ -100,11 +80,6 @@ namespace SIRGA.Application.Services
                         .OrderBy(c => c.StartTime)
                         .Select(c =>
                         {
-                            var profesor = profesores.GetValueOrDefault(c.IdProfesor);
-                            var profesorUser = profesor != null
-                                ? profesoresUsers.GetValueOrDefault(profesor.ApplicationUserId)
-                                : null;
-
                             var esClaseActual = dia == diaActual &&
                                                ahora >= c.StartTime &&
                                                ahora <= c.EndTime;
@@ -125,10 +100,8 @@ namespace SIRGA.Application.Services
                                 IdClaseProgramada = c.Id,
                                 HoraInicio = c.StartTime,
                                 HoraFin = c.EndTime,
-                                NombreAsignatura = c.Asignatura?.Nombre ?? "N/A",
-                                NombreProfesor = profesorUser != null
-                                    ? $"{profesorUser.FirstName} {profesorUser.LastName}"
-                                    : "N/A",
+                                NombreAsignatura = c.AsignaturaNombre,
+                                NombreProfesor = c.ProfesorNombreCompleto,
                                 Ubicacion = c.Location ?? "N/A",
                                 EsClaseActual = esClaseActual,
                                 EsProximaClase = esProximaClase
@@ -173,6 +146,7 @@ namespace SIRGA.Application.Services
         {
             try
             {
+                // 1. Obtener inscripción activa del estudiante
                 var inscripcion = await _inscripcionRepository.GetByConditionAsync(
                     i => i.IdEstudiante == estudianteId
                 );
@@ -184,32 +158,17 @@ namespace SIRGA.Application.Services
                     );
                 }
 
-                var clasesProgramadas = await _claseProgramadaRepository.GetAllByConditionAsync(
-                    c => c.IdCursoAcademico == inscripcion.IdCursoAcademico &&
-                         c.WeekDay == diaSemana
-                );
-
-                var profesoresIds = clasesProgramadas.Select(c => c.IdProfesor).Distinct().ToList();
-                var profesores = await _context.Profesores
-                    .Where(p => profesoresIds.Contains(p.Id))
-                    .ToDictionaryAsync(p => p.Id);
-
-                var profesoresUsers = await _context.Users
-                    .Where(u => profesores.Values.Select(p => p.ApplicationUserId).Contains(u.Id))
-                    .ToDictionaryAsync(u => u.Id);
+                // 2. Obtener clases del día específico con detalles
+                var clasesProgramadas = await _claseProgramadaRepository
+                    .GetClasesPorCursoYDiaAsync(inscripcion.IdCursoAcademico, diaSemana);
 
                 var ahora = DateTime.Now.TimeOfDay;
                 var diaActual = DateTime.Now.DayOfWeek;
 
+                // 3. Mapear a DTOs con lógica de clase actual/próxima
                 var clasesDto = clasesProgramadas
-                    .OrderBy(c => c.StartTime)
                     .Select(c =>
                     {
-                        var profesor = profesores.GetValueOrDefault(c.IdProfesor);
-                        var profesorUser = profesor != null
-                            ? profesoresUsers.GetValueOrDefault(profesor.ApplicationUserId)
-                            : null;
-
                         var esClaseActual = diaSemana == diaActual &&
                                            ahora >= c.StartTime &&
                                            ahora <= c.EndTime;
@@ -230,10 +189,8 @@ namespace SIRGA.Application.Services
                             IdClaseProgramada = c.Id,
                             HoraInicio = c.StartTime,
                             HoraFin = c.EndTime,
-                            NombreAsignatura = c.Asignatura?.Nombre ?? "N/A",
-                            NombreProfesor = profesorUser != null
-                                ? $"{profesorUser.FirstName} {profesorUser.LastName}"
-                                : "N/A",
+                            NombreAsignatura = c.AsignaturaNombre,
+                            NombreProfesor = c.ProfesorNombreCompleto,
                             Ubicacion = c.Location ?? "N/A",
                             EsClaseActual = esClaseActual,
                             EsProximaClase = esProximaClase
@@ -256,6 +213,7 @@ namespace SIRGA.Application.Services
             }
         }
 
+        #region Helpers
         private string ConvertirDayOfWeekAEspanol(DayOfWeek dia)
         {
             return dia switch
@@ -270,5 +228,6 @@ namespace SIRGA.Application.Services
                 _ => "Desconocido"
             };
         }
+        #endregion
     }
 }

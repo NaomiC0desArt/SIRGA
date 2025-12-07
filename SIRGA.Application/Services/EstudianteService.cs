@@ -526,7 +526,29 @@ namespace SIRGA.Application.Services
             }
         }
 
-        private EstudianteResponseDto MapToResponseDto(Estudiante estudiante, ApplicationUser user)
+        public async Task<ApiResponse<int>> GetEstudianteIdByUserIdAsync(string applicationUserId)
+        {
+            try
+            {
+                var estudiante = await _estudianteRepository.GetByApplicationUserIdAsync(applicationUserId);
+
+                if (estudiante == null)
+                {
+                    return ApiResponse<int>.ErrorResponse("Estudiante no encontrado");
+                }
+
+                return ApiResponse<int>.SuccessResponse(estudiante.Id);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<int>.ErrorResponse(
+                    "Error al obtener el ID del estudiante",
+                    new List<string> { ex.Message }
+                );
+            }
+        }
+
+            private EstudianteResponseDto MapToResponseDto(Estudiante estudiante, ApplicationUser user)
         {
             return new EstudianteResponseDto
             {

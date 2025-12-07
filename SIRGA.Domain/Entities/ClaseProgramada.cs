@@ -8,7 +8,7 @@ namespace SIRGA.Domain.Entities
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
         public DayOfWeek  WeekDay { get; set; }
-        public string Location { get; set; } // Aula, Laboratorio, etc
+        public string Location { get; set; }
 
         public int IdAsignatura { get; set; }
         [ForeignKey("IdAsignatura")]

@@ -13,7 +13,7 @@ namespace SIRGA.Application.DTOs.Entities.Asistencia
         [RegularExpression("^(Presente|Ausente|Tarde|Justificado)$")]
         public string Estado { get; set; }
 
-        [MaxLength(500)]
+        [MaxLength(125)]
         public string? Observaciones { get; set; }
 
         public bool RequiereJustificacion { get; set; } = false;
