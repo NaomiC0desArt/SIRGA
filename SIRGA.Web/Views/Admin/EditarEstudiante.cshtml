@@ -2,7 +2,14 @@
 
 @{
     ViewData["Title"] = "Editar Estudiante";
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";  
+    ViewBag.UserName = User.Identity.Name;                
+    ViewBag.UserRole = "Administrador";  
     var estudianteId = ViewBag.EstudianteId;
+}
+
+@section SidebarMenu {
+    <partial name="_AdminSidebarMenu" /> 
 }
 
 <div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">

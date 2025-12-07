@@ -2,10 +2,15 @@
 
 @{
     ViewData["Title"] = "Gestión de Estudiantes";
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = User.Identity.Name;
+    ViewBag.UserRole = "Administrador";
 }
 
-<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8  pb-24">
-    <div class="max-w-7xl mx-auto">
+@section SidebarMenu {
+    <partial name="_AdminSidebarMenu" />
+}
+
 
         <!-- Header -->
         <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
@@ -382,8 +387,7 @@
                 </div>
             }
         </div>
-    </div>
-</div>
+
 
 <!-- Formularios ocultos -->
 <form id="formActivar" asp-action="ActivarEstudiante" method="post" style="display:none;">

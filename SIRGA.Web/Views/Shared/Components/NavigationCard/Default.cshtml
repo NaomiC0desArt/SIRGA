@@ -1,0 +1,18 @@
+﻿@model SIRGA.Web.ViewComponents.NavigationCardViewModel
+
+<a asp-controller="@Model.Controller" asp-action="@Model.Action"
+   class="group bg-gradient-to-r @Model.GetBackgroundClasses() rounded-xl p-6 border transition-all duration-200 hover:shadow-lg">
+    <div class="flex items-center">
+        <div class="@Model.GetIconBgClass() rounded-lg p-4 mr-4">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="@Model.IconPath"></path>
+            </svg>
+        </div>
+        <div>
+            <h3 class="text-xl font-semibold text-gray-900 @Model.GetHoverTextClass()">
+                @Model.Title
+            </h3>
+            <p class="text-sm text-gray-600 mt-1">@Model.Description</p>
+        </div>
+    </div>
+</a>
