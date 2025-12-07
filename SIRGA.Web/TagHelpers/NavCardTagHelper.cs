@@ -76,3 +76,4 @@ namespace SIRGA.Web.TagHelpers
             return ColorSchemes["blue"].Split('|');
         }
     }
+}
