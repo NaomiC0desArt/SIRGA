@@ -1,0 +1,48 @@
+﻿@model SIRGA.Web.ViewComponents.DetailHeaderViewModel
+
+<div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div class="flex items-center">
+            <div class="h-16 w-16 bg-gradient-to-r @Model.GetGradientClasses() rounded-full flex items-center justify-center mr-4 shadow-lg">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="@Model.IconPath"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">@Model.Title</h1>
+                @if (Model.Badges != null && Model.Badges.Any())
+                {
+                    <p class="text-gray-600 mt-1">
+                        @foreach (var badge in Model.Badges)
+                        {
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium @badge.GetBadgeClasses() mr-2">
+                                @badge.Text
+                            </span>
+                        }
+                    </p>
+                }
+            </div>
+        </div>
+
+        @if (Model.ActionButtons != null && Model.ActionButtons.Any())
+        {
+            <div class="flex gap-3">
+                @foreach (var button in Model.ActionButtons)
+                {
+                    <a asp-controller="@button.Controller"
+                       asp-action="@button.Action"
+                       asp-all-route-data="button.RouteValues"
+                       class="inline-flex items-center px-4 py-2 @button.ColorClass font-semibold rounded-lg shadow-md transition-all duration-200">
+                        @if (!string.IsNullOrEmpty(button.IconPath))
+                        {
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="@button.IconPath" />
+                            </svg>
+                        }
+                        @button.Text
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</div>

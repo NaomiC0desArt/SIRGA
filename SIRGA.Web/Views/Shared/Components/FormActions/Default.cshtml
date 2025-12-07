@@ -1,0 +1,18 @@
+﻿@model SIRGA.Web.ViewComponents.FormActionsViewModel
+
+<div class="flex justify-end gap-4 pt-6 @(Model.ShowBorder ? "border-t border-gray-200" : "")">
+    <a asp-action="@Model.CancelAction"
+       asp-controller="@Model.CancelController"
+       class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg shadow-md transition-all duration-200">
+        Cancelar
+    </a>
+    <button type="submit"
+            class="px-6 py-3 bg-gradient-to-r @Model.GetGradientClasses() text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+        <span class="flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="@Model.SubmitIconPath"></path>
+            </svg>
+            @Model.SubmitText
+        </span>
+    </button>
+</div>

@@ -1,0 +1,38 @@
+﻿@model SIRGA.Web.ViewComponents.DetailCardViewModel
+
+<div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 @Model.GetColSpanClass()">
+    <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+        @if (!string.IsNullOrEmpty(Model.IconPath))
+        {
+            <svg class="w-6 h-6 mr-2 @Model.GetIconColorClass()" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="@Model.IconPath"></path>
+            </svg>
+        }
+        @Model.Title
+    </h2>
+
+    <div class="space-y-4">
+        @foreach (var field in Model.Fields)
+        {
+            <div>
+                <label class="text-sm font-medium text-gray-500">@field.Label</label>
+                <p class="text-lg text-gray-900">
+                    @if (field.IsEmpty)
+                    {
+                        <span class="text-yellow-600">@field.EmptyMessage</span>
+                    }
+                    else if (field.IsBadge)
+                    {
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium @field.GetBadgeClasses()">
+                            @field.Value
+                        </span>
+                    }
+                    else
+                    {
+                        @field.Value
+                    }
+                </p>
+            </div>
+        }
+    </div>
+</div>
