@@ -2,11 +2,17 @@
 @using SIRGA.Web.ViewComponents
 
 @{
-    ViewData["Title"] = "Panel de Estudiante";
+    ViewData["Title"] = "Mi Panel";
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = Model.UserName;
+    ViewBag.UserRole = "Estudiante";
 }
 
-<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
-    <div class="max-w-7xl mx-auto">
+@section SidebarMenu {
+    <partial name="_EstudianteSidebarMenu" />
+}
+
+
 
         <!-- Encabezado usando View Component -->
         @await Component.InvokeAsync("DashboardHeader", new DashboardHeaderViewModel
@@ -207,6 +213,3 @@
         </div>
         }
         </div> *@
-
-    </div>
-</div>
