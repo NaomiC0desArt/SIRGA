@@ -2,9 +2,15 @@
 
 @{
     ViewData["Title"] = "Gestión de Grados";
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = User.Identity.Name;
+    ViewBag.UserRole = "Administrador";
+}
+@section SidebarMenu {
+    <partial name="_AdminSidebarMenu" />
 }
 
-<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
+
     <div class="max-w-7xl mx-auto">
 
         <!-- Header -->
@@ -198,7 +204,6 @@
             }
         </div>
     </div>
-</div>
 
 <!-- Formulario oculto para eliminar -->
 <form id="formEliminar" asp-action="Eliminar" method="post" style="display:none;">

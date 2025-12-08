@@ -5,6 +5,13 @@
     var grados = ViewBag.Grados as List<SIRGA.Web.Models.Grado.GradoDto> ?? new List<SIRGA.Web.Models.Grado.GradoDto>();
     var currentYear = DateTime.Now.Year;
     var nextYear = currentYear + 1;
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = User.Identity.Name;
+    ViewBag.UserRole = "Administrador";
+}
+
+@section SidebarMenu {
+    <partial name="_AdminSidebarMenu" />
 }
 
 <div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">

@@ -8,9 +8,16 @@
     var registrosPorPagina = ViewBag.RegistrosPorPagina ?? 10;
     var busqueda = ViewBag.Busqueda ?? "";
     var filtroCurso = ViewBag.FiltroCurso ?? "";
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = User.Identity.Name;
+    ViewBag.UserRole = "Administrador";
 }
 
-<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8">
+
+@section SidebarMenu {
+    <partial name="_AdminSidebarMenu" />
+}
+
     <div class="max-w-7xl mx-auto">
 
         <!-- Header -->
@@ -368,7 +375,6 @@
             }
         </div>
     </div>
-</div>
 
 <form id="formEliminar" asp-action="Eliminar" method="post" style="display:none;">
     <input type="hidden" id="eliminarId" name="id" />
