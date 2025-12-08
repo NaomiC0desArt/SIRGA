@@ -1,0 +1,228 @@
+﻿@model IEnumerable<SIRGA.Application.DTOs.Entities.AnnualGradeDto>
+
+@{
+    ViewData["Title"] = "Mis Calificaciones";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">
+        <i class="fas fa-chart-bar text-primary me-2"></i>@ViewData["Title"]
+    </h1>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>No hay calificaciones disponibles.
+        </div>
+    }
+    else
+    {
+        <!-- Tarjetas de resumen general -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-book me-2"></i>Asignaturas
+                        </h5>
+                        <h2 class="display-6">@Model.Count()</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-star me-2"></i>Promedio General
+                        </h5>
+                        <h2 class="display-6">
+                            @{
+                                var promedio = Model.Average(g => g.Total);
+                                @promedio.ToString("F2")
+                            }
+                        </h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-trophy me-2"></i>Mejor Calificación
+                        </h5>
+                        <h2 class="display-6">@Model.Max(g => g.Total).ToString("F2")</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-chart-line me-2"></i>Estatus
+                        </h5>
+                        <h6 class="mt-2">
+                            @{
+                                var aprobadas = Model.Count(g => g.Total >= 6);
+                                <span>Aprobadas: @aprobadas</span>
+                            }
+                        </h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de calificaciones -->
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-table me-2"></i>Detalle de Calificaciones por Asignatura
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Asignatura</th>
+                                <th class="text-center">P1</th>
+                                <th class="text-center">P2</th>
+                                <th class="text-center">P3</th>
+                                <th class="text-center">P4</th>
+                                <th class="text-center">Total</th>
+                                <th class="text-center">Estatus</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@Html.DisplayFor(modelItem => item.AsignaturaName)</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">@Html.DisplayFor(modelItem => item.P1)</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">@Html.DisplayFor(modelItem => item.P2)</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">@Html.DisplayFor(modelItem => item.P3)</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">@Html.DisplayFor(modelItem => item.P4)</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="fw-bold @(item.Total >= 6 ? "text-success" : "text-danger")">
+                                            @Html.DisplayFor(modelItem => item.Total)
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (item.Total >= 6)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>Aprobado
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times me-1"></i>Reprobado
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de calificaciones (opcional) -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Resumen Visual
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    @foreach (var item in Model.OrderBy(g => g.AsignaturaName))
+                    {
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2 text-muted">@item.AsignaturaName</h6>
+                                    <div class="progress" style="height: 20px;">
+                                        @{
+                                            var porcentaje = (item.Total / 10) * 100;
+                                            var colorClass = item.Total >= 6 ? "bg-success" : "bg-danger";
+                                        }
+                                        <div class="progress-bar @colorClass"
+                                             role="progressbar"
+                                             style="width: @porcentaje%"
+                                             aria-valuenow="@item.Total"
+                                             aria-valuemin="0"
+                                             aria-valuemax="10">
+                                            @item.Total.ToString("F2")
+                                        </div>
+                                    </div>
+                                    <small class="text-muted mt-2 d-block">
+                                        <i class="fas fa-graduation-cap me-1"></i>Promedio: @item.Total.ToString("F2")
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+    }
+
+    .card {
+        border: none;
+        border-radius: 10px;
+        transition: transform 0.2s;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+    }
+
+    .progress-bar {
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+
+    .badge {
+        font-size: 0.85rem;
+        padding: 0.4em 0.8em;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Añade un efecto de tooltip a las calificaciones
+            $('[data-toggle="tooltip"]').tooltip();
+
+            // Ordena la tabla por calificación total por defecto
+            $('.table').DataTable({
+                "order": [[5, "desc"]],
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
+                },
+                "pageLength": 10,
+                "responsive": true
+            });
+        });
+    </script>
+}

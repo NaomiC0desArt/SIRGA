@@ -1,6 +1,7 @@
 using Microsoft.OpenApi.Models;
 using SIRGA.Identity.Register;
 using SIRGA.IOC;
+using System.Text.Json.Serialization;
 using SIRGA.Persistence.Seeds;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,9 +16,9 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "SIRGA API",
         Version = "v1",
-        Description = "Sistema de Registro y Gestión Académica"
+        Description = "Sistema de Registro y GestiÃ³n AcadÃ©mica"
     });
-    // Configuración para JWT en Swagger
+    // ConfiguraciÃ³n para JWT en Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -45,6 +46,11 @@ builder.Services.AddSwaggerGen(c =>
 
 });
 
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
 builder.Services.AddIdentityLayer(builder.Configuration);
 builder.Services.AddApplicationServices(builder.Configuration);
 
@@ -56,7 +62,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("https://localhost:7095", "http://localhost:5082") // Puerto de tu frontend
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials(); // Importante para cookies de autenticación
+              .AllowCredentials(); // Importante para cookies de autenticaciÃ³n
     });
 });
 var app = builder.Build();

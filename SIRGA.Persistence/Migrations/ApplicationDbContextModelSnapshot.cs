@@ -155,6 +155,7 @@ namespace SIRGA.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("SIRGA.Domain.Entities.AnioEscolar", b =>
             modelBuilder.Entity("SIRGA.Domain.Entities.ActividadExtracurricular", b =>
                 {
                     b.Property<int>("Id")
@@ -163,6 +164,18 @@ namespace SIRGA.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("AnioFin")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AnioInicio")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AniosEscolares");
                     b.Property<string>("Categoria")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -231,6 +244,10 @@ namespace SIRGA.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasMaxLength(125)
@@ -240,11 +257,16 @@ namespace SIRGA.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("TipoAsignatura")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Asignaturas");
                 });
 
+            modelBuilder.Entity("SIRGA.Domain.Entities.Calificacion", b =>
             modelBuilder.Entity("SIRGA.Domain.Entities.Asistencia", b =>
                 {
                     b.Property<int>("Id")
@@ -253,6 +275,70 @@ namespace SIRGA.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("AsignaturaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CursoAcademicoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EstudianteId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("Examenes")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("ExamenesTeoricos")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("Exposiciones")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("NotaPeriodo")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("Participacion")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int>("PeriodoId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("Practicas")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("ProyectoFinal")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("Proyectos")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<bool>("Publicado")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("Tareas")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("Teoria")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AsignaturaId");
+
+                    b.HasIndex("CursoAcademicoId");
+
+                    b.HasIndex("PeriodoId");
+
+                    b.ToTable("Calificaciones");
                     b.Property<string>("Estado")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -480,6 +566,7 @@ namespace SIRGA.Persistence.Migrations
                     b.ToTable("Inscripciones");
                 });
 
+            modelBuilder.Entity("SIRGA.Domain.Entities.Periodo", b =>
             modelBuilder.Entity("SIRGA.Domain.Entities.InscripcionActividad", b =>
                 {
                     b.Property<int>("Id")
@@ -488,6 +575,16 @@ namespace SIRGA.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("AnioEscolarId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaFin")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaInicio")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Numero")
                     b.Property<bool>("EstaActiva")
                         .HasColumnType("bit");
 
@@ -502,6 +599,9 @@ namespace SIRGA.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AnioEscolarId");
+
+                    b.ToTable("Periodos");
                     b.HasIndex("IdActividad");
 
                     b.HasIndex("IdEstudiante");
@@ -695,6 +795,31 @@ namespace SIRGA.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SIRGA.Domain.Entities.Calificacion", b =>
+                {
+                    b.HasOne("SIRGA.Domain.Entities.Asignatura", "Asignatura")
+                        .WithMany()
+                        .HasForeignKey("AsignaturaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SIRGA.Domain.Entities.CursoAcademico", "CursoAcademico")
+                        .WithMany()
+                        .HasForeignKey("CursoAcademicoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SIRGA.Domain.Entities.Periodo", "Periodo")
+                        .WithMany()
+                        .HasForeignKey("PeriodoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Asignatura");
+
+                    b.Navigation("CursoAcademico");
+
+                    b.Navigation("Periodo");
             modelBuilder.Entity("SIRGA.Domain.Entities.ActividadExtracurricular", b =>
                 {
                     b.HasOne("SIRGA.Domain.Entities.Profesor", "ProfesorEncargado")
@@ -799,6 +924,15 @@ namespace SIRGA.Persistence.Migrations
                     b.Navigation("Estudiante");
                 });
 
+            modelBuilder.Entity("SIRGA.Domain.Entities.Periodo", b =>
+                {
+                    b.HasOne("SIRGA.Domain.Entities.AnioEscolar", "AnioEscolar")
+                        .WithMany()
+                        .HasForeignKey("AnioEscolarId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AnioEscolar");
             modelBuilder.Entity("SIRGA.Domain.Entities.InscripcionActividad", b =>
                 {
                     b.HasOne("SIRGA.Domain.Entities.ActividadExtracurricular", "Actividad")

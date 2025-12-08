@@ -32,6 +32,9 @@ namespace SIRGA.IOC
             services.AddScoped<ICursoAcademicoRepository, CursoAcademicoRepository>();
             services.AddScoped<IGradoRepository, GradoRepository>();
             services.AddScoped<IInscripcionRepository, InscripcionRepository>();
+            services.AddScoped<ICalificacionRepository, CalificacionRepository>();
+            services.AddScoped<IPeriodoRepository, PeriodoRepository>();
+            services.AddScoped<IAnioEscolarRepository, AnioEscolarRepository>();
             services.AddScoped<IAsistenciaRepository, AsistenciaRepository>();
             services.AddScoped<IActividadExtracurricularRepository, ActividadExtracurricularRepository>();
             services.AddScoped<IInscripcionActividadRepository, InscripcionActividadRepository>();
@@ -44,6 +47,10 @@ namespace SIRGA.IOC
             services.AddScoped<ICursoAcademicoService, CursoAcademicoService>();
             services.AddScoped<IGradoService, GradoService>();
             services.AddScoped<IInscripcionService, InscripcionService>();
+            services.AddScoped<ICalificacionService, CalificacionService>();
+            services.AddScoped<IPeriodoService, PeriodoService>();
+            services.AddScoped<IAnioEscolarService, AnioEscolarService>();
+
             services.AddScoped<IAsistenciaService, AsistenciaService>();
             services.AddScoped<IHorarioEstudianteService, HorarioEstudianteService>();
             services.AddScoped<IActividadExtracurricularService, ActividadExtracurricularService>();

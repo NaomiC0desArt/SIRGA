@@ -1,0 +1,560 @@
+﻿@model IEnumerable<SIRGA.Application.DTOs.Entities.PeriodoDto>
+
+@{
+    ViewData["Title"] = "Gestión de Periodos";
+    // Helper para mostrar el nombre del periodo
+    string ObtenerNombrePeriodo(int numero)
+    {
+        return numero switch
+        {
+            1 => "Primer Periodo",
+            2 => "Segundo Periodo",
+            3 => "Tercer Periodo",
+            4 => "Cuarto Periodo",
+            _ => numero.ToString()
+        };
+    }
+
+    // Helper para obtener el color del badge según el periodo
+    string ObtenerColorPeriodo(int numero)
+    {
+        return numero switch
+        {
+            1 => "bg-blue-100 text-blue-800",
+            2 => "bg-green-100 text-green-800",
+            3 => "bg-yellow-100 text-yellow-800",
+            4 => "bg-purple-100 text-purple-800",
+            _ => "bg-gray-100 text-gray-800"
+        };
+    }
+
+    // Helper para obtener el icono según el periodo
+    string ObtenerIconoPeriodo(int numero)
+    {
+        return numero switch
+        {
+            1 => "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+            2 => "M13 10V3L4 14h7v7l9-11h-7z",
+            3 => "M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z",
+            4 => "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",
+            _ => "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+        };
+    }
+}
+
+<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8">
+    <div class="max-w-7xl mx-auto">
+
+        <!-- Header -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex items-center">
+                    <div class="h-12 w-12 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Gestión de Periodos</h1>
+                        <p class="text-gray-600 mt-1">Administra los periodos académicos del sistema</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <a asp-action="Create"
+                       class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Nuevo Periodo
+                    </a>
+                    <a asp-controller="Admin" asp-action="Index"
+                       class="inline-flex items-center px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Volver al Panel
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensajes de éxito/error -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6 animate-fade-in">
+                <div class="flex items-start">
+                    <svg class="w-6 h-6 text-green-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="flex-1">
+                        <h3 class="text-sm font-medium text-green-800 mb-2">@TempData["SuccessMessage"]</h3>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 animate-fade-in">
+                <div class="flex items-start">
+                    <svg class="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="text-sm text-red-700">@TempData["ErrorMessage"]</div>
+                </div>
+            </div>
+        }
+
+        <!-- Tarjeta de contenido -->
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div class="px-8 py-6 border-b border-gray-200">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 flex items-center">
+                            <svg class="w-6 h-6 mr-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                            </svg>
+                            Lista de Periodos
+                        </h2>
+                        <div class="mt-2 flex items-center space-x-4">
+                            <!-- Filtro por año escolar 
+                            <div class="flex items-center space-x-2">
+                                <label class="text-sm text-gray-600">Filtrar por año:</label>
+                                <select id="filterAnio" class="text-sm border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                                    <option value="all">Todos los años</option>
+                                    <!-- Esto debería cargarse dinámicamente desde ViewData o ViewBag
+                                    @if (ViewData["AniosEscolares"] != null)
+                                    {
+                                        foreach (var anio in (List<SIRGA.Application.DTOs.Entities.AnioEscolarDto>)ViewData["AniosEscolares"])
+                                        {
+                                            <option value="@anio.Id">@anio.AnioInicio-@anio.AnioFin</option>
+                                        }
+                                    }
+                                </select>
+                        </div>-->
+
+                            <!-- Filtro por periodo -->
+                            <div class="flex items-center space-x-2">
+                                <label class="text-sm text-gray-600">Periodo:</label>
+                                <select id="filterPeriodo" class="text-sm border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                                    <option value="all">Todos</option>
+                                    <option value="1">Primer Periodo</option>
+                                    <option value="2">Segundo Periodo</option>
+                                    <option value="3">Tercer Periodo</option>
+                                    <option value="4">Cuarto Periodo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2 text-sm text-gray-500">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Total: @Model.Count() periodo(s)</span>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200" id="periodosTable">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    ID
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Periodo
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Fecha Inicio
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Fecha Fin
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Duración
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Año Escolar
+                                </th>
+                                <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Acciones
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach (var item in Model)
+                            {
+                                var nombrePeriodo = ObtenerNombrePeriodo(item.Numero);
+                                var colorPeriodo = ObtenerColorPeriodo(item.Numero);
+                                var iconoPeriodo = ObtenerIconoPeriodo(item.Numero);
+                                var duracion = (item.FechaFin - item.FechaInicio).Days + 1;
+
+                                <tr class="hover:bg-gray-50 transition-colors duration-150"
+                                    data-anio="@item.AnioEscolarId"
+                                    data-periodo="@((int)item.Numero)">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                            @Html.DisplayFor(modelItem => item.Id)
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="h-8 w-8 rounded-full flex items-center justify-center mr-3 @colorPeriodo.Replace("text-", "bg-").Split(' ')[0]">
+                                                <svg class="w-4 h-4 @colorPeriodo.Replace("bg-", "text-").Split(' ')[1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="@iconoPeriodo" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <div class="text-sm font-medium text-gray-900">@nombrePeriodo</div>
+                                                <div class="text-xs text-gray-500">Número: @((int)item.Numero)</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">
+                                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-50 text-blue-700">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                @item.FechaInicio.ToString("dd/MM/yyyy")
+                                            </span>
+                                        </div>
+                                        <div class="text-xs text-gray-500 mt-1">@item.FechaInicio.ToString("dddd", new System.Globalization.CultureInfo("es-ES"))</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">
+                                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-50 text-red-700">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                @item.FechaFin.ToString("dd/MM/yyyy")
+                                            </span>
+                                        </div>
+                                        <div class="text-xs text-gray-500 mt-1">@item.FechaFin.ToString("dddd", new System.Globalization.CultureInfo("es-ES"))</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="text-sm font-medium text-gray-900 mr-2">@duracion días</div>
+                                            @if (duracion < 60)
+                                            {
+                                                <span class="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">Corto</span>
+                                            }
+                                            else if (duracion <= 90)
+                                            {
+                                                <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">Normal</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">Largo</span>
+                                            }
+                                        </div>
+                                        @{
+                                            var hoy = DateTime.Today;
+                                            var estadoPeriodo = "";
+                                            var colorEstado = "";
+                                            if (hoy < item.FechaInicio)
+                                            {
+                                                estadoPeriodo = "Por iniciar";
+                                                colorEstado = "bg-gray-100 text-gray-800";
+                                            }
+                                            else if (hoy >= item.FechaInicio && hoy <= item.FechaFin)
+                                            {
+                                                estadoPeriodo = "En curso";
+                                                colorEstado = "bg-green-100 text-green-800";
+                                            }
+                                            else
+                                            {
+                                                estadoPeriodo = "Finalizado";
+                                                colorEstado = "bg-blue-100 text-blue-800";
+                                            }
+                                        }
+                                        <div class="text-xs mt-1">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full @colorEstado">
+                                                @if (hoy >= item.FechaInicio && hoy <= item.FechaFin)
+                                                {
+                                                    <svg class="w-3 h-3 mr-1 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                                    </svg>
+                                                }
+                                                @estadoPeriodo
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                @item.AnioEscolar
+                                            </span>
+                                        </div>
+                                        @if (ViewData["AniosEscolares"] != null)
+                                        {
+                                            var anio = ((List<SIRGA.Application.DTOs.Entities.AnioEscolarDto>)ViewData["AniosEscolares"])
+                                            .FirstOrDefault(a => a.Id == item.AnioEscolarId);
+                                            if (anio != null)
+                                            {
+                                                <div class="text-xs text-gray-500 mt-1">@anio.AnioInicio-@anio.AnioFin</div>
+                                            }
+                                        }
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                        <div class="flex justify-center gap-2">
+                                            <!-- Editar -->
+                                            <a asp-action="Edit" asp-route-id="@item.Id"
+                                               class="inline-flex items-center px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                                               title="Editar">
+                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                </svg>
+                                                Editar
+                                            </a>
+
+                                            <!-- Detalles -->
+                                            <a asp-action="Details" asp-route-id="@item.Id"
+                                               class="inline-flex items-center px-3 py-2 bg-purple-500 hover:bg-purple-600 text-white text-xs font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                                               title="Ver detalles">
+                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                Detalles
+                                            </a>
+
+                                            <!-- Eliminar -->
+                                            <a href="#"
+                                                data-id = "@item.Id"
+                                               class="inline-flex items-center px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200 confirm-delete"
+                                               title="Eliminar"
+                                               data-nombre="@nombrePeriodo"
+                                               data-fechas="@item.FechaInicio.ToString("dd/MM/yyyy") - @item.FechaFin.ToString("dd/MM/yyyy")">
+                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                                Eliminar
+                                            </a>
+                                            <form id="deleteForm" method="post" style="display:none;">
+                                                <input type="hidden" name="id" id="deleteId" />
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-16">
+                    <div class="mx-auto h-24 w-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No hay periodos registrados</h3>
+                    <p class="text-gray-500 mb-6">Los periodos definen los segmentos de tiempo dentro de un año escolar</p>
+                    <a asp-action="Create"
+                       class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-lg shadow-lg">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Crear Primer Periodo
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Filtro por año escolar
+        document.getElementById('filterAnio')?.addEventListener('change', function() {
+            const anioId = this.value;
+            const filas = document.querySelectorAll('#periodosTable tbody tr');
+
+            filas.forEach(fila => {
+                const filaAnio = fila.getAttribute('data-anio');
+
+                if (anioId === 'all') {
+                    fila.classList.remove('hidden');
+                } else if (filaAnio === anioId) {
+                    fila.classList.remove('hidden');
+                } else {
+                    fila.classList.add('hidden');
+                }
+            });
+        });
+
+        // Filtro por periodo
+        document.getElementById('filterPeriodo')?.addEventListener('change', function() {
+            const periodoNum = this.value;
+            const filas = document.querySelectorAll('#periodosTable tbody tr');
+
+            filas.forEach(fila => {
+                const filaPeriodo = fila.getAttribute('data-periodo');
+
+                if (periodoNum === 'all') {
+                    fila.classList.remove('hidden');
+                } else if (filaPeriodo === periodoNum) {
+                    fila.classList.remove('hidden');
+                } else {
+                    fila.classList.add('hidden');
+                }
+            });
+        });
+
+        // Confirmación para eliminación
+        document.querySelectorAll('.confirm-delete').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const id = this.getAttribute('data-id');
+                const nombre = this.getAttribute('data-nombre');
+                const fechas = this.getAttribute('data-fechas');
+
+                Swal.fire({
+                    title: '¿Eliminar Periodo?',
+                    html: `
+                        <div class="text-left space-y-3">
+                            <p class="text-gray-700">Estás a punto de eliminar el periodo:</p>
+                            <div class="bg-gray-100 p-4 rounded-lg">
+                                <p class="font-semibold text-gray-900 text-lg text-center">${nombre}</p>
+                                <p class="text-sm text-gray-600 text-center mt-1">${fechas}</p>
+                            </div>
+                            <div class="bg-red-50 border-l-4 border-red-400 p-3 rounded">
+                                <p class="text-sm text-red-700">
+                                    <strong>¡Advertencia!</strong><br>
+                                    Esta acción eliminará permanentemente el periodo y puede afectar registros académicos asociados.
+                                </p>
+                            </div>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar',
+                    customClass: {
+                        popup: 'rounded-2xl',
+                        confirmButton: 'rounded-lg px-6 py-2.5',
+                        cancelButton: 'rounded-lg px-6 py-2.5'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Rellenar formulario oculto
+                        document.getElementById("deleteId").value = id;
+
+                        // Enviar formulario por POST
+                        const form = document.getElementById("deleteForm");
+                        form.action = `/Periodo/Delete/${id}`;
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+        // Mostrar mensaje de éxito con animación
+        @if (TempData["SuccessMessage"] != null)
+        {
+                <text>
+                setTimeout(() => {
+                    const successAlert = document.querySelector('.bg-green-50');
+                    if (successAlert) {
+                        successAlert.style.animation = 'fade-in 0.5s ease-out';
+                    }
+                }, 100);
+                </text>
+        }
+
+        // Combinar filtros
+        function aplicarFiltros() {
+            const anioId = document.getElementById('filterAnio')?.value || 'all';
+            const periodoNum = document.getElementById('filterPeriodo')?.value || 'all';
+            const filas = document.querySelectorAll('#periodosTable tbody tr');
+
+            filas.forEach(fila => {
+                const filaAnio = fila.getAttribute('data-anio');
+                const filaPeriodo = fila.getAttribute('data-periodo');
+
+                let mostrar = true;
+
+                if (anioId !== 'all' && filaAnio !== anioId) {
+                    mostrar = false;
+                }
+
+                if (periodoNum !== 'all' && filaPeriodo !== periodoNum) {
+                    mostrar = false;
+                }
+
+                if (mostrar) {
+                    fila.classList.remove('hidden');
+                } else {
+                    fila.classList.add('hidden');
+                }
+            });
+        }
+
+        // Aplicar ambos filtros cuando cambien
+        document.getElementById('filterAnio')?.addEventListener('change', aplicarFiltros);
+        document.getElementById('filterPeriodo')?.addEventListener('change', aplicarFiltros);
+    </script>
+
+    <style>
+        @@keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fade-in 0.3s ease-out;
+        }
+
+        /* Estilos para los filtros */
+        #filterAnio, #filterPeriodo {
+            padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+        }
+
+        /* Estilos para filas ocultas */
+        .hidden {
+            display: none;
+        }
+
+        /* Estilos para badges de estado */
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @@keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .5;
+            }
+        }
+    </style>
+}

@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SIRGA.Web.Models.API;
+using SIRGA.Application.DTOs.Common;
 using SIRGA.Web.Models.Asignatura;
 using SIRGA.Web.Services;
 
@@ -101,6 +101,8 @@ namespace SIRGA.Web.Controllers
                 var updateDto = new UpdateAsignaturaDto
                 {
                     Nombre = response.Data.Nombre,
+                    Codigo = response.Data.Codigo,
+                    TipoAsignatura = response.Data.TipoAsignatura,
                     Descripcion = response.Data.Descripcion
                 };
 

@@ -12,6 +12,8 @@ namespace SIRGA.Application.Services
     public class AsignaturaService : BaseService<Asignatura, AsignaturaDto, AsignaturaResponseDto>, IAsignaturaService
     {
         private readonly IAsignaturaRepository _asignaturaRepository;
+        private readonly ILogger<AsignaturaService> _logger;
+        private static Random _random = new Random();
 
         public AsignaturaService(
             IAsignaturaRepository asignaturaRepository,
@@ -21,6 +23,24 @@ namespace SIRGA.Application.Services
             _asignaturaRepository = asignaturaRepository;
         }
 
+        private static string GenerarCodigoAsignatura(string nombreAsignatura)
+        {
+            // Quitar espacios
+            string limpio = nombreAsignatura.Replace(" ", "");
+
+            if (limpio.Length < 3)
+                throw new ArgumentException("El nombre de la asignatura debe tener al menos 3 letras.");
+
+            // Tomar primeras 3 letras en mayúscula
+            string letras = limpio.Substring(0, 3).ToUpper();
+
+            // Generar número aleatorio de 3 dígitos
+            int numero = _random.Next(100, 1000); // 100 hasta 999
+
+            return $"{letras}-{numero}";
+        }
+
+        public async Task<ApiResponse<AsignaturaResponseDto>> CreateAsync(AsignaturaDto dto)
         protected override string EntityName => "Asignatura";
         
         #region Mapeos

@@ -1,0 +1,440 @@
+﻿@model SIRGA.Application.DTOs.Entities.CalificacionDto
+
+@{
+    ViewData["Title"] = "Crear Calificación";
+}
+
+<h1>Crear Calificación</h1>
+<h4>Registrar calificación de estudiante</h4>
+<hr />
+
+<div class="row">
+    <div class="col-md-8">
+        <form asp-action="Create" id="calificacionForm">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- Sección de información del estudiante -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Información del Estudiante</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="EstudianteId" class="control-label">Seleccionar Estudiante</label>
+                                <select asp-for="EstudianteId" class="form-control select2"
+                                        asp-items="@ViewBag.Estudiantes"
+                                        data-placeholder="Buscar estudiante...">
+                                    <option value="">-- Seleccionar Estudiante --</option>
+                                </select>
+                                <span asp-validation-for="EstudianteId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="control-label">Nombre del Estudiante</label>
+                                <input type="text" id="estudianteNombreDisplay" class="form-control" readonly />
+                                <input type="hidden" asp-for="EstudianteNombre" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de información académica -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Información Académica</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label asp-for="AsignaturaId" class="control-label">Asignatura</label>
+                                <select asp-for="AsignaturaId" class="form-control"
+                                        asp-items="@ViewBag.Asignaturas">
+                                    <option value="">-- Seleccionar Asignatura --</option>
+                                </select>
+                                <span asp-validation-for="AsignaturaId" class="text-danger"></span>
+                                <input type="hidden" asp-for="AsignaturaNombre" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label asp-for="CursoAcademicoId" class="control-label">Curso Académico</label>
+                                <select asp-for="CursoAcademicoId" class="form-control"
+                                        asp-items="@ViewBag.CursosAcademicos">
+                                    <option value="">-- Seleccionar Curso --</option>
+                                </select>
+                                <span asp-validation-for="CursoAcademicoId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label asp-for="PeriodoId" class="control-label">Período</label>
+                                <select asp-for="PeriodoId" class="form-control"
+                                        asp-items="@ViewBag.Periodos">
+                                    <option value="">-- Seleccionar Período --</option>
+                                </select>
+                                <span asp-validation-for="PeriodoId" class="text-danger"></span>
+                                <input type="hidden" asp-for="PeriodoNumero" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de calificaciones por categoría -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Calificaciones por Categoría</h5>
+                    <small class="text-light">Ingrese las calificaciones de 0 a 100</small>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Columna 1 -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="Tareas" class="control-label">
+                                    Tareas y Trabajos
+                                    <span class="badge badge-secondary">25%</span>
+                                </label>
+                                <input asp-for="Tareas" class="form-control calificacion-input"
+                                       type="number" min="0" max="100" step="0.1"
+                                       placeholder="Ej: 85.5" />
+                                <span asp-validation-for="Tareas" class="text-danger"></span>
+                                <small class="form-text text-muted">Promedio de tareas entregadas</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="ExamenesTeoricos" class="control-label">
+                                    Exámenes Teóricos
+                                    <span class="badge badge-secondary">30%</span>
+                                </label>
+                                <input asp-for="ExamenesTeoricos" class="form-control calificacion-input"
+                                       type="number" min="0" max="100" step="0.1"
+                                       placeholder="Ej: 78.0" />
+                                <span asp-validation-for="ExamenesTeoricos" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Practicas" class="control-label">
+                                    Prácticas de Laboratorio
+                                    <span class="badge badge-secondary">15%</span>
+                                </label>
+                                <input asp-for="Practicas" class="form-control calificacion-input"
+                                       type="number" min="0" max="100" step="0.1"
+                                       placeholder="Ej: 90.0" />
+                                <span asp-validation-for="Practicas" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="ProyectoFinal" class="control-label">
+                                    Proyecto Final
+                                    <span class="badge badge-secondary">10%</span>
+                                </label>
+                                <input asp-for="ProyectoFinal" class="form-control calificacion-input"
+                                       type="number" min="0" max="100" step="0.1"
+                                       placeholder="Ej: 95.0" />
+                                <span asp-validation-for="ProyectoFinal" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Columna 2 -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="Participacion" class="control-label">
+                                    Participación en Clase
+                                    <span class="badge badge-secondary">5%</span>
+                                </label>
+                                <input asp-for="Participacion" class="form-control calificacion-input"
+                                       type="number" min="0" max="100" step="0.1"
+                                       placeholder="Ej: 88.0" />
+                                <span asp-validation-for="Participacion" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Exposiciones" class="control-label">
+                                    Exposiciones
+                                    <span class="badge badge-secondary">5%</span>
+                                </label>
+                                <input asp-for="Exposiciones" class="form-control calificacion-input"
+                                       type="number" min="0" max="100" step="0.1"
+                                       placeholder="Ej: 92.0" />
+                                <span asp-validation-for="Exposiciones" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Teoria" class="control-label">
+                                    Evaluación Teórica
+                                    <span class="badge badge-secondary">5%</span>
+                                </label>
+                                <input asp-for="Teoria" class="form-control calificacion-input"
+                                       type="number" min="0" max="100" step="0.1"
+                                       placeholder="Ej: 85.0" />
+                                <span asp-validation-for="Teoria" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Proyectos" class="control-label">
+                                    Proyectos Grupales
+                                    <span class="badge badge-secondary">5%</span>
+                                </label>
+                                <input asp-for="Proyectos" class="form-control calificacion-input"
+                                       type="number" min="0" max="100" step="0.1"
+                                       placeholder="Ej: 87.5" />
+                                <span asp-validation-for="Proyectos" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Calificación final calculada -->
+                    <div class="row mt-4">
+                        <div class="col-md-6 offset-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5>Calificación del Período</h5>
+                                    <div class="form-group">
+                                        <label asp-for="NotaPeriodo" class="control-label font-weight-bold">Nota Final Calculada</label>
+                                        <div class="input-group">
+                                            <input asp-for="NotaPeriodo" class="form-control form-control-lg text-center font-weight-bold"
+                                                   id="notaFinal" readonly style="font-size: 1.5rem;" />
+                                            <div class="input-group-append">
+                                                <button type="button" class="btn btn-outline-secondary" onclick="calcularNotaFinal()">
+                                                    <i class="fas fa-calculator"></i> Calcular
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <span asp-validation-for="NotaPeriodo" class="text-danger"></span>
+                                        <div id="indicadorNota" class="mt-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Opciones adicionales -->
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Opciones Adicionales</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group form-check">
+                        <input class="form-check-input" asp-for="Publicado" />
+                        <label class="form-check-label" asp-for="Publicado">
+                            Publicar calificación (visible para el estudiante)
+                        </label>
+                        <small class="form-text text-muted d-block">
+                            Si no está marcado, la calificación permanecerá como borrador
+                        </small>
+                    </div>
+
+                    <!--<div class="form-group">
+                        <label asp-for="Observaciones" class="control-label">Observaciones</label>
+                        <textarea asp-for="Observaciones" class="form-control" rows="3"
+                                  placeholder="Observaciones adicionales sobre la calificación..."></textarea>
+                        <span asp-validation-for="Observaciones" class="text-danger"></span>
+                    </div>-->
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="form-group">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Guardar Calificación
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver al Listado
+                </a>
+                <button type="button" class="btn btn-info" onclick="calcularNotaFinal()">
+                    <i class="fas fa-calculator"></i> Calcular Nota Final
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Panel de información -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Instrucciones</h5>
+            </div>
+            <div class="card-body">
+                <h6>Proceso de Calificación:</h6>
+                <ol>
+                    <li>Seleccione el estudiante a calificar</li>
+                    <li>Seleccione la asignatura y período</li>
+                    <li>Ingrese las calificaciones por categoría</li>
+                    <li>Calcule la nota final automáticamente</li>
+                    <li>Revise y guarde la calificación</li>
+                </ol>
+
+                <h6>Escala de Calificación:</h6>
+                <ul class="list-unstyled">
+                    <li><span class="badge badge-success">90-100</span> Excelente</li>
+                    <li><span class="badge badge-primary">80-89</span> Muy Bueno</li>
+                    <li><span class="badge badge-info">70-79</span> Bueno</li>
+                    <li><span class="badge badge-warning">60-69</span> Aprobado</li>
+                    <li><span class="badge badge-danger">0-59</span> Reprobado</li>
+                </ul>
+
+                <div class="alert alert-info mt-3">
+                    <h6><i class="fas fa-lightbulb"></i> Recomendaciones:</h6>
+                    <ul class="mb-0">
+                        <li>Verifique que el estudiante seleccionado es correcto</li>
+                        <li>Revise las calificaciones antes de publicar</li>
+                        <li>Use el campo de observaciones para notas importantes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Pesos de cada categoría (ajustables según necesidades)
+        const pesos = {
+            Tareas: 0.25,
+            ExamenesTeoricos: 0.30,
+            Practicas: 0.15,
+            ProyectoFinal: 0.10,
+            Participacion: 0.05,
+            Exposiciones: 0.05,
+            Teoria: 0.05,
+            Proyectos: 0.05
+        };
+
+        function calcularNotaFinal() {
+            let total = 0;
+            let totalPesos = 0;
+
+            // Calcular promedio ponderado
+            for (const [categoria, peso] of Object.entries(pesos)) {
+                const input = document.querySelector(`[name="${categoria}"]`);
+                if (input && input.value && !isNaN(input.value)) {
+                    const valor = parseFloat(input.value);
+                    if (valor >= 0 && valor <= 100) {
+                        total += valor * peso;
+                        totalPesos += peso;
+                    }
+                }
+            }
+
+            // Calcular nota final
+            let notaFinal = totalPesos > 0 ? total / totalPesos : 0;
+            notaFinal = Math.round(notaFinal * 10) / 10; // Redondear a 1 decimal
+
+            // Mostrar resultado
+            const notaInput = document.getElementById('notaFinal');
+            notaInput.value = notaFinal.toFixed(1);
+
+            // Mostrar indicador de calidad
+            mostrarIndicadorNota(notaFinal);
+
+            return notaFinal;
+        }
+
+        function mostrarIndicadorNota(nota) {
+            const indicador = document.getElementById('indicadorNota');
+            let clase = '', texto = '', icono = '';
+
+            if (nota >= 90) {
+                clase = 'text-success';
+                texto = 'Excelente';
+                icono = 'fas fa-star';
+            } else if (nota >= 80) {
+                clase = 'text-primary';
+                texto = 'Muy Bueno';
+                icono = 'fas fa-thumbs-up';
+            } else if (nota >= 70) {
+                clase = 'text-info';
+                texto = 'Bueno';
+                icono = 'fas fa-check-circle';
+            } else if (nota >= 60) {
+                clase = 'text-warning';
+                texto = 'Aprobado';
+                icono = 'fas fa-exclamation-circle';
+            } else {
+                clase = 'text-danger';
+                texto = 'Reprobado';
+                icono = 'fas fa-times-circle';
+            }
+
+            indicador.innerHTML = `
+                <span class="${clase}">
+                    <i class="${icono}"></i> ${texto} (${nota.toFixed(1)})
+                </span>
+            `;
+        }
+
+        // Actualizar nombre del estudiante cuando se selecciona
+        document.getElementById('EstudianteId').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const estudianteNombre = selectedOption.text.split(' - ')[1] || selectedOption.text;
+            document.getElementById('estudianteNombreDisplay').value = estudianteNombre;
+            document.querySelector('input[name="EstudianteNombre"]').value = estudianteNombre;
+        });
+
+        // Calcular automáticamente cuando se cambia cualquier calificación
+        document.querySelectorAll('.calificacion-input').forEach(input => {
+            input.addEventListener('input', calcularNotaFinal);
+        });
+
+        // Inicializar Select2 si está disponible
+        $(document).ready(function() {
+            if ($.fn.select2) {
+                $('.select2').select2({
+                    theme: 'bootstrap4',
+                    width: '100%'
+                });
+            }
+
+            // Calcular nota inicial si hay valores
+            setTimeout(calcularNotaFinal, 100);
+        });
+
+        // Validación antes de enviar
+        document.getElementById('calificacionForm').addEventListener('submit', function(e) {
+            const notaFinal = parseFloat(document.getElementById('notaFinal').value);
+            if (isNaN(notaFinal)) {
+                e.preventDefault();
+                alert('Por favor, calcule la nota final antes de guardar.');
+                return false;
+            }
+        });
+    </script>
+
+    <style>
+        .calificacion-input:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+        }
+
+        .card-header h5 {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            font-weight: 500;
+        }
+
+        #notaFinal {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .badge {
+            font-size: 0.7em;
+            vertical-align: middle;
+        }
+    </style>
+}

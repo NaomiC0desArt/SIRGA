@@ -24,6 +24,13 @@ namespace SIRGA.Persistence.DbContext
         public DbSet<ActividadExtracurricular> ActividadesExtracurriculares { get; set; }
         public DbSet<InscripcionActividad> InscripcionesActividades { get; set; }
 
+        #region "Modulo de Calificaciones"
+        public DbSet<AnioEscolar> AniosEscolares { get; set; }
+        //public DbSet<AnnualGrade> AnnualGrates { get; set; }
+        public DbSet<Periodo> Periodos { get; set; }
+        public DbSet<Calificacion> Calificaciones { get; set; }
+        #endregion
+
         protected override void OnModelCreating(ModelBuilder builder)
 		{
 			base.OnModelCreating(builder);
@@ -148,5 +155,13 @@ namespace SIRGA.Persistence.DbContext
 			}
 		}
 
-	}
+        //Configurar la precision de los decimales en Calificacion
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+        {
+            configurationBuilder.Properties<decimal>()
+                .HavePrecision(5, 2);
+        }
+
+
+    }
 }
