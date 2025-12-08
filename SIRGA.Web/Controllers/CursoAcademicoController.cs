@@ -19,7 +19,6 @@ namespace SIRGA.Web.Controllers
             _logger = logger;
         }
 
-        // ==================== LISTADO ====================
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -43,7 +42,6 @@ namespace SIRGA.Web.Controllers
             }
         }
 
-        // ==================== CREAR ====================
         [HttpGet]
         public async Task<IActionResult> Crear()
         {
@@ -164,7 +162,6 @@ namespace SIRGA.Web.Controllers
             }
         }
 
-        // ==================== DETALLES ====================
         [HttpGet]
         public async Task<IActionResult> Detalles(int id)
         {
@@ -188,7 +185,6 @@ namespace SIRGA.Web.Controllers
             }
         }
 
-        // ==================== ELIMINAR ====================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Eliminar(int id)
@@ -215,7 +211,6 @@ namespace SIRGA.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ==================== MÉTODO AUXILIAR ====================
         private async Task CargarGrados()
         {
             try

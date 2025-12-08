@@ -81,6 +81,35 @@ namespace SIRGA.Web.Controllers
 
             return View(profileResponse.Data);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Horario()
+        {
+            try
+            {
+                var response = await _apiService.GetAsync<ApiResponse<HorarioSemanalViewModel>>(
+                    "api/Horario/Mi-Horario"
+                );
+
+                if (response?.Success != true)
+                {
+                    TempData["ErrorMessage"] = response?.Message ?? "Error al cargar el horario";
+                    return View(new HorarioSemanalViewModel());
+                }
+
+                return View(response.Data);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                TempData["ErrorMessage"] = "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.";
+                return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error al cargar el horario";
+                return View(new HorarioSemanalViewModel());
+            }
+        }
     }
     public class EstudianteDashboardViewModel
     {

@@ -228,6 +228,36 @@ namespace SIRGA.Web.Services
                 return true; // Asumir expirado en caso de error
             }
         }
+
+        public async Task<bool> PatchAsync<TRequest>(string endpoint, TRequest data)
+        {
+            try
+            {
+                var client = CreateClient();
+                var json = JsonSerializer.Serialize(data);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                _logger.LogInformation($"➡️ Calling PATCH {endpoint}");
+
+                var request = new HttpRequestMessage(new HttpMethod("PATCH"), endpoint)
+                {
+                    Content = content
+                };
+
+                var response = await client.SendAsync(request);
+
+                _logger.LogInformation($"⬅️ PATCH Response: {(int)response.StatusCode} {response.ReasonPhrase}");
+
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in PATCH {endpoint}");
+                return false;
+            }
+        }
+
+        
     }
 }
 

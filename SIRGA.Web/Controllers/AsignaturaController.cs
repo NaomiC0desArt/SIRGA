@@ -16,7 +16,6 @@ namespace SIRGA.Web.Controllers
             _logger = logger;
         }
 
-        // ==================== LISTADO ====================
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -40,7 +39,6 @@ namespace SIRGA.Web.Controllers
             }
         }
 
-        // ==================== CREAR ====================
         [HttpGet]
         public IActionResult Crear()
         {
@@ -61,7 +59,7 @@ namespace SIRGA.Web.Controllers
 
                 if (response?.Success == true)
                 {
-                    TempData["SuccessMessage"] = "✅ Asignatura creada exitosamente";
+                    TempData["SuccessMessage"] = "Asignatura creada exitosamente";
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -86,7 +84,7 @@ namespace SIRGA.Web.Controllers
             }
         }
 
-        // ==================== EDITAR ====================
+ 
         [HttpGet]
         public async Task<IActionResult> Editar(int id)
         {
@@ -135,7 +133,7 @@ namespace SIRGA.Web.Controllers
 
                 if (response)
                 {
-                    TempData["SuccessMessage"] = "✅ Asignatura actualizada exitosamente";
+                    TempData["SuccessMessage"] = "Asignatura actualizada exitosamente";
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -152,7 +150,6 @@ namespace SIRGA.Web.Controllers
             }
         }
 
-        // ==================== DETALLES ====================
         [HttpGet]
         public async Task<IActionResult> Detalles(int id)
         {
@@ -166,6 +163,10 @@ namespace SIRGA.Web.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
+                var profesoresResponse = await _apiService.GetAsync<ApiResponse<int>>($"api/Asignatura/{id}/profesores-count");
+                ViewBag.CantidadProfesores = profesoresResponse?.Data ?? 0;
+
+
                 return View(response.Data);
             }
             catch (Exception ex)
@@ -176,7 +177,7 @@ namespace SIRGA.Web.Controllers
             }
         }
 
-        // ==================== ELIMINAR ====================
+  
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Eliminar(int id)
@@ -187,11 +188,11 @@ namespace SIRGA.Web.Controllers
 
                 if (response)
                 {
-                    TempData["SuccessMessage"] = "🗑️ Asignatura eliminada exitosamente";
+                    TempData["SuccessMessage"] = "Asignatura eliminada exitosamente";
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = "❌ Error al eliminar la asignatura";
+                    TempData["ErrorMessage"] = "Error al eliminar la asignatura";
                 }
             }
             catch (Exception ex)

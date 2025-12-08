@@ -9,6 +9,6 @@ namespace SIRGA.Domain.Entities
         public int IdGrado { get; set; }
         [ForeignKey("IdGrado")]
         public Grado Grado { get; set; }
-        public string SchoolYear { get; set; } //2023-2024
+        public string SchoolYear { get; set; }
     }
 }

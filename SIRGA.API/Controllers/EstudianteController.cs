@@ -104,5 +104,21 @@ namespace SIRGA.API.Controllers
             if (!result.Success) return BadRequest(result);
             return Ok(result);
         }
+        [Authorize(Roles = "Estudiante")]
+        [HttpGet("Mi-Id")]
+        public async Task<IActionResult> GetMyEstudianteId()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "Usuario no autenticado" });
+
+            var result = await _estudianteService.GetEstudianteIdByUserIdAsync(userId);
+
+            if (!result.Success)
+                return NotFound(result);
+
+            return Ok(new { id = result.Data });
+        }
     }
 }

@@ -3,7 +3,7 @@ using SIRGA.Domain.Interfaces.Base;
 
 namespace SIRGA.Domain.Interfaces
 {
-    public interface IGradoRepository : IBaseRepository<Grado>
+    public interface IGradoRepository : IGenericRepository<Grado>
     {
     }
 }

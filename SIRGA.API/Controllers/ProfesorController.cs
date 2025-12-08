@@ -105,5 +105,20 @@ namespace SIRGA.API.Controllers
             if (!result.Success) return BadRequest(result);
             return Ok(result);
         }
+        [Authorize(Roles = "Profesor")]
+        [HttpGet("Current")]
+        public async Task<IActionResult> GetCurrentProfesor()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "Usuario no autenticado" });
+
+            var result = await _profesorService.GetProfesorByApplicationUserIdAsync(userId);
+
+            if (!result.Success)
+                return NotFound(result);
+
+            return Ok(result);
+        }
     }
 }

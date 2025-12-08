@@ -3,8 +3,8 @@ using SIRGA.Domain.Interfaces.Base;
 
 namespace SIRGA.Domain.Interfaces
 {
-    public interface IAsignaturaRepository : IBaseRepository<Asignatura>
+    public interface IAsignaturaRepository : IGenericRepository<Asignatura>
     {
-        
+        Task<int> GetProfesoresCountAsync(int asignaturaId);
     }
 }

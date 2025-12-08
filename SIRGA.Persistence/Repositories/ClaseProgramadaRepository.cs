@@ -1,65 +1,21 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SIRGA.Domain.Entities;
 using SIRGA.Domain.Interfaces;
+using SIRGA.Domain.ReadModels;
 using SIRGA.Persistence.DbContext;
-using SIRGA.Persistence.Interfaces;
+using SIRGA.Persistence.Repositories.Base;
 
 namespace SIRGA.Persistence.Repositories
 {
-    public class ClaseProgramadaRepository : IClaseProgramadaRepositoryExtended
+    public class ClaseProgramadaRepository : GenericRepository<ClaseProgramada>, IClaseProgramadaRepository
     {
         private readonly ApplicationDbContext _context;
 
         public ClaseProgramadaRepository(ApplicationDbContext context)
+            : base(context)
         {
             _context = context;
         }
-
-        public async Task<ClaseProgramada> AddAsync(ClaseProgramada claseProgramada)
-        {
-            await _context.ClasesProgramadas.AddAsync(claseProgramada);
-            await _context.SaveChangesAsync();
-            return await GetByIdAsync(claseProgramada.Id);
-        }
-
-        public async Task<bool> DeleteAsync(int id)
-        {
-            var claseProgramada = await GetByIdAsync(id);
-            if (claseProgramada == null)
-            {
-                return false;
-            }
-
-            _context.ClasesProgramadas.Remove(claseProgramada);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<List<ClaseProgramada>> GetAllAsync()
-        {
-            return await _context.ClasesProgramadas
-                .Include(c => c.Asignatura)
-                .Include(c => c.CursoAcademico)
-                    .ThenInclude(ca => ca.Grado)
-                .ToListAsync();
-        }
-
-        public async Task<ClaseProgramada> GetByIdAsync(int id)
-        {
-            return await _context.ClasesProgramadas
-                .Include(c => c.Asignatura)
-                .Include(c => c.CursoAcademico)
-                    .ThenInclude(ca => ca.Grado)
-                .FirstOrDefaultAsync(c => c.Id == id);
-        }
-
-        public async Task<ClaseProgramada> UpdateAsync(ClaseProgramada claseProgramada)
-        {
-            _context.ClasesProgramadas.Update(claseProgramada);
-            await _context.SaveChangesAsync();
-            return await GetByIdAsync(claseProgramada.Id);
-        }
-
         public async Task<List<ClaseProgramadaConDetalles>> GetAllWithDetailsAsync()
         {
             return await (from cp in _context.ClasesProgramadas
@@ -115,5 +71,94 @@ namespace SIRGA.Persistence.Repositories
                           }).FirstOrDefaultAsync();
         }
 
+        public async Task<List<ClaseProgramada>> GetClasesByProfesorAndDayAsync(int idProfesor, DayOfWeek diaSemana)
+        {
+            return await _context.ClasesProgramadas
+                .Include(c => c.Asignatura)
+                .Include(c => c.Profesor)
+                .Include(c => c.CursoAcademico)
+                    .ThenInclude(ca => ca.Grado)
+                .Where(c => c.IdProfesor == idProfesor && c.WeekDay == diaSemana)
+                .OrderBy(c => c.StartTime)
+                .ToListAsync();
+        }
+        public async Task<List<ClaseConDetallesParaHorario>> GetClasesPorCursoAcademicoAsync(int idCursoAcademico)
+        {
+            return await _context.ClasesProgramadas
+                .Where(c => c.IdCursoAcademico == idCursoAcademico)
+                .Join(_context.Asignaturas,
+                    c => c.IdAsignatura,
+                    a => a.Id,
+                    (c, a) => new { c, a })
+                .Join(_context.Profesores,
+                    x => x.c.IdProfesor,
+                    p => p.Id,
+                    (x, p) => new { x.c, x.a, p })
+                .Join(_context.Users,
+                    x => x.p.ApplicationUserId,
+                    u => u.Id,
+                    (x, u) => new { x.c, x.a, x.p, u })
+                .Join(_context.CursosAcademicos.Include(ca => ca.Grado),
+                    x => x.c.IdCursoAcademico,
+                    ca => ca.Id,
+                    (x, ca) => new ClaseConDetallesParaHorario
+                    {
+                        Id = x.c.Id,
+                        StartTime = x.c.StartTime,
+                        EndTime = x.c.EndTime,
+                        WeekDay = x.c.WeekDay,
+                        Location = x.c.Location,
+                        IdAsignatura = x.a.Id,
+                        AsignaturaNombre = x.a.Nombre,
+                        IdProfesor = x.p.Id,
+                        ProfesorNombre = x.u.FirstName,
+                        ProfesorApellido = x.u.LastName,
+                        IdCursoAcademico = ca.Id,
+                        GradoNombre = ca.Grado.GradeName,
+                        GradoSeccion = ca.Grado.Section,
+                        SchoolYear = ca.SchoolYear
+                    })
+                .ToListAsync();
+        }
+
+        public async Task<List<ClaseConDetallesParaHorario>> GetClasesPorCursoYDiaAsync(int idCursoAcademico, DayOfWeek dia)
+        {
+            return await _context.ClasesProgramadas
+                .Where(c => c.IdCursoAcademico == idCursoAcademico && c.WeekDay == dia)
+                .Join(_context.Asignaturas,
+                    c => c.IdAsignatura,
+                    a => a.Id,
+                    (c, a) => new { c, a })
+                .Join(_context.Profesores,
+                    x => x.c.IdProfesor,
+                    p => p.Id,
+                    (x, p) => new { x.c, x.a, p })
+                .Join(_context.Users,
+                    x => x.p.ApplicationUserId,
+                    u => u.Id,
+                    (x, u) => new { x.c, x.a, x.p, u })
+                .Join(_context.CursosAcademicos.Include(ca => ca.Grado),
+                    x => x.c.IdCursoAcademico,
+                    ca => ca.Id,
+                    (x, ca) => new ClaseConDetallesParaHorario
+                    {
+                        Id = x.c.Id,
+                        StartTime = x.c.StartTime,
+                        EndTime = x.c.EndTime,
+                        WeekDay = x.c.WeekDay,
+                        Location = x.c.Location,
+                        IdAsignatura = x.a.Id,
+                        AsignaturaNombre = x.a.Nombre,
+                        IdProfesor = x.p.Id,
+                        ProfesorNombre = x.u.FirstName,
+                        ProfesorApellido = x.u.LastName,
+                        IdCursoAcademico = ca.Id,
+                        GradoNombre = ca.Grado.GradeName,
+                        GradoSeccion = ca.Grado.Section,
+                        SchoolYear = ca.SchoolYear
+                    })
+                .OrderBy(c => c.StartTime)
+                .ToListAsync();
+        }
     }
 }

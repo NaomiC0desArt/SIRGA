@@ -3,21 +3,24 @@ using SIRGA.Application.DTOs.Common;
 using SIRGA.Application.DTOs.Entities;
 using SIRGA.Application.DTOs.ResponseDto;
 using SIRGA.Application.Interfaces.Entities;
+using SIRGA.Application.Services.Base;
 using SIRGA.Domain.Entities;
 using SIRGA.Domain.Interfaces;
 
 namespace SIRGA.Application.Services
 {
-    public class AsignaturaService : IAsignaturaService
+    public class AsignaturaService : BaseService<Asignatura, AsignaturaDto, AsignaturaResponseDto>, IAsignaturaService
     {
         private readonly IAsignaturaRepository _asignaturaRepository;
         private readonly ILogger<AsignaturaService> _logger;
         private static Random _random = new Random();
 
-        public AsignaturaService(IAsignaturaRepository asignaturaRepository, ILogger<AsignaturaService> logger)
+        public AsignaturaService(
+            IAsignaturaRepository asignaturaRepository,
+            ILogger<AsignaturaService> logger)
+            : base(asignaturaRepository, logger)
         {
             _asignaturaRepository = asignaturaRepository;
-            _logger = logger;
         }
 
         private static string GenerarCodigoAsignatura(string nombreAsignatura)
@@ -38,159 +41,85 @@ namespace SIRGA.Application.Services
         }
 
         public async Task<ApiResponse<AsignaturaResponseDto>> CreateAsync(AsignaturaDto dto)
+        protected override string EntityName => "Asignatura";
+        
+        #region Mapeos
+        protected override Asignatura MapDtoToEntity(AsignaturaDto dto)
         {
-            try
+            return new Asignatura
             {
-                var codigoAsignatura = GenerarCodigoAsignatura(dto.Nombre);
-
-                var response = new Asignatura
-                {
-                    Nombre = dto.Nombre,
-                    Codigo = codigoAsignatura,
-                    Descripcion = dto.Descripcion,
-                    TipoAsignatura = dto.TipoAsignatura
-                };
-
-                await _asignaturaRepository.AddAsync(response);
-
-                var asignaturaResponse = new AsignaturaResponseDto
-                {
-                    Nombre = response.Nombre,
-                    Codigo = response.Codigo,
-                    Descripcion = response.Descripcion,
-                    TipoAsignatura = response.TipoAsignatura.ToString()
-                };
-
-                return ApiResponse<AsignaturaResponseDto>.SuccessResponse(asignaturaResponse, "Asignatura creada exitosamente");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error al crear la asignatura", ex.ToString());
-                return ApiResponse<AsignaturaResponseDto>.ErrorResponse("Error al crear la asignatura");
-            }
+                Nombre = dto.Nombre,
+                Descripcion = dto.Descripcion
+            };
         }
 
-        public async Task<ApiResponse<bool>> DeleteAsync(int id)
+        protected override AsignaturaResponseDto MapEntityToResponse(Asignatura entity)
+        {
+            return new AsignaturaResponseDto
+            {
+                Id = entity.Id,
+                Nombre = entity.Nombre,
+                Descripcion = entity.Descripcion
+            };
+        }
+
+        protected override void UpdateEntityFromDto(Asignatura entity, AsignaturaDto dto)
+        {
+            entity.Nombre = dto.Nombre;
+            entity.Descripcion = dto.Descripcion;
+        }
+        #endregion
+
+        #region Validaciones
+        protected override Task<ApiResponse<AsignaturaResponseDto>> ValidateCreateAsync(AsignaturaDto dto)
+        {
+            return ValidateDescripcion(dto);
+        }
+
+        protected override Task<ApiResponse<AsignaturaResponseDto>> ValidateUpdateAsync(int id, AsignaturaDto dto)
+        {
+            return ValidateDescripcion(dto);
+        }
+
+        private Task<ApiResponse<AsignaturaResponseDto>> ValidateDescripcion(AsignaturaDto dto)
+        {
+            if (dto.Descripcion?.Length > 125)
+            {
+                return Task.FromResult(
+                    ApiResponse<AsignaturaResponseDto>.ErrorResponse(
+                        "La descripción no puede exceder los 125 caracteres"
+                    )
+                );
+            }
+            return Task.FromResult<ApiResponse<AsignaturaResponseDto>>(null);
+        }
+        #endregion
+
+        #region Métodos Específicos
+        public async Task<ApiResponse<int>> GetProfesoresCountAsync(int asignaturaId)
         {
             try
             {
-                var asignatura = await _asignaturaRepository.GetByIdAsync(id);
+                var asignatura = await _asignaturaRepository.GetByIdAsync(asignaturaId);
                 if (asignatura == null)
                 {
-                    return ApiResponse<bool>.ErrorResponse("Asignatura no encontrada");
+                    return ApiResponse<int>.ErrorResponse("Asignatura no encontrada");
                 }
 
-                await _asignaturaRepository.DeleteAsync(id);
-
-                return ApiResponse<bool>.SuccessResponse(true, "Asignatura eliminada exitosamente");
+                var count = await _asignaturaRepository.GetProfesoresCountAsync(asignaturaId);
+                return ApiResponse<int>.SuccessResponse(
+                    count,
+                    "Cantidad de profesores obtenida exitosamente"
+                );
             }
             catch (Exception ex)
             {
-                return ApiResponse<bool>.ErrorResponse(
-                    "Error al eliminar la asignatura",
-                    new List<string> { ex.Message }
+                _logger.LogError(ex, "Error al obtener cantidad de profesores");
+                return ApiResponse<int>.ErrorResponse(
+                    "Error al obtener cantidad de profesores"
                 );
             }
         }
-
-        public async Task<ApiResponse<List<AsignaturaResponseDto>>> GetAllAsync()
-        {
-            try
-            {
-                var asignaturas = await _asignaturaRepository.GetAllAsync();
-                _logger.LogInformation($"Asignaturas obtenidas: {asignaturas.Count}");
-
-                var asignaturaResponses = new List<AsignaturaResponseDto>();
-
-                foreach (var asignatura in asignaturas)
-                {
-                    _logger.LogInformation($"Procesando asignatura: {asignatura.Nombre}");
-
-                    asignaturaResponses.Add(new AsignaturaResponseDto
-                    {
-                        Id = asignatura.Id,
-                        Nombre = asignatura.Nombre,
-                        Codigo = asignatura.Codigo,
-                        Descripcion = asignatura.Descripcion,
-                        TipoAsignatura = asignatura.TipoAsignatura.ToString()
-                    });
-                }
-
-                _logger.LogInformation("Todas las asignaturas procesadas correctamente");
-                return ApiResponse<List<AsignaturaResponseDto>>.SuccessResponse(asignaturaResponses, "Asignaturas obtenidas exitosamente");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error al obtener las asignaturas", ex.ToString());
-                throw;
-            }
-        }
-
-        public async Task<ApiResponse<AsignaturaResponseDto>> GetByIdAsync(int id)
-        {
-            try
-            {
-                var asignatura = await _asignaturaRepository.GetByIdAsync(id);
-                if (asignatura == null)
-                {
-                    return ApiResponse<AsignaturaResponseDto>.ErrorResponse("Asignatura no encontrada");
-                }
-
-                var asignaturaResponse = new AsignaturaResponseDto
-                {
-                    Id = asignatura.Id,
-                    Nombre = asignatura.Nombre,
-                    Codigo = asignatura.Codigo,
-                    Descripcion = asignatura.Descripcion,
-                    TipoAsignatura = asignatura.TipoAsignatura.ToString()
-                };
-
-                return ApiResponse<AsignaturaResponseDto>.SuccessResponse(asignaturaResponse, "Asignatura obtenida exitosamente");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<AsignaturaResponseDto>.ErrorResponse(
-                    "Error al obtener la asignatura",
-                    new List<string> { ex.Message }
-                );
-            }
-        }
-
-        public async Task<ApiResponse<AsignaturaResponseDto>> UpdateAsync(int id, AsignaturaDto dto)
-        {
-            try
-            {
-                var asignatura = await _asignaturaRepository.GetByIdAsync(id);
-                if (asignatura == null)
-                {
-                    return ApiResponse<AsignaturaResponseDto>.ErrorResponse("Asignatura no encontrada");
-                }
-                
-                asignatura.Nombre = dto.Nombre;
-                asignatura.Codigo = dto.Codigo;
-                asignatura.Descripcion = dto.Descripcion;
-                asignatura.TipoAsignatura = dto.TipoAsignatura;
-
-                await _asignaturaRepository.UpdateAsync(asignatura);
-
-                var asignaturaResponse = new AsignaturaResponseDto
-                {
-                    Id = asignatura.Id,
-                    Nombre = asignatura.Nombre,
-                    Codigo = asignatura.Codigo,
-                    Descripcion = asignatura.Descripcion,
-                    TipoAsignatura = asignatura.TipoAsignatura.ToString()
-                };
-
-                return ApiResponse<AsignaturaResponseDto>.SuccessResponse(asignaturaResponse, "Asignatura actualizada exitosamente");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<AsignaturaResponseDto>.ErrorResponse(
-                    "Error al actualizar la asignatura",
-                    new List<string> { ex.Message }
-                );
-            }
-        }
+        #endregion
     }
 }

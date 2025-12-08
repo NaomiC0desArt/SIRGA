@@ -13,6 +13,7 @@ namespace SIRGA.Web.Models.Asignatura
         public string? Codigo { get; set; }
 
         [Display(Name = "Descripción")]
+        [MaxLength(125, ErrorMessage = "La descripción no puede exceder los 125 caracteres")]
         public string Descripcion { get; set; }
 
         [Display(Name = "Tipo de Asignatura")]

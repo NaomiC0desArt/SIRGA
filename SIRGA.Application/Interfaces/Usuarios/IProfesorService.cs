@@ -17,5 +17,6 @@ namespace SIRGA.Application.Interfaces.Usuarios
         Task<ApiResponse<bool>> DeactivateAsync(int id);
         Task<ApiResponse<CredentialsDto>> GetCredentialsByProfesorIdAsync(int id);
         Task<ApiResponse<bool>> CompleteProfileAsync(string userId, CompleteTeacherProfileDto dto);
+        Task<ApiResponse<ProfesorResponseDto>> GetProfesorByApplicationUserIdAsync(string applicationUserId);
     }
 }

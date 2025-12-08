@@ -1,0 +1,148 @@
+﻿
+@if (TempData["SuccessMessage"] != null)
+{
+    <div id="successNotification" class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6 animate-slide-in">
+        <div class="flex items-start justify-between">
+            <div class="flex items-start flex-1">
+                <svg class="w-6 h-6 text-green-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div class="flex-1">
+                    <h3 class="text-sm font-medium text-green-800">@TempData["SuccessMessage"]</h3>
+                    @if (TempData["AdditionalInfo"] != null)
+                    {
+                        <div class="mt-2 text-sm text-green-700">
+                            @Html.Raw(TempData["AdditionalInfo"])
+                        </div>
+                    }
+                </div>
+            </div>
+            <button onclick="closeNotification('successNotification')" class="ml-3 text-green-400 hover:text-green-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <!-- Barra de progreso -->
+        <div class="mt-3 h-1 bg-green-200 rounded-full overflow-hidden">
+            <div id="successProgress" class="h-full bg-green-500 progress-bar"></div>
+        </div>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div id="errorNotification" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 animate-slide-in">
+        <div class="flex items-start justify-between">
+            <div class="flex items-start flex-1">
+                <svg class="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div class="text-sm text-red-700 flex-1">@TempData["ErrorMessage"]</div>
+            </div>
+            <button onclick="closeNotification('errorNotification')" class="ml-3 text-red-400 hover:text-red-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <!-- Barra de progreso -->
+        <div class="mt-3 h-1 bg-red-200 rounded-full overflow-hidden">
+            <div id="errorProgress" class="h-full bg-red-500 progress-bar"></div>
+        </div>
+    </div>
+}
+
+@if (TempData["InfoMessage"] != null)
+{
+    <div id="infoNotification" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 animate-slide-in">
+        <div class="flex items-start justify-between">
+            <div class="flex items-start flex-1">
+                <svg class="w-5 h-5 text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div class="text-sm text-blue-700 flex-1">@TempData["InfoMessage"]</div>
+            </div>
+            <button onclick="closeNotification('infoNotification')" class="ml-3 text-blue-400 hover:text-blue-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <!-- Barra de progreso -->
+        <div class="mt-3 h-1 bg-blue-200 rounded-full overflow-hidden">
+            <div id="infoProgress" class="h-full bg-blue-500 progress-bar"></div>
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes slide-in {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes slide-out {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    }
+
+    @@keyframes progress {
+        from {
+            width: 100%;
+        }
+        to {
+            width: 0%;
+        }
+    }
+
+    .animate-slide-in {
+        animation: slide-in 0.3s ease-out;
+    }
+
+    .animate-slide-out {
+        animation: slide-out 0.3s ease-out forwards;
+    }
+
+    .progress-bar {
+        animation: progress 5s linear forwards;
+    }
+</style>
+
+<script>
+    // Auto-ocultar notificaciones después de 5 segundos
+    document.addEventListener('DOMContentLoaded', function() {
+        const notifications = ['successNotification', 'errorNotification', 'infoNotification'];
+
+        notifications.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                setTimeout(() => {
+                    closeNotification(id);
+                }, 5000); // 5 segundos
+            }
+        });
+    });
+
+    function closeNotification(id) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.classList.add('animate-slide-out');
+            setTimeout(() => {
+                element.remove();
+            }, 300);
+        }
+    }
+</script>

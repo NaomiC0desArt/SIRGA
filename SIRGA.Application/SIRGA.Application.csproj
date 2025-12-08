@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\SIRGA.Domain\SIRGA.Domain.csproj" />
     <ProjectReference Include="..\SIRGA.Identity.Shared\SIRGA.Identity.Shared.csproj" />
     <ProjectReference Include="..\SIRGA.Persistence\SIRGA.Persistence.csproj" />

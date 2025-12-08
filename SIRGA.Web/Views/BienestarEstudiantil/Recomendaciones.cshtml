@@ -1,0 +1,270 @@
+﻿
+@model List<SIRGA.Application.DTOs.IA.ActividadRecomendadaDto>
+
+@{
+    ViewData["Title"] = "Actividades Recomendadas por IA";
+}
+
+<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
+    <div class="max-w-7xl mx-auto">
+
+        <!-- Header -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center">
+                    <div class="h-16 w-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Bienestar Estudiantil</h1>
+                        <p class="text-gray-600 mt-1">Actividades recomendadas con IA</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-2 rounded-lg border border-purple-200">
+                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    <span class="text-sm font-medium text-purple-700">Powered by IA</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chatbot Flotante -->
+        <button id="openChatbot" class="fixed bottom-6 right-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full p-4 shadow-2xl hover:scale-110 transition-transform z-50">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+            </svg>
+        </button>
+
+        <!-- Modal del Chatbot -->
+        <div id="chatbotModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+                <!-- Header del Chat -->
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-t-2xl flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="bg-white bg-opacity-20 rounded-full p-2 mr-3">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold">Asistente SIRGA</h3>
+                            <p class="text-sm text-blue-100">Pregúntame sobre tu vida académica</p>
+                        </div>
+                    </div>
+                    <button id="closeChatbot" class="hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Mensajes del Chat -->
+                <div id="chatMessages" class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+                    <div class="flex items-start">
+                        <div class="bg-blue-100 rounded-lg p-3 max-w-xs">
+                            <p class="text-sm text-gray-800">¡Hola! Soy tu asistente académico. ¿En qué puedo ayudarte hoy?</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input del Chat -->
+                <div class="p-4 border-t border-gray-200 bg-white rounded-b-2xl">
+                    <div class="flex gap-2">
+                        <input type="text"
+                               id="chatInput"
+                               placeholder="Escribe tu pregunta aquí..."
+                               class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                        <button id="sendMessage" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition">
+                            Enviar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Actividades Recomendadas -->
+        @if (Model != null && Model.Any())
+        {
+            <div class="space-y-6">
+                @foreach (var actividad in Model)
+                {
+                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow">
+                        <div class="md:flex">
+                            <!-- Imagen de la Actividad -->
+                            <div class="md:w-1/3 relative" style="background: linear-gradient(135deg, @actividad.ColorTarjeta 0%, @actividad.ColorTarjeta + " dd" 100%);">
+                                <div class="h-64 flex items-center justify-center text-white">
+                                    @if (!string.IsNullOrEmpty(actividad.RutaImagen))
+                                    {
+                                        <img src="@actividad.RutaImagen" alt="@actividad.Nombre" class="w-full h-full object-cover" />
+                                    }
+                                    else
+                                    {
+                                        <svg class="w-24 h-24 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    }
+                                </div>
+
+                                <!-- Badge de Score -->
+                                <div class="absolute top-4 right-4 bg-white rounded-full px-3 py-1 shadow-lg">
+                                    <span class="text-sm font-bold" style="color: @actividad.ColorTarjeta">@actividad.ScoreRecomendacion/100</span>
+                                </div>
+                            </div>
+
+                            <!-- Información de la Actividad -->
+                            <div class="md:w-2/3 p-6">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-gray-900 mb-2">@actividad.Nombre</h3>
+                                        <span class="inline-block bg-purple-100 text-purple-700 text-xs font-medium px-3 py-1 rounded-full">
+                                            @actividad.Categoria
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <p class="text-gray-600 mb-4">@actividad.Descripcion</p>
+
+                                <!-- Razón de Recomendación (IA) -->
+                                <div class="bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-blue-500 p-4 mb-4 rounded">
+                                    <div class="flex items-start">
+                                        <svg class="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                        </svg>
+                                        <div>
+                                            <p class="text-sm font-semibold text-blue-900">¿Por qué te recomendamos esto?</p>
+                                            <p class="text-sm text-blue-700 mt-1">@actividad.RazonRecomendacion</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Detalles -->
+                                <div class="grid grid-cols-2 gap-4 mb-4">
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                        @actividad.DiaSemana - @actividad.HoraInicio.ToString(@"hh\:mm") a @actividad.HoraFin.ToString(@"hh\:mm")
+                                    </div>
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                        @actividad.Ubicacion
+                                    </div>
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                        Prof. @actividad.NombreProfesor
+                                    </div>
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                        </svg>
+                                        @actividad.CantidadCompañerosInscritos compañeros inscritos
+                                    </div>
+                                </div>
+
+                                <!-- Botón de Inscripción -->
+                                <button class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3 rounded-lg transition-all transform hover:scale-105">
+                                    Inscribirme Ahora
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="bg-white rounded-2xl shadow-xl p-12 text-center">
+                <svg class="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">No hay actividades disponibles</h3>
+                <p class="text-gray-600">Vuelve pronto para descubrir nuevas actividades</p>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    // Chatbot Logic
+    const openBtn = document.getElementById('openChatbot');
+    const closeBtn = document.getElementById('closeChatbot');
+    const modal = document.getElementById('chatbotModal');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendMessage');
+    const chatMessages = document.getElementById('chatMessages');
+
+    openBtn.addEventListener('click', () => {
+        modal.classList.remove('hidden');
+        chatInput.focus();
+    });
+
+    closeBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+
+    sendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    async function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        // Agregar mensaje del usuario
+        addMessage(message, 'user');
+        chatInput.value = '';
+
+        // Mostrar "escribiendo..."
+        const typingDiv = addMessage('Escribiendo...', 'bot', true);
+
+        try {
+            const response = await fetch('/api/IA/Chatbot/Consulta', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    pregunta: message,
+                    idEstudiante: @(ViewBag.IdEstudiante ?? 0)
+                    })
+            });
+
+            typingDiv.remove();
+
+            if (response.ok) {
+                const data = await response.json();
+                addMessage(data.data.respuesta, 'bot');
+            } else {
+                addMessage('Lo siento, hubo un error. Intenta de nuevo.', 'bot');
+            }
+        } catch (error) {
+            typingDiv.remove();
+            addMessage('Error de conexión. Por favor, intenta más tarde.', 'bot');
+        }
+    }
+
+    function addMessage(text, sender, isTemp = false) {
+        const div = document.createElement('div');
+        div.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+
+        const bubble = document.createElement('div');
+        bubble.className = `${sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'} rounded-lg p-3 max-w-xs`;
+        bubble.innerHTML = `<p class="text-sm">${text}</p>`;
+
+        div.appendChild(bubble);
+        chatMessages.appendChild(div);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        return isTemp ? div : null;
+    }
+</script>

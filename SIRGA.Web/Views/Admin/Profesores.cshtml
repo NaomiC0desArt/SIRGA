@@ -1,10 +1,16 @@
-﻿@model List<SIRGA.Web.Models.Profesor.ProfesorDto>
+﻿@model SIRGA.Web.Helpers.PaginatedList<SIRGA.Web.Models.Profesor.ProfesorDto>
 
 @{
     ViewData["Title"] = "Gestión de Profesores";
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = User.Identity.Name;
+    ViewBag.UserRole = "Administrador";
 }
 
-<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8">
+@section SidebarMenu {
+    <partial name="_AdminSidebarMenu" />
+}
+
     <div class="max-w-7xl mx-auto">
 
         <!-- Header -->
@@ -13,9 +19,7 @@
                 <div class="flex items-center">
                     <div class="h-12 w-12 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
-                            </path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                         </svg>
                     </div>
                     <div>
@@ -44,48 +48,98 @@
             </div>
         </div>
 
-        <!-- Mensajes de éxito/error -->
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-                <div class="flex items-start">
-                    <svg class="w-6 h-6 text-green-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <div class="flex-1">
-                        <h3 class="text-sm font-medium text-green-800 mb-2">@TempData["SuccessMessage"]</h3>
-                        @if (TempData["EstudianteInfo"] != null)
-                        {
-                            <div class="text-sm text-green-700 space-y-1">
-                                @Html.Raw(TempData["EstudianteInfo"])
-                            </div>
-                            <div class="mt-3 p-3 bg-white rounded border border-green-200">
-                                <p class="text-xs text-gray-600 flex items-start">
-                                    <svg class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    El estudiante recibirá un correo con sus credenciales de acceso. Deberá completar su perfil en el primer inicio de sesión.
-                                </p>
-                            </div>
-                        }
+        <!-- Notificaciones -->
+        <partial name="_Notifications" />
+
+        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 mb-6">
+            <form method="get" asp-action="Profesores" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    
+                    <!-- Búsqueda -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Buscar Profesor
+                        </label>
+                        <div class="relative">
+                            <input type="text" 
+                                   name="searchTerm" 
+                                   value="@ViewBag.SearchTerm"
+                                   placeholder="Nombre, apellido, email o especialidad..."
+                                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Filtro por Estado -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Estado
+                        </label>
+                        <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Todos</option>
+                            <option value="activo" selected="@(ViewBag.Status == "activo")">Activos</option>
+                            <option value="inactivo" selected="@(ViewBag.Status == "inactivo")">Inactivos</option>
+                            <option value="perfil-completo" selected="@(ViewBag.Status == "perfil-completo")">Perfil Completo</option>
+                            <option value="perfil-incompleto" selected="@(ViewBag.Status == "perfil-incompleto")">Perfil Incompleto</option>
+                        </select>
+                    </div>
+
+                    <!-- Filtro por Especialidad -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Especialidad
+                        </label>
+                        <input type="text" 
+                               name="specialty" 
+                               value="@ViewBag.Specialty"
+                               placeholder="Especialidad..."
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <!-- Ordenar por -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Ordenar por
+                        </label>
+                        <select name="sortBy" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="nombre" selected="@(ViewBag.SortBy == "nombre")">Nombre</option>
+                            <option value="apellido" selected="@(ViewBag.SortBy == "apellido")">Apellido</option>
+                            <option value="email" selected="@(ViewBag.SortBy == "email")">Email</option>
+                            <option value="especialidad" selected="@(ViewBag.SortBy == "especialidad")">Especialidad</option>
+                            <option value="fecha-desc" selected="@(ViewBag.SortBy == "fecha-desc")">Más reciente</option>
+                        </select>
                     </div>
                 </div>
-            </div>
-        }
 
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                <div class="flex items-start">
-                    <svg class="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <div class="text-sm text-red-700">@TempData["ErrorMessage"]</div>
+                <div class="flex justify-between items-center pt-4 border-t">
+                    <!-- Registros por página -->
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-600">Mostrar:</label>
+                        <select name="pageSize" class="px-3 py-1 border border-gray-300 rounded-lg text-sm" onchange="this.form.submit()">
+                            <option value="10" selected="@(ViewBag.PageSize == 10)">10</option>
+                            <option value="25" selected="@(ViewBag.PageSize == 25)">25</option>
+                            <option value="50" selected="@(ViewBag.PageSize == 50)">50</option>
+                            <option value="100" selected="@(ViewBag.PageSize == 100)">100</option>
+                        </select>
+                        <span class="text-sm text-gray-600">por página</span>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <a asp-action="Profesores" 
+                           class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm">
+                            Limpiar Filtros
+                        </a>
+                        <button type="submit" 
+                                class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm font-medium">
+                            Aplicar Filtros
+                        </button>
+                    </div>
                 </div>
-            </div>
-        }
+            </form>
+        </div>
 
-        <!-- Tabla de Estudiantes -->
         <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
             <div class="px-8 py-6 border-b border-gray-200">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -96,16 +150,15 @@
                         Lista de Profesores
                     </h2>
 
-                    <div class="flex items-center space-x-2 text-sm text-gray-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Total: @Model.Count profesores
+                    <div class="text-sm text-gray-500">
+                        Mostrando <strong>@((Model.PageIndex - 1) * Model.PageSize + 1)</strong> 
+                        - <strong>@Math.Min(Model.PageIndex * Model.PageSize, Model.TotalCount)</strong> 
+                        de <strong>@Model.TotalCount</strong> profesores
                     </div>
                 </div>
             </div>
 
-            @if (Model != null && Model.Any())
+            @if (Model.Items != null && Model.Items.Any())
             {
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
@@ -121,7 +174,7 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach (var profesor in Model)
+                            @foreach (var profesor in Model.Items)
                             {
                                 <tr class="hover:bg-gray-50 transition-colors duration-150">
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -234,6 +287,86 @@
                         </tbody>
                     </table>
                 </div>
+
+            <!-- PAGINACIÓN -->
+            @if (Model.TotalPages > 1)
+            {
+                <div class="bg-gray-50 px-8 py-4 border-t border-gray-200">
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div class="text-sm text-gray-600">
+                            Página <strong>@Model.PageIndex</strong> de <strong>@Model.TotalPages</strong>
+                        </div>
+                        
+                        <nav class="flex gap-2">
+                            <a asp-action="Profesores" 
+                               asp-route-pageNumber="1"
+                               asp-route-searchTerm="@ViewBag.SearchTerm"
+                               asp-route-status="@ViewBag.Status"
+                               asp-route-specialty="@ViewBag.Specialty"
+                               asp-route-sortBy="@ViewBag.SortBy"
+                               asp-route-pageSize="@ViewBag.PageSize"
+                               class="px-3 py-2 border border-gray-300 rounded-lg @(Model.PageIndex == 1 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-50 text-gray-700")">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+                                </svg>
+                            </a>
+
+                            <a asp-action="Profesores" 
+                               asp-route-pageNumber="@(Model.PageIndex - 1)"
+                               asp-route-searchTerm="@ViewBag.SearchTerm"
+                               asp-route-status="@ViewBag.Status"
+                               asp-route-specialty="@ViewBag.Specialty"
+                               asp-route-sortBy="@ViewBag.SortBy"
+                               asp-route-pageSize="@ViewBag.PageSize"
+                               class="px-3 py-2 border border-gray-300 rounded-lg @(Model.PageIndex == 1 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-50 text-gray-700")">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </a>
+
+                            @for (int i = Math.Max(1, Model.PageIndex - 2); i <= Math.Min(Model.TotalPages, Model.PageIndex + 2); i++)
+                            {
+                                <a asp-action="Profesores" 
+                                   asp-route-pageNumber="@i"
+                                   asp-route-searchTerm="@ViewBag.SearchTerm"
+                                   asp-route-status="@ViewBag.Status"
+                                   asp-route-specialty="@ViewBag.Specialty"
+                                   asp-route-sortBy="@ViewBag.SortBy"
+                                   asp-route-pageSize="@ViewBag.PageSize"
+                                   class="px-4 py-2 border rounded-lg @(i == Model.PageIndex ? "bg-blue-500 text-white border-blue-500" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50")">
+                                    @i
+                                </a>
+                            }
+
+                            <a asp-action="Profesores" 
+                               asp-route-pageNumber="@(Model.PageIndex + 1)"
+                               asp-route-searchTerm="@ViewBag.SearchTerm"
+                               asp-route-status="@ViewBag.Status"
+                               asp-route-specialty="@ViewBag.Specialty"
+                               asp-route-sortBy="@ViewBag.SortBy"
+                               asp-route-pageSize="@ViewBag.PageSize"
+                               class="px-3 py-2 border border-gray-300 rounded-lg @(Model.PageIndex == Model.TotalPages ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-50 text-gray-700")">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+
+                            <a asp-action="Profesores" 
+                               asp-route-pageNumber="@Model.TotalPages"
+                               asp-route-searchTerm="@ViewBag.SearchTerm"
+                               asp-route-status="@ViewBag.Status"
+                               asp-route-specialty="@ViewBag.Specialty"
+                               asp-route-sortBy="@ViewBag.SortBy"
+                               asp-route-pageSize="@ViewBag.PageSize"
+                               class="px-3 py-2 border border-gray-300 rounded-lg @(Model.PageIndex == Model.TotalPages ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-50 text-gray-700")">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+                }
             }
             else
             {
@@ -245,20 +378,48 @@
                             </path>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No hay profesores registrados</h3>
-                    <p class="text-gray-500 mb-6">Presiona el botón "Nuevo Profesor" para agregar uno</p>
-                    <a asp-action="CrearProfesor"
-                       class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                        Crear Primer Profesor
-                    </a>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">
+                        @if (!string.IsNullOrEmpty(ViewBag.SearchTerm) || !string.IsNullOrEmpty(ViewBag.Status))
+                        {
+                            <span>No se encontraron profesores con los filtros aplicados</span>
+                        }
+                        else
+                        {
+                            <span>No hay profesores registrados</span>
+                        }
+                    </h3>
+                    <p class="text-gray-500 mb-6">
+                        @if (!string.IsNullOrEmpty(ViewBag.SearchTerm) || !string.IsNullOrEmpty(ViewBag.Status))
+                        {
+                            <span>Intenta cambiar los filtros de búsqueda</span>
+                        }
+                        else
+                        {
+                            <span>Presiona el botón "Crear Profesor" para agregar uno</span>
+                        }
+                    </p>
+                    <div class="flex justify-center gap-3">
+                        @if (!string.IsNullOrEmpty(ViewBag.SearchTerm) || !string.IsNullOrEmpty(ViewBag.Status))
+                        {
+                            <a asp-action="Profesores"
+                               class="inline-flex items-center px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg shadow-md">
+                                Limpiar Filtros
+                            </a>
+                        }
+                        <a asp-action="CrearProfesor"
+                           class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg shadow-lg">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Crear Primer Profesor
+                        </a>
+                    </div>
                 </div>
+
             }
         </div>
     </div>
-</div>
+
 
 <!-- Formularios ocultos -->
 <form id="formActivar" asp-action="ActivarProfesor" method="post" style="display:none;">
@@ -279,8 +440,8 @@
         function toggleEstado(id, nombre, activar) {
             const titulo = activar ? '¿Activar profesor?' : '¿Desactivar profesor?';
             const texto = activar
-                ? `¿Estás seguro de activar a <strong>${nombre}</strong>?<br><small class="text-gray-600">Podrá acceder al sistema nuevamente.</small>`
-                : `¿Estás seguro de desactivar a <strong>${nombre}</strong>?<br><small class="text-gray-600">No podrá acceder al sistema temporalmente.</small>`;
+                ? `¿Estás seguro de activar a <strong>${nombre}</strong>?`
+                : `¿Estás seguro de desactivar a <strong>${nombre}</strong>?`;
             const icono = activar ? 'question' : 'warning';
             const btnColor = activar ? '#10b981' : '#f59e0b';
             const btnTexto = activar ? 'Activar' : 'Desactivar';
@@ -293,12 +454,7 @@
                 confirmButtonColor: btnColor,
                 cancelButtonColor: '#6b7280',
                 confirmButtonText: btnTexto,
-                cancelButtonText: 'Cancelar',
-                customClass: {
-                    popup: 'rounded-2xl',
-                    confirmButton: 'rounded-lg px-6 py-2.5',
-                    cancelButton: 'rounded-lg px-6 py-2.5'
-                }
+                cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
                     if (activar) {
@@ -315,36 +471,16 @@
         function confirmarEliminar(id, nombre) {
             Swal.fire({
                 title: '¡Atención!',
-                html: `
-                            <div class="text-left space-y-3">
-                                <p class="text-gray-700">Estás a punto de <strong class="text-red-600">eliminar permanentemente</strong> a:</p>
-                                <div class="bg-gray-100 p-3 rounded-lg">
-                                    <p class="font-semibold text-gray-900">${nombre}</p>
-                                </div>
-                                <div class="bg-red-50 border-l-4 border-red-400 p-3 rounded">
-                                    <p class="text-sm text-red-700">
-                                        <strong>Esta acción NO se puede deshacer.</strong><br>
-                                        Se eliminarán todos los datos asociados al profesor.
-                                    </p>
-                                </div>
-                                <p class="text-sm text-gray-600">
-                                    <strong>Recomendación:</strong> Si solo deseas suspender temporalmente al profesor,
-                                    usa la opción <span class="text-amber-600 font-semibold">"Desactivar"</span> en su lugar.
-                                </p>
-                            </div>
-                        `,
+                html: `<div class="text-left">
+                    <p>Estás a punto de eliminar a: <strong>${nombre}</strong></p>
+                    <p class="text-red-600 mt-2">Esta acción NO se puede deshacer.</p>
+                </div>`,
                 icon: 'error',
                 showCancelButton: true,
                 confirmButtonColor: '#dc2626',
                 cancelButtonColor: '#6b7280',
                 confirmButtonText: 'Eliminar',
-                cancelButtonText: 'Cancelar',
-                width: '600px',
-                customClass: {
-                    popup: 'rounded-2xl',
-                    confirmButton: 'rounded-lg px-6 py-2.5',
-                    cancelButton: 'rounded-lg px-6 py-2.5'
-                }
+                cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
                     document.getElementById('eliminarId').value = id;
@@ -353,12 +489,4 @@
             });
         }
     </script>
-
-    <style>
-        @@keyframes fade-in {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in { animation: fade-in 0.3s ease-out; }
-    </style>
 }

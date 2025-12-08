@@ -22,10 +22,15 @@ namespace SIRGA.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+    string busqueda = "",
+    string filtroCurso = "",
+    int pagina = 1,
+    int registrosPorPagina = 10)
         {
             try
             {
+                // Obtener todas las inscripciones
                 var response = await _apiService.GetAsync<ApiResponse<List<InscripcionDto>>>("api/Inscripcion/GetAll");
 
                 if (response?.Success != true)
@@ -34,7 +39,62 @@ namespace SIRGA.Web.Controllers
                     return View(new List<InscripcionDto>());
                 }
 
-                return View(response.Data ?? new List<InscripcionDto>());
+                var inscripciones = response.Data ?? new List<InscripcionDto>();
+
+                // Aplicar filtros
+                if (!string.IsNullOrWhiteSpace(busqueda))
+                {
+                    inscripciones = inscripciones.Where(i =>
+                        (i.EstudianteNombre != null && i.EstudianteNombre.Contains(busqueda, StringComparison.OrdinalIgnoreCase)) ||
+                        (i.EstudianteMatricula != null && i.EstudianteMatricula.Contains(busqueda, StringComparison.OrdinalIgnoreCase))
+                    ).ToList();
+                }
+
+                if (!string.IsNullOrWhiteSpace(filtroCurso))
+                {
+                    if (int.TryParse(filtroCurso, out int cursoId))
+                    {
+                        inscripciones = inscripciones.Where(i => i.IdCursoAcademico == cursoId).ToList();
+                    }
+                }
+
+                // Calcular paginación
+                var totalRegistros = inscripciones.Count;
+                var totalPaginas = (int)Math.Ceiling(totalRegistros / (double)registrosPorPagina);
+
+                // Asegurar que la página esté en rango válido
+                pagina = Math.Max(1, Math.Min(pagina, totalPaginas > 0 ? totalPaginas : 1));
+
+                // Aplicar paginación
+                var inscripcionesPaginadas = inscripciones
+                    .Skip((pagina - 1) * registrosPorPagina)
+                    .Take(registrosPorPagina)
+                    .ToList();
+
+                // Obtener cursos disponibles para el filtro
+                var cursosResponse = await _apiService.GetAsync<ApiResponse<List<CursoAcademicoDto>>>("api/CursoAcademico/GetAll");
+                if (cursosResponse?.Data != null && cursosResponse.Data.Any())
+                {
+                    var cursos = cursosResponse.Data
+                        .Select(c => new SelectListItem
+                        {
+                            Value = c.Id.ToString(),
+                            Text = $"{(c.Grado != null ? $"{c.Grado.GradeName} {c.Grado.Section}" : "N/A")} - {c.SchoolYear}"
+                        })
+                        .ToList();
+
+                    ViewBag.CursosDisponibles = cursos;
+                }
+
+                // Pasar datos de paginación a la vista
+                ViewBag.PaginaActual = pagina;
+                ViewBag.TotalPaginas = totalPaginas;
+                ViewBag.TotalRegistros = totalRegistros;
+                ViewBag.RegistrosPorPagina = registrosPorPagina;
+                ViewBag.Busqueda = busqueda;
+                ViewBag.FiltroCurso = filtroCurso;
+
+                return View(inscripcionesPaginadas);
             }
             catch (Exception ex)
             {

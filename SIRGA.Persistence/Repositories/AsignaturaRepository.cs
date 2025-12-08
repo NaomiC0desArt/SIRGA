@@ -2,53 +2,21 @@
 using SIRGA.Domain.Entities;
 using SIRGA.Domain.Interfaces;
 using SIRGA.Persistence.DbContext;
+using SIRGA.Persistence.Repositories.Base;
 
 namespace SIRGA.Persistence.Repositories
 {
-    public class AsignaturaRepository : IAsignaturaRepository
+    public class AsignaturaRepository : GenericRepository<Asignatura>, IAsignaturaRepository
     {
-        private readonly ApplicationDbContext _context;
+        public AsignaturaRepository(ApplicationDbContext context) : base(context) { }
 
-        public AsignaturaRepository(ApplicationDbContext context)
+        public async Task<int> GetProfesoresCountAsync(int asignaturaId)
         {
-            _context = context;
-        }
-
-        public async Task<Asignatura> AddAsync(Asignatura asignatura)
-        {
-            await _context.Asignaturas.AddAsync(asignatura);
-            await _context.SaveChangesAsync();
-            return asignatura;
-        }
-
-        public async Task<bool> DeleteAsync(int id)
-        {
-            var asignatura = await GetByIdAsync(id);
-            if (asignatura == null)
-            {
-                return false;
-            }
-
-            _context.Asignaturas.Remove(asignatura);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<List<Asignatura>> GetAllAsync()
-        {
-            return await _context.Asignaturas.ToListAsync();
-        }
-
-        public async Task<Asignatura> GetByIdAsync(int id)
-        {
-            return await _context.Asignaturas.FindAsync(id);
-        }
-
-        public async Task<Asignatura> UpdateAsync(Asignatura asignatura)
-        {
-            _context.Asignaturas.Update(asignatura);
-            await _context.SaveChangesAsync();
-            return asignatura;
+            return await _context.ClasesProgramadas
+                .Where(cp => cp.IdAsignatura == asignaturaId)
+                .Select(cp => cp.IdProfesor)
+                .Distinct()
+                .CountAsync();
         }
     }
 }

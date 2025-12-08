@@ -9,8 +9,8 @@ namespace SIRGA.Web.Models.Asignatura
         [Display(Name = "Nombre de la Asignatura")]
         public string Nombre { get; set; }
 
-        [Required(ErrorMessage = "La descripción es requerida")]
-        [StringLength(500, ErrorMessage = "La descripción no puede exceder 500 caracteres")]
+        [Required(ErrorMessage = "La descripción es obligatoria")]
+        [MaxLength(125, ErrorMessage = "La descripción no puede exceder los 125 caracteres")]
         [Display(Name = "Descripción")]
         public string Descripcion { get; set; }
 

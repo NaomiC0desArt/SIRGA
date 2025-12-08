@@ -1,0 +1,625 @@
+﻿@model List<SIRGA.Web.Models.Asistencia.EstudianteClaseDto>
+@{
+    ViewData["Title"] = "Tomar Asistencia";
+    var idClase = ViewBag.IdClase;
+    var fecha = ViewBag.Fecha as DateTime? ?? DateTime.Today;
+}
+
+<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
+    <div class="max-w-7xl mx-auto">
+
+        <!-- Encabezado -->
+        <div class="mb-6">
+            <div class="flex items-center gap-4 mb-4">
+                <a asp-action="Index" class="inline-flex items-center text-green-600 hover:text-green-700 font-medium">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Volver a Mis Clases
+                </a>
+                <a asp-action="Index" asp-controller="Profesor" class="inline-flex items-center text-purple-600 hover:text-purple-700 font-medium">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Ir al Panel Principal
+                </a>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                    <div class="flex items-center">
+                        <div class="h-16 w-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">Tomar Asistencia</h1>
+                            <p class="text-gray-600 mt-1">
+                                @fecha.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("es-ES"))
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas -->
+        <partial name="_Alerts" />
+
+        <!-- Acciones Rápidas -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 mb-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <button type="button"
+                        onclick="marcarTodos('Presente')"
+                        class="px-6 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl font-medium">
+                    <svg class="w-6 h-6 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Todos Presentes
+                </button>
+
+                <button type="button"
+                        onclick="marcarTodos('Ausente')"
+                        class="px-6 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all shadow-lg hover:shadow-xl font-medium">
+                    <svg class="w-6 h-6 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Todos Ausentes
+                </button>
+
+                <button type="button"
+                        onclick="marcarTodos('Tarde')"
+                        class="px-6 py-4 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-xl hover:from-yellow-600 hover:to-yellow-700 transition-all shadow-lg hover:shadow-xl font-medium">
+                    <svg class="w-6 h-6 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Todos Tarde
+                </button>
+
+                <button type="button"
+                        onclick="guardarAsistencia()"
+                        class="px-6 py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-medium">
+                    <svg class="w-6 h-6 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                    </svg>
+                    Guardar Todo
+                </button>
+            </div>
+        </div>
+
+        <!-- Lista de Estudiantes -->
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gradient-to-r from-gray-700 to-gray-800 text-white">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-sm font-semibold">#</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold">Matrícula</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold">Estudiante</th>
+                            <th class="px-6 py-4 text-center text-sm font-semibold">Estado</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold">Observaciones</th>
+                            <th class="px-6 py-4 text-center text-sm font-semibold">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaAsistencia" class="divide-y divide-gray-200">
+                        @for (int i = 0; i < Model.Count; i++)
+                        {
+                            var estudiante = Model[i];
+                            var rowClass = estudiante.YaRegistrada ? "bg-green-50" : "";
+
+                            <tr class="@rowClass hover:bg-gray-50 transition-colors" data-estudiante-id="@estudiante.IdEstudiante">
+                                <td class="px-6 py-4 text-sm font-medium text-gray-900">@(i + 1)</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                                        @estudiante.Matricula
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center">
+                                        @if (!string.IsNullOrEmpty(estudiante.Photo))
+                                        {
+                                            <img src="@estudiante.Photo"
+                                                 alt="@estudiante.NombreCompleto"
+                                                 class="w-10 h-10 rounded-full object-cover mr-3 border-2 border-gray-200">
+                                        }
+                                        else
+                                        {
+                                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-purple-400 to-purple-600 flex items-center justify-center mr-3 text-white font-bold">
+                                                @estudiante.Nombre.Substring(0, 1)@estudiante.Apellido.Substring(0, 1)
+                                            </div>
+                                        }
+                                        <div>
+                                            <p class="text-sm font-semibold text-gray-900">@estudiante.NombreCompleto</p>
+                                            <p class="text-xs text-gray-500">@estudiante.Email</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex justify-center gap-2">
+                                        <button type="button"
+                                                class="estado-btn p-2 rounded-lg border-2 transition-all hover:scale-110"
+                                                data-estado="Presente"
+                                                onclick="seleccionarEstado(this, '@estudiante.IdEstudiante', 'Presente')">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </button>
+                                        <button type="button"
+                                                class="estado-btn p-2 rounded-lg border-2 transition-all hover:scale-110"
+                                                data-estado="Ausente"
+                                                onclick="seleccionarEstado(this, '@estudiante.IdEstudiante', 'Ausente')">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                        </button>
+                                        <button type="button"
+                                                class="estado-btn p-2 rounded-lg border-2 transition-all hover:scale-110"
+                                                data-estado="Tarde"
+                                                onclick="seleccionarEstado(this, '@estudiante.IdEstudiante', 'Tarde')">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <input type="hidden" class="estado-input" value="@(estudiante.EstadoAsistencia ?? "")">
+                                    <input type="hidden" class="asistencia-id-input" value="@(estudiante.AsistenciaId?.ToString() ?? "")">
+                                </td>
+                                <td class="px-6 py-4">
+    <input type="text"
+           class="observaciones-input w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+           placeholder="Observaciones..."
+           maxlength="500">
+    <input type="hidden" class="justificacion-input" value="">
+</td>
+                                <td class="px-6 py-4 text-center">
+                                    <button type="button"
+                                            class="justificar-btn hidden px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all text-xs font-medium"
+                                            onclick="abrirModalJustificacion('@estudiante.IdEstudiante', '@estudiante.NombreCompleto')">
+                                        Justificar
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Botón Guardar Final -->
+        <div class="mt-8 text-center">
+            <button type="button"
+                    onclick="guardarAsistencia()"
+                    class="px-12 py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-bold text-lg">
+                <svg class="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                </svg>
+                Guardar Asistencia Completa
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación para Guardar -->
+<div id="modalConfirmacion" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+        <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 p-6 rounded-t-2xl">
+            <div class="flex items-center">
+                <svg class="w-10 h-10 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <h3 class="text-2xl font-bold text-white">Confirmar Registro</h3>
+            </div>
+        </div>
+        <div class="p-6">
+            <p class="text-gray-700 mb-4">
+                <strong>¿Estás seguro de que deseas guardar la asistencia?</strong>
+            </p>
+            <p class="text-sm text-gray-600 mb-4">
+                Una vez guardada, la asistencia <strong>no podrá ser modificada</strong> a menos que te comuniques con un administrador.
+            </p>
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                <p class="text-xs text-yellow-800">
+                    <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                    Asegúrate de que todos los estados estén correctos antes de continuar.
+                </p>
+            </div>
+        </div>
+        <div class="px-6 pb-6 flex gap-3">
+            <button type="button"
+                    onclick="cerrarModalConfirmacion()"
+                    class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-medium">
+                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                Revisar de Nuevo
+            </button>
+            <button type="button"
+                    onclick="confirmarGuardarAsistencia()"
+                    class="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all font-medium">
+                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Sí, Guardar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Justificación -->
+<div id="modalJustificacion" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-t-2xl">
+            <h3 class="text-2xl font-bold text-white">Justificar Asistencia</h3>
+            <p class="text-blue-100 mt-1" id="modalEstudianteNombre"></p>
+        </div>
+        <div class="p-6">
+            <input type="hidden" id="justificarEstudianteId">
+
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Justificación <span class="text-red-500">*</span>
+            </label>
+            <textarea id="justificacionTexto"
+                      rows="4"
+                      class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Escriba la justificación de la ausencia o tardanza..."
+                      maxlength="500"></textarea>
+            <p class="text-xs text-gray-500 mt-1">Mínimo 10 caracteres, máximo 500</p>
+
+<div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+    <p class="text-xs text-blue-800">
+        <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+        </svg>
+        La justificación se guardará junto con la asistencia cuando hagas clic en "Guardar Asistencia Completa".
+    </p>
+</div>
+        </div>
+        <div class="px-6 pb-6 flex gap-3">
+            <button type="button"
+                    onclick="cerrarModalJustificacion()"
+                    class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-medium">
+                Cancelar
+            </button>
+            <button type="button"
+                    onclick="guardarJustificacion()"
+                    class="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all font-medium">
+                Guardar Justificación
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const idClase = @ViewBag.IdClase;
+        const fecha = '@ViewBag.Fecha.ToString("yyyy-MM-dd")';
+const asistenciaYaRegistrada = @(Model.Any(e => e.YaRegistrada) ? "true" : "false");
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Si ya está registrada, deshabilitar todo
+    if (asistenciaYaRegistrada) {
+        console.log('🔒 Asistencia ya registrada. Interfaz bloqueada.');
+        deshabilitarTodo();
+        return;
+    }
+
+    // Marcar estados iniciales
+    document.querySelectorAll('.estado-input').forEach(function (input) {
+        if (input.value) {
+            const row = input.closest('tr');
+            const estadoBtn = row.querySelector(`[data-estado="${input.value}"]`);
+            if (estadoBtn) {
+                seleccionarEstado(estadoBtn, row.dataset.estudianteId, input.value, false);
+            }
+        }
+    });
+});
+
+function deshabilitarTodo() {
+    // Deshabilitar todos los botones de estado
+    document.querySelectorAll('.estado-btn').forEach(btn => {
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+        btn.onclick = function() {
+            mostrarNotificacion('La asistencia ya fue registrada y no puede modificarse', 'warning');
+            return false;
+        };
+    });
+
+    // Deshabilitar campos de observaciones
+    document.querySelectorAll('.observaciones-input').forEach(input => {
+        input.disabled = true;
+        input.classList.add('bg-gray-100', 'cursor-not-allowed');
+    });
+}
+
+function seleccionarEstado(button, estudianteId, estado, showJustificar = true) {
+    if (asistenciaYaRegistrada) {
+        mostrarNotificacion('La asistencia ya fue registrada y no puede modificarse', 'warning');
+        return;
+    }
+
+    const row = button.closest('tr');
+    const buttons = row.querySelectorAll('.estado-btn');
+    const estadoInput = row.querySelector('.estado-input');
+    const justificarBtn = row.querySelector('.justificar-btn');
+
+    // Remover selección previa
+    buttons.forEach(btn => {
+        btn.classList.remove('bg-green-500', 'bg-red-500', 'bg-yellow-500', 'border-green-500', 'border-red-500', 'border-yellow-500', 'text-white');
+        btn.classList.add('border-gray-300', 'text-gray-400');
+    });
+
+    // Aplicar nueva selección
+    const colors = getButtonColors(estado);
+    button.classList.remove('border-gray-300', 'text-gray-400');
+    button.classList.add(colors.bg, colors.border, 'text-white');
+
+    // Guardar estado
+    estadoInput.value = estado;
+
+    // Mostrar/ocultar botón justificar
+    if (showJustificar && (estado === 'Ausente' || estado === 'Tarde')) {
+        justificarBtn.classList.remove('hidden');
+    } else {
+        justificarBtn.classList.add('hidden');
+    }
+
+    // Resaltar fila
+    row.classList.remove('bg-green-50', 'bg-red-50', 'bg-yellow-50');
+    if (estado === 'Presente') row.classList.add('bg-green-50');
+    if (estado === 'Ausente') row.classList.add('bg-red-50');
+    if (estado === 'Tarde') row.classList.add('bg-yellow-50');
+}
+
+function getButtonColors(estado) {
+    switch (estado) {
+        case 'Presente':
+            return { bg: 'bg-green-500', border: 'border-green-500' };
+        case 'Ausente':
+            return { bg: 'bg-red-500', border: 'border-red-500' };
+        case 'Tarde':
+            return { bg: 'bg-yellow-500', border: 'border-yellow-500' };
+        default:
+            return { bg: 'bg-gray-500', border: 'border-gray-500' };
+    }
+}
+
+function marcarTodos(estado) {
+    if (asistenciaYaRegistrada) {
+        mostrarNotificacion('La asistencia ya fue registrada y no puede modificarse', 'warning');
+        return;
+    }
+
+    document.querySelectorAll('.estado-btn[data-estado="' + estado + '"]').forEach(function (btn) {
+        const row = btn.closest('tr');
+        seleccionarEstado(btn, row.dataset.estudianteId, estado);
+    });
+}
+
+function abrirModalJustificacion(estudianteId, nombreCompleto) {
+    if (asistenciaYaRegistrada) {
+        mostrarNotificacion('La asistencia ya fue registrada y no puede modificarse', 'warning');
+        return;
+    }
+
+    const row = document.querySelector(`tr[data-estudiante-id="${estudianteId}"]`);
+    const estado = row.querySelector('.estado-input').value;
+    
+    if (!estado) {
+        mostrarNotificacion('Primero debes seleccionar un estado (Ausente o Tarde)', 'warning');
+        return;
+    }
+    
+    if (estado !== 'Ausente' && estado !== 'Tarde') {
+        mostrarNotificacion('Solo se pueden justificar ausencias o tardanzas', 'warning');
+        return;
+    }
+
+    document.getElementById('justificarEstudianteId').value = estudianteId;
+    document.getElementById('modalEstudianteNombre').textContent = nombreCompleto;
+    
+    const justificacionExistente = row.querySelector('.justificacion-input').value;
+    document.getElementById('justificacionTexto').value = justificacionExistente || '';
+    
+    document.getElementById('modalJustificacion').classList.remove('hidden');
+}
+
+function cerrarModalJustificacion() {
+    document.getElementById('modalJustificacion').classList.add('hidden');
+}
+
+function guardarJustificacion() {
+    const estudianteId = document.getElementById('justificarEstudianteId').value;
+    const justificacion = document.getElementById('justificacionTexto').value.trim();
+
+    if (!justificacion) {
+        mostrarNotificacion('Por favor, ingresa una justificación.', 'error');
+        return;
+    }
+
+    if (justificacion.length < 10) {
+        mostrarNotificacion('La justificación debe tener al menos 10 caracteres.', 'error');
+        return;
+    }
+
+    const row = document.querySelector(`tr[data-estudiante-id="${estudianteId}"]`);
+    const justificacionInput = row.querySelector('.justificacion-input');
+    justificacionInput.value = justificacion;
+
+    console.log(`✅ Justificación guardada para estudiante ${estudianteId}:`, justificacion);
+
+    cerrarModalJustificacion();
+    mostrarNotificacion('✓ Justificación agregada. Recuerda guardar la asistencia.', 'success');
+    
+    row.classList.remove('bg-green-50', 'bg-red-50', 'bg-yellow-50');
+    row.classList.add('bg-blue-50');
+}
+
+function guardarAsistencia() {
+    if (asistenciaYaRegistrada) {
+        mostrarNotificacion('La asistencia ya fue registrada y no puede modificarse', 'warning');
+        return;
+    }
+
+    document.getElementById('modalConfirmacion').classList.remove('hidden');
+}
+
+function cerrarModalConfirmacion() {
+    document.getElementById('modalConfirmacion').classList.add('hidden');
+}
+
+async function confirmarGuardarAsistencia() {
+    cerrarModalConfirmacion();
+
+    const asistencias = [];
+    let hayErrores = false;
+
+    document.querySelectorAll('#tablaAsistencia tr').forEach(function (row) {
+        const estudianteId = parseInt(row.dataset.estudianteId);
+        const estado = row.querySelector('.estado-input').value;
+        const observaciones = row.querySelector('.observaciones-input').value;
+        
+        const justificacionInput = row.querySelector('.justificacion-input');
+        const justificacion = justificacionInput ? justificacionInput.value.trim() : null;
+
+        if (!estado) {
+            row.classList.add('bg-red-100');
+            hayErrores = true;
+            return;
+        }
+
+        row.classList.remove('bg-red-100');
+
+        console.log(`📋 Estudiante ${estudianteId}:`, {
+            estado,
+            observaciones: observaciones || null,
+            justificacion: justificacion || null
+        });
+
+        asistencias.push({
+            idEstudiante: estudianteId,
+            estado: estado,
+            observaciones: observaciones || null,
+            justificacion: justificacion || null,
+            requiereJustificacion: estado === 'Ausente' || estado === 'Tarde'
+        });
+    });
+
+    if (hayErrores) {
+        mostrarNotificacion('Por favor, marca el estado de todos los estudiantes antes de guardar.', 'error');
+        return;
+    }
+
+    const data = {
+        idClaseProgramada: idClase,
+        fecha: fecha,
+        asistencias: asistencias
+    };
+
+    console.log('📤 Enviando datos:', JSON.stringify(data, null, 2));
+
+    try {
+        const response = await fetch('/AsistenciaProfesor/RegistrarAsistenciaMasiva', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            mostrarNotificacion('✓ Asistencia guardada exitosamente', 'success');
+            setTimeout(() => {
+                window.location.href = '/AsistenciaProfesor/Index';
+            }, 1500);
+        } else {
+            mostrarNotificacion('Error: ' + result.message, 'error');
+            if (result.errors) {
+                console.error('❌ Errores:', result.errors);
+            }
+        }
+    } catch (error) {
+        console.error('❌ Error:', error);
+        mostrarNotificacion('Error al guardar la asistencia. Por favor, intenta de nuevo.', 'error');
+    }
+}
+
+// Cerrar modales al hacer clic fuera
+if (document.getElementById('modalJustificacion')) {
+    document.getElementById('modalJustificacion').addEventListener('click', function (e) {
+        if (e.target === this) {
+            cerrarModalJustificacion();
+        }
+    });
+}
+
+if (document.getElementById('modalConfirmacion')) {
+    document.getElementById('modalConfirmacion').addEventListener('click', function (e) {
+        if (e.target === this) {
+            cerrarModalConfirmacion();
+        }
+    });
+}
+
+function mostrarNotificacion(mensaje, tipo = 'info') {
+    const colores = {
+        'success': 'bg-green-500',
+        'error': 'bg-red-500',
+        'warning': 'bg-yellow-500',
+        'info': 'bg-blue-500'
+    };
+
+    const iconos = {
+        'success': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>',
+        'error': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>',
+        'warning': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>',
+        'info': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
+    };
+
+    const notificacion = document.createElement('div');
+    notificacion.className = `fixed top-4 right-4 ${colores[tipo]} text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 z-50 animate-fade-in`;
+    notificacion.innerHTML = `
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            ${iconos[tipo]}
+        </svg>
+        <span class="font-medium">${mensaje}</span>
+    `;
+
+    document.body.appendChild(notificacion);
+
+    setTimeout(() => {
+        notificacion.style.opacity = '0';
+        notificacion.style.transform = 'translateX(100%)';
+        notificacion.style.transition = 'all 0.3s ease-out';
+        setTimeout(() => notificacion.remove(), 300);
+    }, 3000);
+}
+    </script>
+}
+
+<style>
+    @@keyframes fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-in {
+        animation: fade-in 0.3s ease-out;
+    }
+</style>
+
+@Html.AntiForgeryToken()

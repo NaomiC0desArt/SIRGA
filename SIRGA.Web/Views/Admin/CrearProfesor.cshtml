@@ -1,135 +1,59 @@
-﻿@model SIRGA.Web.Models.Profesor.CreateProfesorDto
+﻿@using SIRGA.Web.Helpers
+@using SIRGA.Web.ViewComponents
+@model SIRGA.Web.Models.Profesor.CreateProfesorDto
 
 @{
     ViewData["Title"] = "Crear Profesor";
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = User.Identity.Name;
+    ViewBag.UserRole = "Administrador";
 }
 
-<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
-    <div class="max-w-2xl mx-auto">
+@section SidebarMenu {
+    <partial name="_AdminSidebarMenu" />
+}
 
-        <!-- Header -->
-        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
-            <div class="flex items-center">
-                <div class="h-12 w-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Crear Nuevo Profesor</h1>
-                    <p class="text-gray-600 mt-1">Complete la información básica del profesor</p>
-                </div>
-            </div>
-        </div>
+<div class="max-w-2xl mx-auto">
+    @await Component.InvokeAsync("FormHeader", new FormHeaderViewModel(
+            "Crear Nuevo Profesor",
+            "Complete la información básica del profesor",
+            "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z",
+            "purple"
+            ))
 
-        <!-- Formulario -->
-        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-            <form asp-action="CrearProfesor" method="post" class="space-y-6">
-                <div asp-validation-summary="ModelOnly" class="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg p-4"></div>
+    <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+        <form asp-action="CrearProfesor" method="post" class="space-y-6">
+            <div asp-validation-summary="ModelOnly" class="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg p-4"></div>
 
-                <!-- Información del Sistema -->
-                <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
-                    <div class="flex items-start">
-                        <svg class="w-5 h-5 text-purple-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <div class="text-sm text-purple-700">
-                            <p class="font-semibold mb-1">Información importante:</p>
-                            <ul class="list-disc list-inside space-y-1">
-                                <li>El <strong>correo electrónico</strong> se generará automáticamente</li>
-                                <li>Se generará una <strong>contraseña temporal</strong> que se enviará por correo</li>
-                                <li>El profesor deberá completar su perfil en el primer inicio de sesión</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+            @await Component.InvokeAsync("InfoBox", new InfoBoxViewModel(
+                     "Información importante:",
+                     new List<string>
+            {
+            "El <strong>correo electrónico</strong> se generará automáticamente",
+            "Se generará una <strong>contraseña temporal</strong> que se enviará por correo",
+            "El profesor deberá completar su perfil en el primer inicio de sesión"
+            },
+                     "purple"
+                     ))
 
-                <!-- Nombre -->
-                <div>
-                    <label asp-for="FirstName" class="block text-md font-medium text-gray-700 mb-2">
-                        <span class="flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
-                            Nombre <span class="text-red-500">*</span>
-                        </span>
-                    </label>
-                    <input asp-for="FirstName"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
-                           placeholder="Ingrese el nombre del profesor" />
-                    <span asp-validation-for="FirstName" class="text-sm text-red-500 mt-1"></span>
-                </div>
+            @await Component.InvokeAsync("ValidatedFormField", FormFieldsHelper.FirstNameField("purple"))
+            @await Component.InvokeAsync("ValidatedFormField", FormFieldsHelper.LastNameField("purple"))
 
-                <!-- Apellido -->
-                <div>
-                    <label asp-for="LastName" class="block text-md font-medium text-gray-700 mb-2">
-                        <span class="flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
-                            Apellido <span class="text-red-500">*</span>
-                        </span>
-                    </label>
-                    <input asp-for="LastName"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
-                           placeholder="Ingrese el apellido del profesor" />
-                    <span asp-validation-for="LastName" class="text-sm text-red-500 mt-1"></span>
-                </div>
+            @{
+                var specialtyField = FormFieldsHelper.SpecialtyField("purple");
+                specialtyField.HelpText = "Se generará una contraseña temporal que se enviará al correo del profesor.";
+            }
+            @await Component.InvokeAsync("ValidatedFormField", specialtyField)
 
-                <!-- Especialidad -->
-                <div>
-                    <label asp-for="Specialty" class="block text-md font-medium text-gray-700 mb-2">
-                        <span class="flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            Especialidad
-                        </span>
-                    </label>
-
-                    <select asp-for="Specialty"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
-                        <option value="">Seleccione una especialidad...</option>
-                        <option value="Matemáticas">Matemáticas</option>
-                        <option value="Edu. Física">Edu. Física</option>
-                        <option value="Lengua Española">Lengua Española</option>
-                        <option value="Informática">Informática</option>
-                        <option value="Ciencias Sociales">Ciencias Sociales</option>
-                        <option value="Ciencias Naturales">Ciencias Naturales</option>
-                        <option value="Educación Artística">Educación Artística</option>
-                    </select>
-
-                    <span asp-validation-for="Specialty" class="text-sm text-red-500 mt-1"></span>
-
-                    <p class="mt-2 text-sm text-gray-500">
-                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        Se generará una contraseña temporal que se enviará al correo del profesor.
-                    </p>
-                </div>
-
-                <!-- Botones -->
-                <div class="flex justify-end gap-4 pt-6 border-t border-gray-200">
-                    <a asp-action="Profesores"
-                       class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg shadow-md transition-all duration-200">
-                        Cancelar
-                    </a>
-                    <button type="submit"
-                            class="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
-                        <span class="flex items-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            Crear Profesor
-                        </span>
-                    </button>
-                </div>
-            </form>
-        </div>
-
+            @await Component.InvokeAsync("FormActions", new FormActionsViewModel(
+                     "Profesores",
+                     "Crear Profesor",
+                     "purple"
+                     )
+       {
+           SubmitIconPath = "M12 6v6m0 0v6m0-6h6m-6 0H6"
+       })
+        </form>
     </div>
 </div>
 

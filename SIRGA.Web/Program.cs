@@ -1,5 +1,6 @@
 
 using Microsoft.AspNetCore.DataProtection;
+using SIRGA.Web.Helpers;
 using SIRGA.Web.Services;
 using System.Text.Json.Serialization;
 
@@ -9,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<ImageUrlHelper>();
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

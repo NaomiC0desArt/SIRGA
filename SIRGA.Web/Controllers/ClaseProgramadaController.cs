@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using SIRGA.Web.Helpers;
 using SIRGA.Web.Models.API;
 using SIRGA.Web.Models.Asignatura;
 using SIRGA.Web.Models.ClaseProgramada;
@@ -23,28 +24,100 @@ namespace SIRGA.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+        string searchTerm = "",
+        string weekDay = "",
+        string location = "",
+        string sortBy = "dia",
+        int pageNumber = 1,
+        int pageSize = 10)
         {
             try
             {
+                // 1. Obtener todas las clases
                 var response = await _apiService.GetAsync<ApiResponse<List<ClaseProgramadaDto>>>("api/ClaseProgramada/GetAll");
 
                 if (response?.Success != true)
                 {
                     TempData["ErrorMessage"] = response?.Message ?? "Error al cargar las clases programadas";
-                    return View(new List<ClaseProgramadaDto>());
+                    return View(new PaginatedList<ClaseProgramadaDto>(new List<ClaseProgramadaDto>(), 0, 1, pageSize));
                 }
 
-                return View(response.Data ?? new List<ClaseProgramadaDto>());
+                var clases = response.Data ?? new List<ClaseProgramadaDto>();
+
+                // 2. APLICAR BÚSQUEDA
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    clases = clases.Where(c =>
+                        (c.AsignaturaNombre != null && c.AsignaturaNombre.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                        (c.ProfesorNombre != null && c.ProfesorNombre.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                        (c.Location != null && c.Location.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                        (c.WeekDay != null && c.WeekDay.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                    ).ToList();
+                }
+
+                // 3. APLICAR FILTRO DE DÍA
+                if (!string.IsNullOrWhiteSpace(weekDay))
+                {
+                    clases = clases.Where(c =>
+                        c.WeekDay != null && c.WeekDay.Equals(weekDay, StringComparison.OrdinalIgnoreCase)
+                    ).ToList();
+                }
+
+                // 4. APLICAR FILTRO DE UBICACIÓN
+                if (!string.IsNullOrWhiteSpace(location))
+                {
+                    clases = clases.Where(c =>
+                        c.Location != null && c.Location.Contains(location, StringComparison.OrdinalIgnoreCase)
+                    ).ToList();
+                }
+
+                // 5. APLICAR ORDENAMIENTO
+                clases = sortBy?.ToLower() switch
+                {
+                    "dia" => clases.OrderBy(c => c.WeekDay).ToList(),
+                    "hora" => clases.OrderBy(c => c.StartTime).ToList(),
+                    "asignatura" => clases.OrderBy(c => c.AsignaturaNombre).ToList(),
+                    "profesor" => clases.OrderBy(c => c.ProfesorNombre).ToList(),
+                    "ubicacion" => clases.OrderBy(c => c.Location).ToList(),
+                    _ => clases.OrderBy(c => c.WeekDay).ThenBy(c => c.StartTime).ToList()
+                };
+
+                // 6. CALCULAR PAGINACIÓN
+                var totalCount = clases.Count;
+                var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+                pageNumber = Math.Max(1, Math.Min(pageNumber, totalPages > 0 ? totalPages : 1));
+
+                // 7. APLICAR PAGINACIÓN
+                var paginatedClases = clases
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                // 8. CREAR MODELO PAGINADO
+                var paginatedList = new PaginatedList<ClaseProgramadaDto>(
+                    paginatedClases,
+                    totalCount,
+                    pageNumber,
+                    pageSize
+                );
+
+                // 9. PASAR PARÁMETROS A LA VISTA
+                ViewBag.SearchTerm = searchTerm;
+                ViewBag.WeekDay = weekDay;
+                ViewBag.Location = location;
+                ViewBag.SortBy = sortBy;
+                ViewBag.PageSize = pageSize;
+
+                return View(paginatedList);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al obtener clases programadas");
                 TempData["ErrorMessage"] = "Error de conexión con el servidor";
-                return View(new List<ClaseProgramadaDto>());
+                return View(new PaginatedList<ClaseProgramadaDto>(new List<ClaseProgramadaDto>(), 0, 1, pageSize));
             }
         }
-
         [HttpGet]
         public async Task<IActionResult> Crear()
         {

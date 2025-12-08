@@ -1,4 +1,5 @@
 ﻿using SIRGA.Domain.Entities;
+using SIRGA.Domain.ReadModels;
 
 
 namespace SIRGA.Domain.Interfaces
@@ -9,5 +10,7 @@ namespace SIRGA.Domain.Interfaces
         Task<Estudiante> GetByApplicationUserIdAsync(string applicationUserId);
         Task<string> GetLastMatriculaAsync();
         Task<bool> ExistsByMatriculaAsync(string matricula);
+        Task<EstudianteConUsuario> GetEstudianteConUsuarioAsync(int id);
+        Task<List<EstudianteConUsuario>> GetEstudiantesConUsuarioAsync(List<int> ids);
     }
 }

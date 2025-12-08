@@ -4,9 +4,15 @@
     ViewData["Title"] = "Editar Curso Académico";
     var cursoAcademicoId = ViewBag.CursoAcademicoId;
     var grados = ViewBag.Grados as List<SIRGA.Web.Models.Grado.GradoDto> ?? new List<SIRGA.Web.Models.Grado.GradoDto>();
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = User.Identity.Name;
+    ViewBag.UserRole = "Administrador";
 }
 
-<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
+@section SidebarMenu {
+    <partial name="_AdminSidebarMenu" />
+}
+
     <div class="max-w-2xl mx-auto">
 
         <!-- Header -->
@@ -90,7 +96,6 @@
         </div>
 
     </div>
-</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

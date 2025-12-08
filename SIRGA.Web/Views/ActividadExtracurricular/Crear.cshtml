@@ -1,0 +1,237 @@
+﻿@model SIRGA.Web.Models.ActividadExtracurricular.CreateActividadViewModel
+
+@{
+    ViewData["Title"] = "Nueva Actividad Extracurricular";
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = User.Identity.Name;
+    ViewBag.UserRole = "Administrador";
+}
+
+@section SidebarMenu {
+    <partial name="_AdminSidebarMenu" />
+}
+
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <strong>Errores de validación:</strong>
+        <ul>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+    <div class="max-w-4xl mx-auto">
+
+        <!-- Encabezado -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="h-14 w-14 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mr-4">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Nueva Actividad</h1>
+                        <p class="text-gray-600 mt-1">Crea una nueva actividad extracurricular</p>
+                    </div>
+                </div>
+                <a asp-action="Index" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
+                    Cancelar
+                </a>
+            </div>
+        </div>
+
+        <!-- Formulario -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            <form asp-action="Crear" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6"></div>
+
+                <div class="space-y-6">
+
+                    <!-- Información Básica -->
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Información Básica
+                        </h2>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Nombre -->
+                            <div class="md:col-span-2">
+                                <label asp-for="Nombre" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Nombre de la Actividad <span class="text-red-500">*</span>
+                                </label>
+                                <input asp-for="Nombre"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                       placeholder="Ej: Club de Ajedrez">
+                                <span asp-validation-for="Nombre" class="text-red-500 text-sm"></span>
+                            </div>
+
+                            <!-- Categoría -->
+                            <div>
+                                <label asp-for="Categoria" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Categoría <span class="text-red-500">*</span>
+                                </label>
+                                <select asp-for="Categoria" asp-items="ViewBag.Categorias"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                    <option value="">Seleccionar...</option>
+                                </select>
+                                <span asp-validation-for="Categoria" class="text-red-500 text-sm"></span>
+                            </div>
+
+                            <!-- Profesor Encargado -->
+                            <div>
+                                <label asp-for="IdProfesorEncargado" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Profesor Encargado <span class="text-red-500">*</span>
+                                </label>
+                                <select asp-for="IdProfesorEncargado" asp-items="ViewBag.Profesores"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                    <option value="">Seleccionar...</option>
+                                </select>
+                                <span asp-validation-for="IdProfesorEncargado" class="text-red-500 text-sm"></span>
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="md:col-span-2">
+                                <label asp-for="Descripcion" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Descripción <span class="text-red-500">*</span>
+                                </label>
+                                <textarea asp-for="Descripcion" rows="4"
+                                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                          placeholder="Describe la actividad..."></textarea>
+                                <span asp-validation-for="Descripcion" class="text-red-500 text-sm"></span>
+                            </div>
+
+                            <!-- Requisitos -->
+                            <div class="md:col-span-2">
+                                <label asp-for="Requisitos" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Requisitos (Opcional)
+                                </label>
+                                <textarea asp-for="Requisitos" rows="3"
+                                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                          placeholder="Ej: Traer uniforme deportivo"></textarea>
+                                <span asp-validation-for="Requisitos" class="text-red-500 text-sm"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Horario -->
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Horario
+                        </h2>
+                        <p class="text-sm text-gray-600 mb-4">El horario debe estar entre las 2:00 PM y las 8:00 PM</p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Día -->
+                            <div>
+                                <label asp-for="DiaSemana" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Día <span class="text-red-500">*</span>
+                                </label>
+                                <select asp-for="DiaSemana" asp-items="ViewBag.DiasSemana"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                    <option value="">Seleccionar...</option>
+                                </select>
+                                <span asp-validation-for="DiaSemana" class="text-red-500 text-sm"></span>
+                            </div>
+
+                            <!-- Hora Inicio -->
+                            <div>
+                                <label asp-for="HoraInicio" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Hora Inicio <span class="text-red-500">*</span>
+                                </label>
+                                <input asp-for="HoraInicio" type="time" min="14:00" max="20:00"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <span asp-validation-for="HoraInicio" class="text-red-500 text-sm"></span>
+                            </div>
+
+                            <!-- Hora Fin -->
+                            <div>
+                                <label asp-for="HoraFin" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Hora Fin <span class="text-red-500">*</span>
+                                </label>
+                                <input asp-for="HoraFin" type="time" min="14:00" max="20:00"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <span asp-validation-for="HoraFin" class="text-red-500 text-sm"></span>
+                            </div>
+
+                            <!-- Ubicación -->
+                            <div class="md:col-span-3">
+                                <label asp-for="Ubicacion" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Ubicación
+                                </label>
+                                <input asp-for="Ubicacion"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                       placeholder="Ej: Cancha deportiva">
+                                <span asp-validation-for="Ubicacion" class="text-red-500 text-sm"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personalización -->
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+                            </svg>
+                            Personalización Visual
+                        </h2>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Color -->
+                            <div>
+                                <label asp-for="ColorTarjeta" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Color de Tarjeta <span class="text-red-500">*</span>
+                                </label>
+                                <div class="flex gap-3">
+                                    <input asp-for="ColorTarjeta" type="color"
+                                           class="h-12 w-20 border border-gray-300 rounded-lg cursor-pointer">
+                                    <input asp-for="ColorTarjeta" type="text"
+                                           class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                           placeholder="#3B82F6">
+                                </div>
+                                <span asp-validation-for="ColorTarjeta" class="text-red-500 text-sm"></span>
+                            </div>
+
+                            <!-- Imagen -->
+                            <div>
+                                <label asp-for="Imagen" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Imagen/Folleto (Opcional)
+                                </label>
+                                <input asp-for="Imagen" type="file" accept="image/*"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <p class="text-xs text-gray-500 mt-1">Formatos permitidos: JPG, PNG, GIF (Max: 5MB)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Botones -->
+                <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
+                    <a asp-action="Index" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="px-8 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold rounded-lg shadow-lg transition-all duration-200">
+                        Crear Actividad
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

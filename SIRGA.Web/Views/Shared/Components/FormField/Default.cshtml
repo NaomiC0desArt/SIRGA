@@ -1,0 +1,48 @@
+﻿@model SIRGA.Web.ViewComponents.FormFieldViewModel
+
+<div>
+    <label class="block text-md font-medium text-gray-700 mb-2">
+        <span class="flex items-center">
+            @if (!string.IsNullOrEmpty(Model.IconPath))
+            {
+                <svg class="w-5 h-5 mr-2 @Model.GetIconColorClass()" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="@Model.IconPath"></path>
+                </svg>
+            }
+            @Model.Label
+            @if (Model.IsRequired)
+            {
+                <span class="text-red-500 ml-1">*</span>
+            }
+        </span>
+    </label>
+
+    @if (Model.InputType == "textarea")
+    {
+        <textarea rows="@Model.TextAreaRows"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 @Model.GetFocusRingClass() transition-all duration-200"
+                  placeholder="@Model.Placeholder"></textarea>
+    }
+    else if (Model.InputType == "select")
+    {
+        <select class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 @Model.GetFocusRingClass() transition-all duration-200">
+            @* Las opciones se pasarían desde la vista padre *@
+        </select>
+    }
+    else
+    {
+        <input type="@Model.InputType"
+               class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 @Model.GetFocusRingClass() transition-all duration-200"
+               placeholder="@Model.Placeholder" />
+    }
+
+    @if (!string.IsNullOrEmpty(Model.HelpText))
+    {
+        <p class="mt-2 text-sm text-gray-500">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            @Model.HelpText
+        </p>
+    }
+</div>
