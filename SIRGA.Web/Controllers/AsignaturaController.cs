@@ -84,7 +84,6 @@ namespace SIRGA.Web.Controllers
             }
         }
 
- 
         [HttpGet]
         public async Task<IActionResult> Editar(int id)
         {
@@ -101,7 +100,9 @@ namespace SIRGA.Web.Controllers
                 var updateDto = new UpdateAsignaturaDto
                 {
                     Nombre = response.Data.Nombre,
-                    Descripcion = response.Data.Descripcion
+                    Codigo = response.Data.Codigo,
+                    Descripcion = response.Data.Descripcion,
+                    TipoAsignatura = response.Data.TipoAsignatura
                 };
 
                 ViewBag.AsignaturaId = id;
@@ -164,7 +165,6 @@ namespace SIRGA.Web.Controllers
                 var profesoresResponse = await _apiService.GetAsync<ApiResponse<int>>($"api/Asignatura/{id}/profesores-count");
                 ViewBag.CantidadProfesores = profesoresResponse?.Data ?? 0;
 
-
                 return View(response.Data);
             }
             catch (Exception ex)
@@ -175,7 +175,6 @@ namespace SIRGA.Web.Controllers
             }
         }
 
-  
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Eliminar(int id)

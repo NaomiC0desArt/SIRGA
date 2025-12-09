@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using SIRGA.Application.DTOs.Common;
-using SIRGA.Application.DTOs.Entities;
+using SIRGA.Application.DTOs.Entities.Asigantura;
 using SIRGA.Application.DTOs.ResponseDto;
 using SIRGA.Application.Interfaces.Entities;
 using SIRGA.Application.Services.Base;
@@ -12,6 +12,7 @@ namespace SIRGA.Application.Services
     public class AsignaturaService : BaseService<Asignatura, AsignaturaDto, AsignaturaResponseDto>, IAsignaturaService
     {
         private readonly IAsignaturaRepository _asignaturaRepository;
+        private static readonly Random _random = new Random();
 
         public AsignaturaService(
             IAsignaturaRepository asignaturaRepository,
@@ -29,7 +30,8 @@ namespace SIRGA.Application.Services
             return new Asignatura
             {
                 Nombre = dto.Nombre,
-                Descripcion = dto.Descripcion
+                Descripcion = dto.Descripcion,
+                TipoAsignatura = dto.TipoAsignatura
             };
         }
 
@@ -38,8 +40,10 @@ namespace SIRGA.Application.Services
             return new AsignaturaResponseDto
             {
                 Id = entity.Id,
+                Codigo = entity.Codigo,
                 Nombre = entity.Nombre,
-                Descripcion = entity.Descripcion
+                Descripcion = entity.Descripcion,
+                TipoAsignatura = entity.TipoAsignatura
             };
         }
 
@@ -47,31 +51,78 @@ namespace SIRGA.Application.Services
         {
             entity.Nombre = dto.Nombre;
             entity.Descripcion = dto.Descripcion;
+            entity.TipoAsignatura = dto.TipoAsignatura;
         }
         #endregion
 
         #region Validaciones
         protected override Task<ApiResponse<AsignaturaResponseDto>> ValidateCreateAsync(AsignaturaDto dto)
         {
-            return ValidateDescripcion(dto);
+            var validationResult = ValidateAsignaturaData(dto);
+            if (validationResult != null)
+                return Task.FromResult(validationResult);
+
+            return Task.FromResult<ApiResponse<AsignaturaResponseDto>>(null);
         }
 
         protected override Task<ApiResponse<AsignaturaResponseDto>> ValidateUpdateAsync(int id, AsignaturaDto dto)
         {
-            return ValidateDescripcion(dto);
+            var validationResult = ValidateAsignaturaData(dto);
+            if (validationResult != null)
+                return Task.FromResult(validationResult);
+
+            return Task.FromResult<ApiResponse<AsignaturaResponseDto>>(null);
         }
 
-        private Task<ApiResponse<AsignaturaResponseDto>> ValidateDescripcion(AsignaturaDto dto)
+        private ApiResponse<AsignaturaResponseDto> ValidateAsignaturaData(AsignaturaDto dto)
         {
             if (dto.Descripcion?.Length > 125)
             {
-                return Task.FromResult(
-                    ApiResponse<AsignaturaResponseDto>.ErrorResponse(
-                        "La descripción no puede exceder los 125 caracteres"
-                    )
+                return ApiResponse<AsignaturaResponseDto>.ErrorResponse(
+                    "La descripción no puede exceder los 125 caracteres"
                 );
             }
-            return Task.FromResult<ApiResponse<AsignaturaResponseDto>>(null);
+
+            var tiposValidos = new[] { "Teorica", "Practica", "TeoricoPractica" };
+            if (!tiposValidos.Contains(dto.TipoAsignatura))
+            {
+                return ApiResponse<AsignaturaResponseDto>.ErrorResponse(
+                    "El tipo de asignatura debe ser: Teorica, Practica o TeoricoPractica"
+                );
+            }
+
+            return null;
+        }
+        #endregion
+
+        #region Métodos Auxiliares
+        private static string GenerarCodigoAsignatura(string nombreAsignatura)
+        {
+            try
+            {
+                string limpio = new string(nombreAsignatura
+                    .Where(c => char.IsLetter(c))
+                    .ToArray());
+
+                if (limpio.Length < 3)
+                {
+                   
+                    limpio = nombreAsignatura.Replace(" ", "");
+                    if (limpio.Length < 3)
+                        limpio = limpio.PadRight(3, 'X');
+                }
+
+   
+                string letras = limpio.Substring(0, 3).ToUpper();
+
+                int numero = _random.Next(100, 1000); // 100 hasta 999
+
+                return $"{letras}-{numero}";
+            }
+            catch (Exception)
+            {
+                return $"ASG-{_random.Next(100, 1000)}";
+            }
         }
         #endregion
 

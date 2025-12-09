@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SIRGA.API.Controllers.Base;
-using SIRGA.Application.DTOs.Entities;
+using SIRGA.Application.DTOs.Entities.Asigantura;
 using SIRGA.Application.DTOs.ResponseDto;
 using SIRGA.Application.Interfaces.Entities;
 

@@ -2,9 +2,17 @@
 
 @{
     ViewData["Title"] = "Detalles de Asignatura";
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = User.Identity.Name;
+    ViewBag.UserRole = "Administrador";
 }
 
-<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
+@section SidebarMenu {
+    <partial name="_AdminSidebarMenu" />
+}
+
+
+
     <div class="max-w-4xl mx-auto">
 
         <!-- Header -->
@@ -18,11 +26,14 @@
                     </div>
                     <div>
                         <h1 class="text-3xl font-bold text-gray-900">@Model.Nombre</h1>
-                        <p class="text-gray-600 mt-1">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                ID: @Model.Id
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+                                @(Model.Codigo ?? "Sin código")
                             </span>
-                        </p>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                ID: #@Model.Id
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -54,92 +65,141 @@
                 Información de la Asignatura
             </h2>
 
-            <div class="space-y-6">
-                <!-- Nombre -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Código -->
                 <div class="border-b border-gray-200 pb-4">
-                    <label class="text-sm font-medium text-gray-500 uppercase tracking-wider">Nombre</label>
-                    <p class="text-2xl font-bold text-gray-900 mt-2">@Model.Nombre</p>
+                    <label class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center mb-2">
+                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+                        </svg>
+                        Código
+                    </label>
+                    <p class="text-xl font-bold text-gray-900">@(Model.Codigo ?? "No asignado")</p>
                 </div>
 
-                <!-- Descripción -->
-                <div>
-                    <label class="text-sm font-medium text-gray-500 uppercase tracking-wider">Descripción</label>
-                    <div class="mt-3 bg-gray-50 rounded-lg p-4 border border-gray-200">
-                        <p class="text-gray-700 leading-relaxed">@Model.Descripcion</p>
-                    </div>
+                <!-- Tipo de Asignatura -->
+                <div class="border-b border-gray-200 pb-4">
+                    <label class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center mb-2">
+                        <svg class="w-4 h-4 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Tipo de Asignatura
+                    </label>
+                    @{
+                        var tipoBadgeClass = Model.TipoAsignatura switch
+                        {
+                            "Teorica" => "bg-blue-100 text-blue-800 border-blue-200",
+                            "Practica" => "bg-purple-100 text-purple-800 border-purple-200",
+                            "TeoricoPractica" => "bg-indigo-100 text-indigo-800 border-indigo-200",
+                            _ => "bg-gray-100 text-gray-800 border-gray-200"
+                        };
+                        var tipoDisplay = Model.TipoAsignatura switch
+                        {
+                            "Teorica" => "Teórica",
+                            "Practica" => "Práctica",
+                            "TeoricoPractica" => "Teórico-Práctica",
+                            _ => Model.TipoAsignatura
+                        };
+                    }
+                    <span class="inline-flex items-center px-4 py-2 rounded-lg text-base font-bold border @tipoBadgeClass">
+                        @tipoDisplay
+                    </span>
+                </div>
+            </div>
+
+            <!-- Nombre (Ancho completo) -->
+            <div class="mt-6 border-b border-gray-200 pb-4">
+                <label class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center mb-2">
+                    <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                    Nombre Completo
+                </label>
+                <p class="text-2xl font-bold text-gray-900">@Model.Nombre</p>
+            </div>
+
+            <!-- Descripción -->
+            <div class="mt-6">
+                <label class="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center mb-3">
+                    <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+                    </svg>
+                    Descripción
+                </label>
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p class="text-gray-700 leading-relaxed">@Model.Descripcion</p>
                 </div>
             </div>
         </div>
 
         <!-- Estadísticas -->
-<div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-    <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-        <svg class="w-6 h-6 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-        </svg>
-        Estadísticas
-    </h2>
-
-    <div class="max-w-md mx-auto">
-        <!-- Profesores que Imparten -->
-        <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-8 border border-purple-200">
-            <div class="flex items-center justify-between">
-                <div class="flex-1">
-                    <p class="text-purple-600 text-sm font-medium uppercase tracking-wider">Profesores que Imparten</p>
-                    <p class="text-5xl font-bold text-purple-900 mt-3">@ViewBag.CantidadProfesores</p>
-                    <p class="text-purple-600 text-sm mt-2">
-                        @if (ViewBag.CantidadProfesores == 0)
-                        {
-                            <span>Sin profesores asignados</span>
-                        }
-                        else if (ViewBag.CantidadProfesores == 1)
-                        {
-                            <span>Profesor único</span>
-                        }
-                        else
-                        {
-                            <span>Profesores diferentes</span>
-                        }
-                    </p>
-                </div>
-                <div class="bg-purple-500 rounded-xl p-4 shadow-lg">
-                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    @if (ViewBag.CantidadProfesores > 0)
-    {
-        <div class="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
-            <div class="flex items-start">
-                <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                <svg class="w-6 h-6 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                 </svg>
-                <p class="text-sm text-green-700">
-                    <strong>@ViewBag.CantidadProfesores</strong> 
-                    @(ViewBag.CantidadProfesores == 1 ? "profesor imparte" : "profesores imparten") 
-                    esta asignatura actualmente.
-                </p>
+                Estadísticas
+            </h2>
+
+            <div class="max-w-md mx-auto">
+                <!-- Profesores que Imparten -->
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-8 border border-purple-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <p class="text-purple-600 text-sm font-medium uppercase tracking-wider">Profesores que Imparten</p>
+                            <p class="text-5xl font-bold text-purple-900 mt-3">@ViewBag.CantidadProfesores</p>
+                            <p class="text-purple-600 text-sm mt-2">
+                                @if (ViewBag.CantidadProfesores == 0)
+                                {
+                                    <span>Sin profesores asignados</span>
+                                }
+                                else if (ViewBag.CantidadProfesores == 1)
+                                {
+                                    <span>Profesor único</span>
+                                }
+                                else
+                                {
+                                    <span>Profesores diferentes</span>
+                                }
+                            </p>
+                        </div>
+                        <div class="bg-purple-500 rounded-xl p-4 shadow-lg">
+                            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            @if (ViewBag.CantidadProfesores > 0)
+            {
+                <div class="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="text-sm text-green-700">
+                            <strong>@ViewBag.CantidadProfesores</strong>
+                            @(ViewBag.CantidadProfesores == 1 ? "profesor imparte" : "profesores imparten")
+                            esta asignatura actualmente.
+                        </p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="text-sm text-blue-700">
+                            Esta asignatura aún no tiene profesores asignados. Los profesores se asignan a través de las clases programadas.
+                        </p>
+                    </div>
+                </div>
+            }
         </div>
-    }
-    else
-    {
-        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div class="flex items-start">
-                <svg class="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <p class="text-sm text-blue-700">
-                    Esta asignatura aún no tiene profesores asignados. Los profesores se asignan a través de las clases programadas.
-                </p>
-            </div>
-        </div>
-    }
-</div>
 
     </div>
-</div>

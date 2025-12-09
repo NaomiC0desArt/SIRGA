@@ -3,9 +3,15 @@
 @{
     ViewData["Title"] = "Editar Asignatura";
     var asignaturaId = ViewBag.AsignaturaId;
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = User.Identity.Name;
+    ViewBag.UserRole = "Administrador";
 }
 
-<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
+@section SidebarMenu {
+    <partial name="_AdminSidebarMenu" />
+}
+
     <div class="max-w-2xl mx-auto">
 
         <!-- Header -->
@@ -29,6 +35,23 @@
                 @Html.AntiForgeryToken()
                 <div asp-validation-summary="ModelOnly" class="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg p-4"></div>
 
+                <!-- Información -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div class="text-sm text-blue-700">
+                            <p class="font-semibold mb-1">Nota importante:</p>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>El código puede modificarse manualmente si es necesario</li>
+                                <li>Se recomienda mantener el formato XXX-### (ej: MAT-456)</li>
+                                <li>Todos los cambios serán guardados inmediatamente</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Nombre -->
                 <div>
                     <label asp-for="Nombre" class="block text-md font-medium text-gray-700 mb-2">
@@ -40,8 +63,54 @@
                         </span>
                     </label>
                     <input asp-for="Nombre"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200" />
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                           placeholder="Ej: Matemáticas Avanzadas" />
                     <span asp-validation-for="Nombre" class="text-sm text-red-500 mt-1"></span>
+                </div>
+
+                <!-- Código -->
+                <div>
+                    <label asp-for="Codigo" class="block text-md font-medium text-gray-700 mb-2">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+                            </svg>
+                            Código de la Asignatura
+                        </span>
+                    </label>
+                    <input asp-for="Codigo"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                           placeholder="Ej: MAT-456" />
+                    <span asp-validation-for="Codigo" class="text-sm text-red-500 mt-1"></span>
+                    <p class="mt-2 text-sm text-gray-500">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Formato recomendado: 3 letras, guión, 3 números (ej: MAT-456)
+                    </p>
+                </div>
+
+                <!-- Tipo de Asignatura -->
+                <div>
+                    <label asp-for="TipoAsignatura" class="block text-md font-medium text-gray-700 mb-2">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Tipo de Asignatura <span class="text-red-500">*</span>
+                        </span>
+                    </label>
+
+                    <select asp-for="TipoAsignatura"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                        <option value="">Seleccione el tipo de asignatura...</option>
+                        <option value="Teorica">Teórica</option>
+                        <option value="Practica">Práctica</option>
+                        <option value="TeoricoPractica">Teórico-Práctica</option>
+                    </select>
+
+                    <span asp-validation-for="TipoAsignatura" class="text-sm text-red-500 mt-1"></span>
                 </div>
 
                 <!-- Descripción -->
@@ -58,7 +127,8 @@
                         </span>
                     </label>
                     <textarea asp-for="Descripcion" rows="5" id="descripcionTextarea" maxlength="125"
-                              class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"></textarea>
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                              placeholder="Describe el contenido, objetivos y alcance de esta asignatura..."></textarea>
                     <span asp-validation-for="Descripcion" class="text-sm text-red-500 mt-1"></span>
                     <p class="mt-2 text-sm text-gray-500">
                         <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,7 +158,7 @@
         </div>
 
     </div>
-</div>
+
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
@@ -102,21 +172,19 @@
                 const length = textarea.value.length;
                 charCount.textContent = `${length}/125`;
 
-                if (length > 100) {
-                    charCount.classList.remove('text-gray-500');
-                    charCount.classList.add('text-orange-600', 'font-semibold');
-                }
+                charCount.classList.remove('text-gray-500', 'text-orange-600', 'text-red-600', 'font-semibold', 'font-bold');
+                
                 if (length >= 125) {
-                    charCount.classList.remove('text-orange-600');
                     charCount.classList.add('text-red-600', 'font-bold');
-                } else if (length <= 100) {
-                    charCount.classList.remove('text-orange-600', 'text-red-600', 'font-semibold', 'font-bold');
+                } else if (length > 100) {
+                    charCount.classList.add('text-orange-600', 'font-semibold');
+                } else {
                     charCount.classList.add('text-gray-500');
                 }
             }
 
             textarea.addEventListener('input', updateCharCount);
-            updateCharCount(); // Inicializar el contador
+            updateCharCount();
         });
     </script>
 }
