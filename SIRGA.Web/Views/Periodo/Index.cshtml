@@ -1,0 +1,383 @@
+﻿@model List<SIRGA.Web.Models.Periodo.PeriodoDto>
+
+@{
+    ViewData["Title"] = "Gestión de Períodos Evaluativos";
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = User.Identity.Name;
+    ViewBag.UserRole = "Administrador";
+}
+
+@section SidebarMenu {
+    <partial name="_AdminSidebarMenu" />
+}
+
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center">
+                <div class="h-12 w-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Gestión de Períodos Evaluativos</h1>
+                    <p class="text-gray-600 mt-1">Administra los períodos de evaluación del año escolar</p>
+                </div>
+            </div>
+
+            <button onclick="abrirModalCrear()" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg">
+                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Nuevo Período
+            </button>
+        </div>
+    </div>
+
+    <!-- Información sobre períodos -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+        <div class="flex items-start">
+            <svg class="w-6 h-6 text-blue-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div class="text-sm text-blue-700">
+                <p class="font-semibold mb-2">Reglas de los períodos evaluativos:</p>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>Cada año escolar tiene exactamente 4 períodos evaluativos</li>
+                    <li>Duración mínima: 6 semanas (42 días)</li>
+                    <li>Duración máxima: 14 semanas (98 días)</li>
+                    <li>Solo el período activo permite registrar calificaciones</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtro por Año Escolar -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Año Escolar</label>
+        <select id="filtroAnioEscolar" class="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+            <option value="">Todos los años</option>
+            @* Llenar con años escolares desde el backend *@
+        </select>
+    </div>
+
+    <!-- Lista de Períodos -->
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        @if (Model != null && Model.Any())
+        {
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Período</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Año Escolar</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Fecha Inicio</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Fecha Fin</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Duración</th>
+                            <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase">Estado</th>
+                            <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach (var periodo in Model.OrderBy(p => p.AnioEscolarId).ThenBy(p => p.Numero))
+                        {
+                            var esActivo = periodo.EsActivo;
+                            var clase = esActivo ? "bg-purple-50" : "";
+
+                            <tr class="hover:bg-gray-50 @clase">
+                                <td class="px-6 py-4">
+                                    <span class="text-lg font-bold text-purple-600">
+                                        Período @periodo.Numero
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                                        @periodo.AnioEscolar
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-600">
+                                    @periodo.FechaInicio.ToString("dd/MM/yyyy")
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-600">
+                                    @periodo.FechaFin.ToString("dd/MM/yyyy")
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm">
+                                        <span class="font-semibold text-gray-900">@periodo.DuracionSemanas semanas</span>
+                                        <span class="text-gray-500"> (@periodo.DuracionDias días)</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    @if (esActivo)
+                                    {
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            Activo
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            Inactivo
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <div class="flex justify-center gap-2">
+                                        @if (periodo.PuedeEditar)
+                                        {
+                                            <button onclick="editarPeriodo(@periodo.Id)"
+                                                    class="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg">
+                                                Editar
+                                            </button>
+                                        }
+                                        <button onclick="eliminarPeriodo(@periodo.Id, '@periodo.NombrePeriodo')"
+                                                class="px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-xs rounded-lg">
+                                            Eliminar
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-16">
+                <div class="mx-auto h-24 w-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No hay períodos registrados</h3>
+                <button onclick="abrirModalCrear()" class="mt-4 px-6 py-3 bg-purple-500 text-white rounded-lg">
+                    Crear Primer Período
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal Crear/Editar Período -->
+<div id="modalPeriodo" class="hidden fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-75" onclick="cerrarModal()"></div>
+
+        <div class="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 id="modalTitulo" class="text-2xl font-bold text-gray-900">Nuevo Período</h2>
+                <button onclick="cerrarModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <form id="formPeriodo" class="space-y-6">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="periodoId" />
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Número de Período *</label>
+                        <select id="numero" required class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                            <option value="">Seleccione...</option>
+                            <option value="1">Período 1</option>
+                            <option value="2">Período 2</option>
+                            <option value="3">Período 3</option>
+                            <option value="4">Período 4</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Año Escolar *</label>
+                        <select id="anioEscolarId" required class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                            <option value="">Seleccione...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Inicio *</label>
+                        <input type="date" id="fechaInicio" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg" />
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Fin *</label>
+                        <input type="date" id="fechaFin" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg" />
+                    </div>
+                </div>
+
+                <div id="duracionInfo" class="bg-gray-50 rounded-lg p-4 border border-gray-200 hidden">
+                    <p class="text-sm text-gray-700">
+                        <span class="font-semibold">Duración: </span>
+                        <span id="duracionTexto"></span>
+                    </p>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="button" onclick="cerrarModal()" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Cargar años escolares al iniciar
+        document.addEventListener('DOMContentLoaded', async function() {
+            await cargarAniosEscolares();
+            calcularDuracion();
+        });
+
+        // Calcular duración al cambiar fechas
+        document.getElementById('fechaInicio')?.addEventListener('change', calcularDuracion);
+        document.getElementById('fechaFin')?.addEventListener('change', calcularDuracion);
+
+        function calcularDuracion() {
+            const inicio = document.getElementById('fechaInicio').value;
+            const fin = document.getElementById('fechaFin').value;
+
+            if (inicio && fin) {
+                const fecha1 = new Date(inicio);
+                const fecha2 = new Date(fin);
+                const dias = Math.floor((fecha2 - fecha1) / (1000 * 60 * 60 * 24)) + 1;
+                const semanas = Math.ceil(dias / 7);
+
+                const info = document.getElementById('duracionInfo');
+                const texto = document.getElementById('duracionTexto');
+
+                if (dias < 42) {
+                    texto.innerHTML = `<span class="text-red-600 font-semibold">${semanas} semanas (${dias} días) - Mínimo 6 semanas</span>`;
+                    info.classList.remove('hidden');
+                } else if (dias > 98) {
+                    texto.innerHTML = `<span class="text-red-600 font-semibold">${semanas} semanas (${dias} días) - Máximo 14 semanas</span>`;
+                    info.classList.remove('hidden');
+                } else {
+                    texto.innerHTML = `<span class="text-green-600 font-semibold">${semanas} semanas (${dias} días) ✓</span>`;
+                    info.classList.remove('hidden');
+                }
+            }
+        }
+
+        async function cargarAniosEscolares() {
+            try {
+                const response = await fetch('/AnioEscolar/ObtenerTodos');
+                const data = await response.json();
+
+                const select = document.getElementById('anioEscolarId');
+                const filtro = document.getElementById('filtroAnioEscolar');
+
+                if (data.success) {
+                    data.data.forEach(anio => {
+                        select.innerHTML += `<option value="${anio.id}">${anio.periodo}</option>`;
+                        if (filtro) {
+                            filtro.innerHTML += `<option value="${anio.id}">${anio.periodo}</option>`;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function abrirModalCrear() {
+            document.getElementById('modalTitulo').textContent = 'Nuevo Período';
+            document.getElementById('formPeriodo').reset();
+            document.getElementById('periodoId').value = '';
+            document.getElementById('modalPeriodo').classList.remove('hidden');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalPeriodo').classList.add('hidden');
+        }
+
+        document.getElementById('formPeriodo').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const periodoId = document.getElementById('periodoId').value;
+            const formData = {
+                numero: parseInt(document.getElementById('numero').value),
+                fechaInicio: document.getElementById('fechaInicio').value,
+                fechaFin: document.getElementById('fechaFin').value,
+                anioEscolarId: parseInt(document.getElementById('anioEscolarId').value)
+            };
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const url = periodoId ? `/Periodo/Actualizar/${periodoId}` : '/Periodo/Crear';
+            const method = periodoId ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire('¡Éxito!', result.message, 'success').then(() => location.reload());
+                } else {
+                    Swal.fire('Error', result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire('Error', 'Error al procesar la solicitud', 'error');
+            }
+        });
+
+        async function eliminarPeriodo(id, nombre) {
+            const result = await Swal.fire({
+                title: '¿Eliminar período?',
+                html: `Se eliminará el <strong>${nombre}</strong>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const response = await fetch(`/Periodo/Eliminar/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'RequestVerificationToken': token
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        Swal.fire('¡Éxito!', data.message, 'success').then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'Error al eliminar el período', 'error');
+                }
+            }
+        }
+    </script>
+}

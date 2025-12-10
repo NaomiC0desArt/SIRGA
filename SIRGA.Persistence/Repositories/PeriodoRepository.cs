@@ -46,5 +46,30 @@ namespace SIRGA.Persistence.Repositories
                 p.Numero == numero &&
                 p.AnioEscolarId == anioEscolarId);
         }
+
+        public async Task<Periodo> GetPeriodoActivoAsync()
+        {
+            var hoy = DateTime.Today;
+            return await _dbSet
+                .Include(p => p.AnioEscolar)
+                .Where(p => p.AnioEscolar.Activo &&
+                           p.FechaInicio <= hoy &&
+                           p.FechaFin >= hoy)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> TienePeriodoActivoAsync(int anioEscolarId)
+        {
+            var hoy = DateTime.Today;
+            return await _dbSet.AnyAsync(p =>
+                p.AnioEscolarId == anioEscolarId &&
+                p.FechaInicio <= hoy &&
+                p.FechaFin >= hoy);
+        }
+
+        public async Task<int> ContarPeriodosPorAnioAsync(int anioEscolarId)
+        {
+            return await _dbSet.CountAsync(p => p.AnioEscolarId == anioEscolarId);
+        }
     }
 }

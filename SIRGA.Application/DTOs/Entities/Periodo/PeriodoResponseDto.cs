@@ -1,8 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace SIRGA.Web.Models.Periodo
+﻿namespace SIRGA.Application.DTOs.Entities.Periodo
 {
-    public class PeriodoDto
+    public class PeriodoResponseDto
     {
         public int Id { get; set; }
         public int Numero { get; set; }
@@ -16,4 +14,5 @@ namespace SIRGA.Web.Models.Periodo
         public bool EsActivo { get; set; }
         public bool PuedeEditar { get; set; }
     }
+
 }

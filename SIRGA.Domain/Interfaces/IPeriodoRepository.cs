@@ -13,5 +13,9 @@ namespace SIRGA.Domain.Interfaces
         Task<Periodo> GetByIdWithAnioEscolarAsync(int id);
         Task<List<Periodo>> GetByAnioEscolarAsync(int anioEscolarId);
         Task<bool> ExistePeriodoAsync(int numero, int anioEscolarId);
+
+        Task<Periodo> GetPeriodoActivoAsync();
+        Task<bool> TienePeriodoActivoAsync(int anioEscolarId);
+        Task<int> ContarPeriodosPorAnioAsync(int anioEscolarId);
     }
 }

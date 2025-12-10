@@ -38,6 +38,7 @@ namespace SIRGA.IOC
             services.AddScoped<ISeccionRepository, SeccionRepository>();
             services.AddScoped<IAnioEscolarRepository, AnioEscolarRepository>();
             services.AddScoped<IAulaRepository, AulaRepository>();
+            services.AddScoped<IPeriodoRepository, PeriodoRepository>();
 
             // servicios de Application
             services.AddScoped<IEstudianteService, EstudianteService>();
@@ -54,6 +55,7 @@ namespace SIRGA.IOC
             services.AddScoped<ISeccionService, SeccionService>();
             services.AddScoped<IAnioEscolarService, AnioEscolarService>();
             services.AddScoped<IAulaService, AulaService>();
+            services.AddScoped<IPeriodoService, PeriodoService>();
 
 
             //servicios de ia
