@@ -12,5 +12,6 @@ namespace SIRGA.Domain.Interfaces
         Task<List<ClaseProgramada>> GetClasesByProfesorAndDayAsync(int idProfesor, DayOfWeek diaSemana);
         Task<List<ClaseConDetallesParaHorario>> GetClasesPorCursoAcademicoAsync(int idCursoAcademico);
         Task<List<ClaseConDetallesParaHorario>> GetClasesPorCursoYDiaAsync(int idCursoAcademico, DayOfWeek dia);
+        Task<List<ClaseProgramada>> GetByProfesorAsync(int idProfesor);
     }
 }

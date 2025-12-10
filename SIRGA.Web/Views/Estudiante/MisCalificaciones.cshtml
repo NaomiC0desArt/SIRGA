@@ -1,0 +1,276 @@
+﻿@model List<SIRGA.Web.Models.Calificacion.CalificacionEstudianteViewDto>
+
+@{
+    ViewData["Title"] = "Mis Calificaciones";
+}
+
+<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
+    <div class="max-w-7xl mx-auto">
+
+        <!-- Encabezado -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center">
+                    <div class="h-16 w-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Mis Calificaciones</h1>
+                        <p class="text-gray-600 mt-1">Período Académico @ViewBag.PeriodoAcademico</p>
+                    </div>
+                </div>
+                <a asp-action="Index" asp-controller="Estudiante" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Volver al Panel
+                </a>
+            </div>
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            <!-- Resumen General -->
+            <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6 mb-8">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                    <div class="flex items-center">
+                        <svg class="w-8 h-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <div>
+                            <p class="text-sm font-medium text-green-700">Promedio General</p>
+                            <p class="text-3xl font-bold text-green-900">
+                                @{
+                                    var promedioTotal = Model.Any() ? Model.Average(m => m.PromedioGeneral) : 0;
+                                }
+                                @promedioTotal.ToString("F2")
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm text-green-700">Total de Asignaturas</p>
+                        <p class="text-2xl font-bold text-green-900">@Model.Count</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calificaciones por Asignatura -->
+            @foreach (var asignatura in Model)
+            {
+                <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden mb-6">
+
+                    <!-- Header -->
+                    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 text-white">
+                        <div class="flex items-center justify-between flex-wrap gap-3">
+                            <div>
+                                <h2 class="text-2xl font-bold mb-1">@asignatura.AsignaturaNombre</h2>
+                                @{
+                                    var tipoDisplay = asignatura.TipoAsignatura switch
+                                    {
+                                        "Teorica" => "Teórica",
+                                        "Practica" => "Práctica",
+                                        "TeoricoPractica" => "Teórico-Práctica",
+                                        _ => asignatura.TipoAsignatura
+                                    };
+                                }
+                                <span class="inline-block px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm">
+                                    @tipoDisplay
+                                </span>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-blue-100 text-sm">Promedio</p>
+                                <p class="text-3xl font-bold">@asignatura.PromedioGeneral.ToString("F2")</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Calificaciones -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Período
+                                    </th>
+                                    @{
+                                        var primerPeriodo = asignatura.Periodos.FirstOrDefault();
+                                        if (primerPeriodo != null)
+                                        {
+                                            foreach (var componente in primerPeriodo.Componentes)
+                                            {
+                                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                                                    @componente.Key
+                                                </th>
+                                            }
+                                        }
+                                    }
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase bg-green-50">
+                                        Total
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @for (int i = 1; i <= 4; i++)
+                                {
+                                    var periodo = asignatura.Periodos.FirstOrDefault(p => p.NumeroPeriodo == i);
+
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                                    <span class="text-blue-600 font-bold">P@i</span>
+                                                </div>
+                                                <span class="ml-3 text-sm font-medium text-gray-900">Período @i</span>
+                                            </div>
+                                        </td>
+
+                                        @if (periodo != null && periodo.Publicada)
+                                        {
+                                            @foreach (var componente in periodo.Componentes)
+                                            {
+                                                <td class="px-4 py-4 text-center">
+                                                    @if (componente.Value.HasValue)
+                                                    {
+                                                        <span class="inline-block px-3 py-1 rounded-lg text-sm font-semibold
+                                                            @(componente.Value >= (GetMaxValue(asignatura.TipoAsignatura, componente.Key) * 0.7m) ? "bg-green-100 text-green-800" :
+                                                              componente.Value >= (GetMaxValue(asignatura.TipoAsignatura, componente.Key) * 0.5m) ? "bg-yellow-100 text-yellow-800" :
+                                                              "bg-red-100 text-red-800")">
+                                                            @componente.Value.Value.ToString("F2")
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-gray-400 text-sm">-</span>
+                                                    }
+                                                </td>
+                                            }
+
+                                            <td class="px-6 py-4 text-center bg-green-50">
+                                                @if (periodo.Total.HasValue)
+                                                {
+                                                    <span class="inline-block px-4 py-2 rounded-lg text-lg font-bold
+                                                        @(periodo.Total >= 70 ? "bg-green-100 text-green-800" :
+                                                          periodo.Total >= 50 ? "bg-yellow-100 text-yellow-800" :
+                                                          "bg-red-100 text-red-800")">
+                                                        @periodo.Total.Value.ToString("F2")
+                                                    </span>
+                                                }
+                                            </td>
+                                        }
+                                        else
+                                        {
+                                            @for (int j = 0; j < (primerPeriodo?.Componentes.Count ?? 0); j++)
+                                            {
+                                                <td class="px-4 py-4 text-center">
+                                                    <span class="text-gray-400 text-sm">Pendiente</span>
+                                                </td>
+                                            }
+                                            <td class="px-6 py-4 text-center bg-gray-50">
+                                                <span class="text-gray-400 text-sm">Pendiente</span>
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="bg-gray-50">
+                                <tr>
+                                    <td colspan="@((primerPeriodo?.Componentes.Count ?? 0) + 1)" class="px-6 py-4 text-right text-sm font-medium text-gray-900">
+                                        Promedio de la Asignatura:
+                                    </td>
+                                    <td class="px-6 py-4 text-center bg-green-100">
+                                        <span class="text-2xl font-bold
+                                            @(asignatura.PromedioGeneral >= 70 ? "text-green-700" :
+                                              asignatura.PromedioGeneral >= 50 ? "text-yellow-700" :
+                                              "text-red-700")">
+                                            @asignatura.PromedioGeneral.ToString("F2")
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            <!-- Leyenda -->
+            <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <h3 class="font-semibold text-gray-900 mb-3 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Escala de Calificaciones
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-green-500 rounded mr-2"></div>
+                        <span class="text-sm text-gray-600">70 - 100 pts (Excelente)</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-yellow-500 rounded mr-2"></div>
+                        <span class="text-sm text-gray-600">50 - 69 pts (Aprobado)</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-red-500 rounded mr-2"></div>
+                        <span class="text-sm text-gray-600">0 - 49 pts (Reprobado)</span>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Sin calificaciones -->
+            <div class="bg-white rounded-2xl shadow-xl p-12 border border-gray-100 text-center">
+                <svg class="w-20 h-20 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">
+                    No hay calificaciones disponibles
+                </h3>
+                <p class="text-gray-500">
+                    Aún no se han publicado calificaciones. Consulta con tus profesores.
+                </p>
+            </div>
+        }
+
+    </div>
+</div>
+
+@functions {
+    decimal GetMaxValue(string tipoAsignatura, string componente)
+    {
+        var estructuras = new Dictionary<string, Dictionary<string, decimal>>
+            {
+                ["Teorica"] = new Dictionary<string, decimal>
+                {
+                    ["Tareas"] = 40,
+                    ["Exámenes"] = 25,
+                    ["Exposiciones"] = 20,
+                    ["Participación"] = 15
+                },
+                ["Practica"] = new Dictionary<string, decimal>
+                {
+                    ["Prácticas"] = 50,
+                    ["Proyecto Final"] = 30,
+                    ["Teoría"] = 10,
+                    ["Participación"] = 10
+                },
+                ["TeoricoPractica"] = new Dictionary<string, decimal>
+                {
+                    ["Exámenes"] = 30,
+                    ["Prácticas"] = 40,
+                    ["Proyectos"] = 20,
+                    ["Participación"] = 10
+                }
+            };
+
+        if (estructuras.ContainsKey(tipoAsignatura) &&
+            estructuras[tipoAsignatura].ContainsKey(componente))
+        {
+            return estructuras[tipoAsignatura][componente];
+        }
+
+        return 100;
+    }
+}

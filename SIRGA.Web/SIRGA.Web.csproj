@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <Folder Include="Data\" />
+    <Folder Include="Views\Calificacion\" />
     <Folder Include="wwwroot\uploads\actividades\" />
   </ItemGroup>
 

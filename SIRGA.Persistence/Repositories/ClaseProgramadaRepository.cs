@@ -153,5 +153,19 @@ namespace SIRGA.Persistence.Repositories
                           .OrderBy(c => c.StartTime)
                           .ToListAsync();
         }
+
+        public async Task<List<ClaseProgramada>> GetByProfesorAsync(int idProfesor)
+        {
+            return await _context.ClasesProgramadas
+                .Include(c => c.Asignatura)
+                .Include(c => c.CursoAcademico)
+                    .ThenInclude(ca => ca.Grado)
+                .Include(c => c.CursoAcademico)
+                    .ThenInclude(ca => ca.Seccion)
+                .Include(c => c.CursoAcademico)
+                    .ThenInclude(ca => ca.AnioEscolar)
+                .Where(c => c.IdProfesor == idProfesor)
+                .ToListAsync();
+        }
     }
 }

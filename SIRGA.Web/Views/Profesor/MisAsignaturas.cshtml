@@ -1,0 +1,174 @@
+﻿@model List<SIRGA.Web.Models.Calificacion.AsignaturaProfesorDto>
+
+@{
+    ViewData["Title"] = "Mis Asignaturas - Calificaciones";
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = User.Identity.Name;
+    ViewBag.UserRole = "Profesor";
+}
+
+@section SidebarMenu {
+    <partial name="_ProfesorSidebarMenu" />
+}
+
+<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
+    <div class="max-w-7xl mx-auto">
+
+        <!-- Encabezado -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="h-16 w-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Mis Asignaturas</h1>
+                        <p class="text-gray-600 mt-1">Gestiona las calificaciones de tus estudiantes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Período Activo -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-8">
+            <div class="flex items-center">
+                <svg class="w-6 h-6 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <div>
+                    <p class="text-sm font-medium text-blue-700">Período Activo</p>
+                    <p class="text-lg font-bold text-blue-900">Período @ViewBag.PeriodoActivo?.Numero - @ViewBag.PeriodoActivo?.AnioEscolar</p>
+                    <p class="text-sm text-blue-600">Fecha límite: @ViewBag.FechaLimite?.ToString("dd/MM/yyyy")</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Asignaturas -->
+        @if (Model != null && Model.Any())
+        {
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach (var asignatura in Model)
+                {
+                    var porcentajePublicado = asignatura.CantidadEstudiantes > 0
+                    ? (asignatura.CalificacionesPublicadas * 100) / asignatura.CantidadEstudiantes
+                    : 0;
+
+                    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
+
+                        <!-- Header de la tarjeta -->
+                        <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-6 text-white">
+                            <h3 class="text-xl font-bold mb-2">@asignatura.AsignaturaNombre</h3>
+                            <div class="flex items-center text-purple-100 text-sm">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                                @asignatura.CursoNombre - Sección @asignatura.SeccionNombre
+                            </div>
+                        </div>
+
+                        <!-- Contenido -->
+                        <div class="p-6">
+                            <!-- Tipo de Asignatura -->
+                            <div class="mb-4">
+                                @{
+                                    var tipoBadgeClass = asignatura.TipoAsignatura switch
+                                    {
+                                        "Teorica" => "bg-blue-100 text-blue-800 border-blue-200",
+                                        "Practica" => "bg-green-100 text-green-800 border-green-200",
+                                        "TeoricoPractica" => "bg-indigo-100 text-indigo-800 border-indigo-200",
+                                        _ => "bg-gray-100 text-gray-800 border-gray-200"
+                                    };
+                                    var tipoDisplay = asignatura.TipoAsignatura switch
+                                    {
+                                        "Teorica" => "Teórica",
+                                        "Practica" => "Práctica",
+                                        "TeoricoPractica" => "Teórico-Práctica",
+                                        _ => asignatura.TipoAsignatura
+                                    };
+                                }
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border @tipoBadgeClass">
+                                    @tipoDisplay
+                                </span>
+                            </div>
+
+                            <!-- Estadísticas -->
+                            <div class="space-y-3 mb-6">
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center">
+                                        <svg class="w-5 h-5 text-purple-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                        </svg>
+                                        <span class="text-sm text-gray-600">Estudiantes</span>
+                                    </div>
+                                    <span class="text-lg font-bold text-gray-900">@asignatura.CantidadEstudiantes</span>
+                                </div>
+
+                                <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                                    <div class="flex items-center">
+                                        <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span class="text-sm text-gray-600">Publicadas</span>
+                                    </div>
+                                    <span class="text-lg font-bold text-green-600">@asignatura.CalificacionesPublicadas</span>
+                                </div>
+
+                                <div class="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                                    <div class="flex items-center">
+                                        <svg class="w-5 h-5 text-orange-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span class="text-sm text-gray-600">Pendientes</span>
+                                    </div>
+                                    <span class="text-lg font-bold text-orange-600">@asignatura.CalificacionesPendientes</span>
+                                </div>
+                            </div>
+
+                            <!-- Barra de progreso -->
+                            <div class="mb-6">
+                                <div class="flex justify-between text-sm text-gray-600 mb-2">
+                                    <span>Progreso</span>
+                                    <span class="font-semibold">@porcentajePublicado%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                                    <div class="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-500"
+                                         style="width: @porcentajePublicado%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Botón Calificar -->
+                            <a href="@Url.Action("Calificar", "Calificacion", new {
+                                    idAsignatura = asignatura.IdAsignatura,
+                                    idCurso = asignatura.IdCursoAcademico
+                                })"
+                               class="block w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-center font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                                <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                Calificar Estudiantes
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- Sin asignaturas -->
+            <div class="bg-white rounded-2xl shadow-xl p-12 border border-gray-100 text-center">
+                <svg class="w-20 h-20 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">
+                    No hay asignaturas asignadas
+                </h3>
+                <p class="text-gray-500">
+                    Aún no tienes asignaturas asignadas para el período actual.
+                </p>
+            </div>
+        }
+
+    </div>
+</div>

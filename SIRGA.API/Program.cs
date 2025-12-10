@@ -1,6 +1,7 @@
 using Microsoft.OpenApi.Models;
 using SIRGA.Identity.Register;
 using SIRGA.IOC;
+using SIRGA.Persistence.DbContext;
 using SIRGA.Persistence.Seeds;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -64,6 +65,9 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     await scope.ServiceProvider.RunIdentitySeeds();
+
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await ComponenteCalificacionSeeder.SeedComponentesAsync(context);
 }
 
 if (app.Environment.IsDevelopment() &&

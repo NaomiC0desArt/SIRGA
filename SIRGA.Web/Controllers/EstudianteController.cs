@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SIRGA.Web.Models.AnioEscolar;
 using SIRGA.Web.Models.API;
+using SIRGA.Web.Models.Calificacion;
 using SIRGA.Web.Models.Estudiante;
 using SIRGA.Web.Models.Profile;
 using SIRGA.Web.Services;
@@ -108,6 +110,39 @@ namespace SIRGA.Web.Controllers
             {
                 TempData["ErrorMessage"] = "Error al cargar el horario";
                 return View(new HorarioSemanalViewModel());
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> MisCalificaciones()
+        {
+            try
+            {
+                // Simplificado: la API usa el token automáticamente
+                var response = await _apiService.GetAsync<ApiResponse<List<CalificacionEstudianteViewDto>>>(
+                    "api/Calificacion/Mis-Calificaciones");
+
+                if (response?.Success != true)
+                {
+                    TempData["ErrorMessage"] = response?.Message ?? "Error al cargar calificaciones";
+                    return View(new List<CalificacionEstudianteViewDto>());
+                }
+
+                // Obtener año escolar actual
+                var anioResponse = await _apiService.GetAsync<ApiResponse<AnioEscolarDto>>("api/AnioEscolar/Activo");
+                ViewBag.PeriodoAcademico = anioResponse?.Data?.Periodo;
+
+                return View(response.Data ?? new List<CalificacionEstudianteViewDto>());
+            }
+            catch (UnauthorizedAccessException)
+            {
+                TempData["ErrorMessage"] = "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.";
+                return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error de conexión con el servidor";
+                return View(new List<CalificacionEstudianteViewDto>());
             }
         }
     }

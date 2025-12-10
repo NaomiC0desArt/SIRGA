@@ -31,6 +31,11 @@ namespace SIRGA.Persistence.DbContext
         public DbSet<ActividadExtracurricular> ActividadesExtracurriculares { get; set; }
         public DbSet<InscripcionActividad> InscripcionesActividades { get; set; }
 
+        public DbSet<Calificacion> Calificaciones { get; set; }
+        public DbSet<CalificacionDetalle> CalificacionDetalles { get; set; }
+        public DbSet<ComponenteCalificacion> ComponentesCalificacion { get; set; }
+        public DbSet<HistorialCalificacion> HistorialCalificaciones { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
 		{
 			base.OnModelCreating(builder);
@@ -254,6 +259,106 @@ namespace SIRGA.Persistence.DbContext
                     .WithMany(a => a.Inscripciones)
                     .HasForeignKey(e => e.IdActividad)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<Calificacion>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+
+                entity.HasOne(c => c.Estudiante)
+                    .WithMany()
+                    .HasForeignKey(c => c.IdEstudiante)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(c => c.Asignatura)
+                    .WithMany()
+                    .HasForeignKey(c => c.IdAsignatura)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(c => c.CursoAcademico)
+                    .WithMany()
+                    .HasForeignKey(c => c.IdCursoAcademico)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(c => c.Periodo)
+                    .WithMany()
+                    .HasForeignKey(c => c.IdPeriodo)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(c => c.Profesor)
+                    .WithMany()
+                    .HasForeignKey(c => c.IdProfesor)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasMany(c => c.Detalles)
+                    .WithOne(d => d.Calificacion)
+                    .HasForeignKey(d => d.IdCalificacion)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(c => new { c.IdEstudiante, c.IdAsignatura, c.IdPeriodo })
+                    .IsUnique()
+                    .HasDatabaseName("IX_Calificacion_Unique");
+
+                entity.HasIndex(c => c.IdProfesor)
+                    .HasDatabaseName("IX_Calificacion_Profesor");
+
+                entity.HasIndex(c => new { c.IdCursoAcademico, c.IdAsignatura, c.IdPeriodo })
+                    .HasDatabaseName("IX_Calificacion_Curso_Asignatura_Periodo");
+
+                entity.HasIndex(c => c.Publicada)
+                    .HasDatabaseName("IX_Calificacion_Publicada");
+            });
+
+            builder.Entity<CalificacionDetalle>(entity =>
+            {
+                entity.HasKey(d => d.Id);
+
+                entity.HasOne(d => d.Calificacion)
+                    .WithMany(c => c.Detalles)
+                    .HasForeignKey(d => d.IdCalificacion)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(d => d.Componente)
+                    .WithMany()
+                    .HasForeignKey(d => d.IdComponenteCalificacion)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(d => new { d.IdCalificacion, d.IdComponenteCalificacion })
+                    .IsUnique()
+                    .HasDatabaseName("IX_CalificacionDetalle_Unique");
+
+                entity.HasIndex(d => d.IdCalificacion)
+                    .HasDatabaseName("IX_CalificacionDetalle_Calificacion");
+            });
+
+            builder.Entity<ComponenteCalificacion>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+
+                entity.HasIndex(c => new { c.TipoAsignatura, c.Nombre })
+                    .HasDatabaseName("IX_ComponenteCalificacion_Tipo_Nombre");
+
+                entity.HasIndex(c => new { c.TipoAsignatura, c.Orden })
+                    .HasDatabaseName("IX_ComponenteCalificacion_Tipo_Orden");
+
+                entity.HasIndex(c => c.Activo)
+                    .HasDatabaseName("IX_ComponenteCalificacion_Activo");
+            });
+
+            builder.Entity<HistorialCalificacion>(entity =>
+            {
+                entity.HasKey(h => h.Id);
+
+                entity.HasOne(h => h.Calificacion)
+                    .WithMany()
+                    .HasForeignKey(h => h.IdCalificacion)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(h => h.IdCalificacion)
+                    .HasDatabaseName("IX_HistorialCalificacion_Calificacion");
+
+                entity.HasIndex(h => h.FechaModificacion)
+                    .HasDatabaseName("IX_HistorialCalificacion_Fecha");
             });
             // Para que en caso de que borremos un grado noborre los CursosAcademicos.
             foreach (var relationship in builder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))

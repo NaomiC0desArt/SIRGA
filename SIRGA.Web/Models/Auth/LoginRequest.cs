@@ -4,11 +4,11 @@ namespace SIRGA.Web.Models.Auth
 {
     public class LoginRequest
     {
-        [Required(ErrorMessage = "El correo es requerido")]
+        [Required(ErrorMessage = "Favor ingresar su correo institucional")]
         [EmailAddress(ErrorMessage = "Correo inválido")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "La contraseña es requerida")]
+        [Required(ErrorMessage = "Favor ingresar su contraseña")]
         [DataType(DataType.Password)]
         public string Password { get; set; } = string.Empty;
     }
