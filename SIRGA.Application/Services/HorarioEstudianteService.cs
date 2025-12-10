@@ -49,9 +49,11 @@ namespace SIRGA.Application.Services
                         new HorarioSemanalDto
                         {
                             HorarioSemanal = new List<HorarioEstudianteDto>(),
-                            PeriodoAcademico = inscripcion.CursoAcademico?.SchoolYear ?? "N/A",
-                            GradoSeccion = inscripcion.CursoAcademico?.Grado != null
-                                ? $"{inscripcion.CursoAcademico.Grado.GradeName} {inscripcion.CursoAcademico.Grado.Section}"
+                            // CORREGIDO: usar AnioEscolar.Periodo
+                            PeriodoAcademico = inscripcion.CursoAcademico?.AnioEscolar?.Periodo ?? "N/A",
+                            // CORREGIDO: usar Seccion.Nombre
+                            GradoSeccion = inscripcion.CursoAcademico != null
+                                ? $"{inscripcion.CursoAcademico.Grado?.GradeName} - Sección {inscripcion.CursoAcademico.Seccion?.Nombre}"
                                 : "N/A"
                         },
                         "No hay clases programadas para este curso"
@@ -119,9 +121,11 @@ namespace SIRGA.Application.Services
                 var resultado = new HorarioSemanalDto
                 {
                     HorarioSemanal = horarioSemanal,
-                    PeriodoAcademico = inscripcion.CursoAcademico?.SchoolYear ?? "N/A",
-                    GradoSeccion = inscripcion.CursoAcademico?.Grado != null
-                        ? $"{inscripcion.CursoAcademico.Grado.GradeName} {inscripcion.CursoAcademico.Grado.Section}"
+                    // CORREGIDO: usar AnioEscolar.Periodo
+                    PeriodoAcademico = inscripcion.CursoAcademico?.AnioEscolar?.Periodo ?? "N/A",
+                    // CORREGIDO: usar Seccion.Nombre
+                    GradoSeccion = inscripcion.CursoAcademico != null
+                        ? $"{inscripcion.CursoAcademico.Grado?.GradeName} - Sección {inscripcion.CursoAcademico.Seccion?.Nombre}"
                         : "N/A"
                 };
 

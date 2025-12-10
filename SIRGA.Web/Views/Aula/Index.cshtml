@@ -1,0 +1,606 @@
+﻿@model List<SIRGA.Application.DTOs.Entities.Grado.AulaDto>
+
+@{
+    ViewData["Title"] = "Gestión de Aulas";
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = User.Identity.Name;
+    ViewBag.UserRole = "Administrador";
+}
+
+@section SidebarMenu {
+    <partial name="_AdminSidebarMenu" />
+}
+
+<div class="max-w-7xl mx-auto">
+
+    <!-- Header -->
+    <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div class="flex items-center">
+                <div class="h-12 w-12 bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Gestión de Aulas</h1>
+                    <p class="text-gray-600 mt-1">Administra los espacios físicos del centro</p>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="abrirModalCrear()"
+                        class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Nueva Aula
+                </button>
+
+                <a asp-controller="Admin" asp-action="Index"
+                   class="inline-flex items-center px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Volver al Panel
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mensajes -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6 animate-fade-in">
+            <div class="flex items-start">
+                <svg class="w-6 h-6 text-green-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div class="flex-1">
+                    <h3 class="text-sm font-medium text-green-800">@TempData["SuccessMessage"]</h3>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div class="flex items-start">
+                <svg class="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div class="text-sm text-red-700">@TempData["ErrorMessage"]</div>
+            </div>
+        </div>
+    }
+
+    <!-- Estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Total Aulas</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">@Model.Count</p>
+                </div>
+                <div class="h-12 w-12 bg-cyan-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Disponibles</p>
+                    <p class="text-3xl font-bold text-green-600 mt-1">@Model.Count(a => a.EstaDisponible)</p>
+                </div>
+                <div class="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Ocupadas</p>
+                    <p class="text-3xl font-bold text-orange-600 mt-1">@Model.Count(a => !a.EstaDisponible)</p>
+                </div>
+                <div class="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Capacidad Total</p>
+                    <p class="text-3xl font-bold text-purple-600 mt-1">@Model.Sum(a => a.Capacidad)</p>
+                </div>
+                <div class="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid de Tarjetas -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach (var aula in Model)
+            {
+                    var tipoColor = aula.Tipo switch
+                    {
+                        "Aula" => "cyan",
+                        "Laboratorio" => "purple",
+                        "Biblioteca" => "blue",
+                        "Cancha" => "green",
+                        _ => "gray"
+                    };
+
+                    var disponibleBg = aula.EstaDisponible ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200";
+                    var disponibleText = aula.EstaDisponible ? "text-green-700" : "text-red-700";
+                    var disponibleIcon = aula.EstaDisponible ? "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" : "M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z";
+                
+
+                <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100">
+                    <!-- Header de la tarjeta -->
+                    <div class="bg-gradient-to-r from-@(tipoColor)-500 to-@(tipoColor)-600 p-4">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white/20 text-white backdrop-blur-sm">
+                                    @aula.Codigo
+                                </span>
+                                <h3 class="text-white font-bold text-lg mt-2">@aula.Nombre</h3>
+                            </div>
+                            <div class="@disponibleBg border-2 @disponibleText rounded-full p-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="@disponibleIcon"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contenido -->
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            <!-- Tipo -->
+                            <div class="flex items-center text-gray-700">
+                                <svg class="w-5 h-5 mr-3 text-@(tipoColor)-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                </svg>
+                                <span class="text-sm font-medium">@aula.Tipo</span>
+                            </div>
+
+                            <!-- Capacidad -->
+                            <div class="flex items-center text-gray-700">
+                                <svg class="w-5 h-5 mr-3 text-@(tipoColor)-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <span class="text-sm"><span class="font-bold">@aula.Capacidad</span> personas</span>
+                            </div>
+
+                            <!-- Estado -->
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 mr-3 @disponibleText" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span class="text-sm font-semibold @disponibleText">
+                                    @(aula.EstaDisponible ? "Disponible" : "Ocupada")
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Acciones -->
+                        <div class="flex gap-2 mt-6 pt-4 border-t border-gray-200">
+                            <button onclick="abrirModalEditar(@aula.Id)"
+                                    class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                Editar
+                            </button>
+
+                            <button onclick="confirmarEliminar(@aula.Id, '@aula.Nombre')"
+                                    class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="bg-white rounded-2xl shadow-xl p-16 text-center">
+            <div class="mx-auto h-24 w-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No hay aulas registradas</h3>
+            <p class="text-gray-500 mb-6">Presiona el botón "Nueva Aula" para agregar una</p>
+            <button onclick="abrirModalCrear()"
+                    class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-semibold rounded-lg shadow-lg">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Crear Primera Aula
+            </button>
+        </div>
+    }
+</div>
+
+<!-- Modal Crear/Editar Aula -->
+<div id="modalAula" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-2xl bg-white">
+        <!-- Header del Modal -->
+        <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+            <h3 id="modalTitle" class="text-2xl font-bold text-gray-900 flex items-center">
+                <svg class="w-6 h-6 mr-3 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+                <span id="modalTitleText">Nueva Aula</span>
+            </h3>
+            <button onclick="cerrarModal()" class="text-gray-400 hover:text-gray-600 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Formulario -->
+        <form id="formAula" class="mt-6">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="aulaId" />
+
+            <div class="space-y-5">
+                <!-- Tipo de Espacio -->
+                <div>
+                    <label for="tipo" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Tipo de Espacio <span class="text-red-500">*</span>
+                    </label>
+                    <select id="tipo" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
+                            required>
+                        <option value="">Seleccionar tipo...</option>
+                        <option value="0">Aula</option>
+                        <option value="1">Laboratorio</option>
+                        <option value="2">Biblioteca</option>
+                        <option value="3">Cancha</option>
+                    </select>
+                    <span class="text-red-500 text-sm hidden" id="error-tipo"></span>
+                </div>
+
+                <!-- Nombre -->
+                <div>
+                    <label for="nombre" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Nombre del Aula <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" 
+                           id="nombre" 
+                           maxlength="100"
+                           placeholder="Ej: Aula 101, Laboratorio de Química"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
+                           required />
+                    <span class="text-red-500 text-sm hidden" id="error-nombre"></span>
+                </div>
+
+                <!-- Código (Generado Automáticamente) -->
+                <div>
+                    <label for="codigo" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                        Código
+                        <span class="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            Se genera automáticamente
+                        </span>
+                    </label>
+                    <div class="relative">
+                        <input type="text" 
+                               id="codigo" 
+                               maxlength="20"
+                               placeholder="Se generará automáticamente"
+                               class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
+                               readonly />
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <span class="text-red-500 text-sm hidden" id="error-codigo"></span>
+                </div>
+
+                <!-- Capacidad -->
+                <div>
+                    <label for="capacidad" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Capacidad <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" 
+                           id="capacidad" 
+                           min="1" 
+                           max="200"
+                           placeholder="Número de personas"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
+                           required />
+                    <span class="text-red-500 text-sm hidden" id="error-capacidad"></span>
+                </div>
+
+                <!-- Estado -->
+                <div class="flex items-center">
+                    <input type="checkbox" 
+                           id="estaDisponible" 
+                           checked
+                           class="w-5 h-5 text-cyan-600 border-gray-300 rounded focus:ring-2 focus:ring-cyan-500 transition" />
+                    <label for="estaDisponible" class="ml-3 text-sm font-medium text-gray-700">
+                        El aula está disponible
+                    </label>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex gap-3 mt-8 pt-6 border-t border-gray-200">
+                <button type="button" 
+                        onclick="cerrarModal()"
+                        class="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition">
+                    Cancelar
+                </button>
+                <button type="submit" 
+                        id="btnGuardar"
+                        class="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-semibold rounded-lg shadow-lg transition">
+                    <span id="btnGuardarText">Guardar Aula</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Formulario oculto para eliminar -->
+<form id="formEliminar" asp-action="Eliminar" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="eliminarId" name="id" />
+</form>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        let isEditMode = false;
+
+        // Abrir modal para crear
+        function abrirModalCrear() {
+            isEditMode = false;
+            document.getElementById('modalTitleText').textContent = 'Nueva Aula';
+            document.getElementById('btnGuardarText').textContent = 'Guardar Aula';
+            document.getElementById('formAula').reset();
+            document.getElementById('aulaId').value = '';
+            document.getElementById('codigo').value = '';
+            document.getElementById('estaDisponible').checked = true;
+            limpiarErrores();
+            document.getElementById('modalAula').classList.remove('hidden');
+        }
+
+        // Abrir modal para editar
+        async function abrirModalEditar(id) {
+            isEditMode = true;
+            document.getElementById('modalTitleText').textContent = 'Editar Aula';
+            document.getElementById('btnGuardarText').textContent = 'Actualizar Aula';
+
+            try {
+                const response = await fetch(`/Aula/ObtenerDetalle?id=${id}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const aula = result.data;
+                    document.getElementById('aulaId').value = aula.id;
+                    document.getElementById('codigo').value = aula.codigo;
+                    document.getElementById('nombre').value = aula.nombre;
+                    
+                    // Mapear tipo string a número
+                    const tipoMap = { 'Aula': 0, 'Laboratorio': 1, 'Biblioteca': 2, 'Cancha': 3 };
+                    document.getElementById('tipo').value = tipoMap[aula.tipo] || 0;
+                    
+                    document.getElementById('capacidad').value = aula.capacidad;
+                    document.getElementById('estaDisponible').checked = aula.estaDisponible;
+
+                    limpiarErrores();
+                    document.getElementById('modalAula').classList.remove('hidden');
+                } else {
+                    Swal.fire('Error', result.message || 'No se pudo cargar el aula', 'error');
+                }
+            } catch (error) {
+                console.error('Error al cargar aula:', error);
+                Swal.fire('Error', 'Error al cargar los datos del aula', 'error');
+            }
+        }
+
+        // Cerrar modal
+        function cerrarModal() {
+            document.getElementById('modalAula').classList.add('hidden');
+            document.getElementById('formAula').reset();
+            limpiarErrores();
+        }
+
+        // Limpiar errores
+        function limpiarErrores() {
+            document.querySelectorAll('[id^="error-"]').forEach(el => {
+                el.classList.add('hidden');
+                el.textContent = '';
+            });
+            document.querySelectorAll('input, select').forEach(el => {
+                el.classList.remove('border-red-500');
+            });
+        }
+
+        // Mostrar errores
+        function mostrarErrores(errors) {
+            limpiarErrores();
+            if (Array.isArray(errors)) {
+                errors.forEach(error => {
+                    Swal.fire('Error de validación', error, 'error');
+                });
+            }
+        }
+
+        // Generar código automáticamente cuando cambian tipo o nombre
+        document.getElementById('tipo').addEventListener('change', generarCodigo);
+        document.getElementById('nombre').addEventListener('input', generarCodigo);
+
+        async function generarCodigo() {
+            const tipo = document.getElementById('tipo').value;
+            const nombre = document.getElementById('nombre').value;
+
+            if (!tipo) {
+                document.getElementById('codigo').value = '';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/Aula/GenerarCodigo?tipo=${tipo}&nombre=${encodeURIComponent(nombre)}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('codigo').value = result.codigo;
+                }
+            } catch (error) {
+                console.error('Error al generar código:', error);
+            }
+        }
+
+        // Submit del formulario
+        document.getElementById('formAula').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const aulaId = document.getElementById('aulaId').value;
+            const codigo = document.getElementById('codigo').value;
+            const nombre = document.getElementById('nombre').value;
+            const tipo = parseInt(document.getElementById('tipo').value);
+            const capacidad = parseInt(document.getElementById('capacidad').value);
+            const estaDisponible = document.getElementById('estaDisponible').checked;
+
+            const data = {
+                codigo: codigo,
+                nombre: nombre,
+                tipo: tipo,
+                capacidad: capacidad,
+                estaDisponible: estaDisponible
+            };
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const url = isEditMode ? `/Aula/Editar/${aulaId}` : '/Aula/Crear';
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire({
+                        title: '¡Éxito!',
+                        text: result.message,
+                        icon: 'success',
+                        confirmButtonColor: '#0891b2'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    if (result.errors) {
+                        mostrarErrores(result.errors);
+                    } else {
+                        Swal.fire('Error', result.message || 'Error al guardar el aula', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire('Error', 'Error al procesar la solicitud', 'error');
+            }
+        });
+
+        // Confirmar eliminación
+        function confirmarEliminar(id, nombre) {
+            Swal.fire({
+                title: '¿Eliminar aula?',
+                html: `
+                    <div class="text-left space-y-3">
+                        <p class="text-gray-700">Estás a punto de eliminar el aula:</p>
+                        <div class="bg-gray-100 p-3 rounded-lg">
+                            <p class="font-semibold text-gray-900">${nombre}</p>
+                        </div>
+                        <div class="bg-red-50 border-l-4 border-red-400 p-3 rounded">
+                            <p class="text-sm text-red-700">
+                                <strong>Esta acción NO se puede deshacer.</strong><br>
+                                Se eliminarán todos los datos asociados a esta aula.
+                            </p>
+                        </div>
+                    </div>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                width: '600px',
+                customClass: {
+                    popup: 'rounded-2xl',
+                    confirmButton: 'rounded-lg px-6 py-2.5',
+                    cancelButton: 'rounded-lg px-6 py-2.5'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('eliminarId').value = id;
+                    document.getElementById('formEliminar').submit();
+                }
+            });
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('modalAula').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cerrarModal();
+            }
+        });
+    </script>
+
+    <style>
+        @@keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fade-in 0.3s ease-out;
+        }
+
+        /* Animación del modal */
+        #modalAula:not(.hidden) > div {
+            animation: fade-in 0.3s ease-out;
+        }
+    </style>
+}

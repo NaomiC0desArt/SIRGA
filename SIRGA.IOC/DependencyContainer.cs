@@ -35,6 +35,9 @@ namespace SIRGA.IOC
             services.AddScoped<IAsistenciaRepository, AsistenciaRepository>();
             services.AddScoped<IActividadExtracurricularRepository, ActividadExtracurricularRepository>();
             services.AddScoped<IInscripcionActividadRepository, InscripcionActividadRepository>();
+            services.AddScoped<ISeccionRepository, SeccionRepository>();
+            services.AddScoped<IAnioEscolarRepository, AnioEscolarRepository>();
+            services.AddScoped<IAulaRepository, AulaRepository>();
 
             // servicios de Application
             services.AddScoped<IEstudianteService, EstudianteService>();
@@ -48,9 +51,12 @@ namespace SIRGA.IOC
             services.AddScoped<IHorarioEstudianteService, HorarioEstudianteService>();
             services.AddScoped<IActividadExtracurricularService, ActividadExtracurricularService>();
             services.AddScoped<IHorarioEstudianteService, HorarioEstudianteService>();
+            services.AddScoped<ISeccionService, SeccionService>();
+            services.AddScoped<IAnioEscolarService, AnioEscolarService>();
+            services.AddScoped<IAulaService, AulaService>();
 
 
-           //servicios de ia
+            //servicios de ia
             services.AddScoped<IActividadRecomendadorService, ActividadRecomendadorService>();
             services.AddScoped<IChatbotService, ChatbotService>();
             services.AddHttpClient(); // Para llamadas HTTP a APIs externas

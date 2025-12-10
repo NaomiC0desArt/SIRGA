@@ -40,19 +40,48 @@ namespace SIRGA.Web.Controllers
             }
         }
 
-        // ==================== CREAR ====================
+        // ==================== API ENDPOINTS (para modales) ====================
+
+        /// <summary>
+        /// Obtiene un grado por ID (para modal de edición)
+        /// </summary>
         [HttpGet]
-        public IActionResult Crear()
+        public async Task<IActionResult> ObtenerGrado(int id)
         {
-            return View();
+            try
+            {
+                var response = await _apiService.GetAsync<ApiResponse<GradoDto>>($"api/Grado/{id}");
+
+                if (response?.Success != true)
+                {
+                    return Json(new { success = false, message = "Grado no encontrado" });
+                }
+
+                return Json(new { success = true, data = response.Data });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener grado {Id}", id);
+                return Json(new { success = false, message = "Error al cargar el grado" });
+            }
         }
 
+        /// <summary>
+        /// Crea un nuevo grado (llamado desde modal)
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Crear(CreateGradoDto model)
+        public async Task<IActionResult> Crear([FromBody] CreateGradoDto model)
         {
             if (!ModelState.IsValid)
-                return View(model);
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return Json(new { success = false, message = "Datos inválidos", errors });
+            }
 
             try
             {
@@ -61,71 +90,38 @@ namespace SIRGA.Web.Controllers
 
                 if (response?.Success == true)
                 {
-                    TempData["SuccessMessage"] = "✅ Grado creado exitosamente";
-                    return RedirectToAction(nameof(Index));
+                    return Json(new { success = true, message = "✅ Grado creado exitosamente" });
                 }
 
-                if (response?.Errors != null && response.Errors.Any())
+                return Json(new
                 {
-                    foreach (var error in response.Errors)
-                    {
-                        ModelState.AddModelError(string.Empty, error);
-                    }
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, response?.Message ?? "Error al crear el grado");
-                }
-                return View(model);
+                    success = false,
+                    message = response?.Message ?? "Error al crear el grado",
+                    errors = response?.Errors
+                });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al crear grado");
-                TempData["ErrorMessage"] = "Error al procesar la solicitud";
-                return View(model);
+                return Json(new { success = false, message = "Error al procesar la solicitud" });
             }
         }
 
-        // ==================== EDITAR ====================
-        [HttpGet]
-        public async Task<IActionResult> Editar(int id)
-        {
-            try
-            {
-                var response = await _apiService.GetAsync<ApiResponse<GradoDto>>($"api/Grado/{id}");
-
-                if (response?.Success != true)
-                {
-                    TempData["ErrorMessage"] = "Grado no encontrado";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                var updateDto = new UpdateGradoDto
-                {
-                    GradeName = response.Data.GradeName,
-                    Section = response.Data.Section,
-                    StudentsLimit = response.Data.StudentsLimit
-                };
-
-                ViewBag.GradoId = id;
-                return View(updateDto);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al cargar grado para editar");
-                TempData["ErrorMessage"] = "Error al cargar el grado";
-                return RedirectToAction(nameof(Index));
-            }
-        }
-
-        [HttpPost]
+        /// <summary>
+        /// Actualiza un grado (llamado desde modal)
+        /// </summary>
+        [HttpPut]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Editar(int id, UpdateGradoDto model)
+        public async Task<IActionResult> Actualizar(int id, [FromBody] CreateGradoDto model)
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.GradoId = id;
-                return View(model);
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return Json(new { success = false, message = "Datos inválidos", errors });
             }
 
             try
@@ -134,49 +130,22 @@ namespace SIRGA.Web.Controllers
 
                 if (response)
                 {
-                    TempData["SuccessMessage"] = "✅ Grado actualizado exitosamente";
-                    return RedirectToAction(nameof(Index));
+                    return Json(new { success = true, message = "✅ Grado actualizado exitosamente" });
                 }
 
-                TempData["ErrorMessage"] = "Error al actualizar el grado";
-                ViewBag.GradoId = id;
-                return View(model);
+                return Json(new { success = false, message = "Error al actualizar el grado" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al actualizar grado");
-                TempData["ErrorMessage"] = "Error al procesar la solicitud";
-                ViewBag.GradoId = id;
-                return View(model);
+                return Json(new { success = false, message = "Error al procesar la solicitud" });
             }
         }
 
-        // ==================== DETALLES ====================
-        [HttpGet]
-        public async Task<IActionResult> Detalles(int id)
-        {
-            try
-            {
-                var response = await _apiService.GetAsync<ApiResponse<GradoDto>>($"api/Grado/{id}");
-
-                if (response?.Success != true)
-                {
-                    TempData["ErrorMessage"] = "Grado no encontrado";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                return View(response.Data);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al cargar detalles de grado");
-                TempData["ErrorMessage"] = "Error al cargar los detalles";
-                return RedirectToAction(nameof(Index));
-            }
-        }
-
-        // ==================== ELIMINAR ====================
-        [HttpPost]
+        /// <summary>
+        /// Elimina un grado
+        /// </summary>
+        [HttpDelete]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Eliminar(int id)
         {
@@ -186,20 +155,16 @@ namespace SIRGA.Web.Controllers
 
                 if (response)
                 {
-                    TempData["SuccessMessage"] = "🗑️ Grado eliminado exitosamente";
+                    return Json(new { success = true, message = "🗑️ Grado eliminado exitosamente" });
                 }
-                else
-                {
-                    TempData["ErrorMessage"] = "❌ Error al eliminar el grado";
-                }
+
+                return Json(new { success = false, message = "❌ Error al eliminar el grado" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al eliminar grado");
-                TempData["ErrorMessage"] = "Error al procesar la solicitud";
+                _logger.LogError(ex, "Error al eliminar grado {Id}", id);
+                return Json(new { success = false, message = "Error al procesar la solicitud" });
             }
-
-            return RedirectToAction(nameof(Index));
         }
     }
 }

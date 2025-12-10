@@ -9,14 +9,9 @@ namespace SIRGA.Web.Models.Grado
         [Display(Name = "Nombre del Grado")]
         public string GradeName { get; set; }
 
-        [Required(ErrorMessage = "La sección es requerida")]
-        [StringLength(10, ErrorMessage = "La sección no puede exceder 10 caracteres")]
-        [Display(Name = "Sección")]
-        public string Section { get; set; }
-
-        [Required(ErrorMessage = "El límite de estudiantes es requerido")]
-        [Range(1, 100, ErrorMessage = "El límite debe estar entre 1 y 100 estudiantes")]
-        [Display(Name = "Límite de Estudiantes")]
-        public int StudentsLimit { get; set; } = 25;
+        [Required(ErrorMessage = "El nivel educativo es requerido")]
+        [Range(1, 2, ErrorMessage = "Seleccione un nivel válido")]
+        [Display(Name = "Nivel Educativo")]
+        public int Nivel { get; set; }
     }
 }

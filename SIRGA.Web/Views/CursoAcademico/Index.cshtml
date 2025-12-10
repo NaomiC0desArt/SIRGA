@@ -1,263 +1,431 @@
 ﻿@model List<SIRGA.Web.Models.CursoAcademico.CursoAcademicoDto>
 
 @{
-    ViewData["Title"] = "Gestión de Cursos Académicos";
+    ViewData["Title"] = "Cursos Académicos";
     Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
     ViewBag.UserName = User.Identity.Name;
     ViewBag.UserRole = "Administrador";
 }
+
 @section SidebarMenu {
     <partial name="_AdminSidebarMenu" />
 }
-    <div class="max-w-7xl mx-auto">
 
-        <!-- Header -->
-        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div class="flex items-center">
-                    <div class="h-12 w-12 bg-gradient-to-r from-teal-500 to-teal-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-900">Cursos Académicos</h1>
-                        <p class="text-gray-600 mt-1">Administra los cursos académicos por grado y año escolar</p>
-                    </div>
-                </div>
-
-                <div class="flex gap-3">
-                    <a asp-action="Crear"
-                       class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                        Nuevo Curso
-                    </a>
-
-                    <a asp-controller="Admin" asp-action="Index"
-                       class="inline-flex items-center px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
-                        Volver al Panel
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mensajes -->
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6 animate-fade-in">
-                <div class="flex items-start">
-                    <svg class="w-6 h-6 text-green-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center">
+                <div class="h-12 w-12 bg-gradient-to-r from-teal-500 to-teal-600 rounded-full flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    <div class="flex-1">
-                        <h3 class="text-sm font-medium text-green-800">@TempData["SuccessMessage"]</h3>
-                    </div>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Cursos Académicos</h1>
+                    <p class="text-gray-600 mt-1">Gestiona los cursos por grado, sección y año escolar</p>
                 </div>
             </div>
-        }
 
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                <div class="flex items-start">
-                    <svg class="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            <div class="flex gap-3">
+                <button onclick="abrirModalCrear()" class="px-6 py-3 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-semibold rounded-lg shadow-lg transition-all duration-200">
+                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
-                    <div class="text-sm text-red-700">@TempData["ErrorMessage"]</div>
-                </div>
+                    Nuevo Curso
+                </button>
             </div>
-        }
-
-        <!-- Tabla de Cursos -->
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div class="px-8 py-6 border-b border-gray-200">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h2 class="text-2xl font-bold text-gray-900 flex items-center">
-                        <svg class="w-6 h-6 mr-3 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                        </svg>
-                        Lista de Cursos Académicos
-                    </h2>
-
-                    <div class="flex items-center space-x-2 text-sm text-gray-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Total: @Model.Count cursos
-                    </div>
-                </div>
-            </div>
-
-            @if (Model != null && Model.Any())
-            {
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">ID</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grado</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sección</th>
-                                <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Año Escolar</th>
-                                <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-64">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach (var curso in Model)
-                            {
-                                <tr class="hover:bg-gray-50 transition-colors duration-150">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
-                                            #@curso.Id
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">
-                                            @(curso.Grado?.GradeName ?? "N/A")
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
-                                            @(curso.Grado?.Section ?? "N/A")
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-center">
-                                        <div class="flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-teal-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                            </svg>
-                                            <span class="text-lg font-semibold text-gray-900">@curso.SchoolYear</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-center">
-                                        <div class="flex justify-center gap-2">
-                                            <!-- Ver Detalles -->
-                                            <a asp-action="Detalles" asp-route-id="@curso.Id"
-                                               class="inline-flex items-center px-3 py-2 bg-purple-500 hover:bg-purple-600 text-white text-xs font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                                               title="Ver detalles">
-                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                                </svg>
-                                                Ver
-                                            </a>
-
-                                            <!-- Editar -->
-                                            <a asp-action="Editar" asp-route-id="@curso.Id"
-                                               class="inline-flex items-center px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                                               title="Editar">
-                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                                </svg>
-                                                Editar
-                                            </a>
-
-                                            <!-- Eliminar -->
-                                            <button type="button"
-                                                    onclick="confirmarEliminar(@curso.Id, '@curso.Grado?.GradeName @curso.Grado?.Section - @curso.SchoolYear')"
-                                                    class="inline-flex items-center px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                                                    title="Eliminar">
-                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                </svg>
-                                                Eliminar
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-            else
-            {
-                <div class="text-center py-16">
-                    <div class="mx-auto h-24 w-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No hay cursos académicos registrados</h3>
-                    <p class="text-gray-500 mb-6">Presiona el botón "Nuevo Curso" para agregar uno</p>
-                    <a asp-action="Crear"
-                       class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-semibold rounded-lg shadow-lg">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                        Crear Primer Curso
-                    </a>
-                </div>
-            }
         </div>
     </div>
 
+    <!-- Mensajes -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+            <div class="flex items-start">
+                <svg class="w-6 h-6 text-green-400 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div class="text-sm text-green-800">@TempData["SuccessMessage"]</div>
+            </div>
+        </div>
+    }
 
-<!-- Formulario oculto para eliminar -->
-<form id="formEliminar" asp-action="Eliminar" method="post" style="display:none;">
-    @Html.AntiForgeryToken()
-    <input type="hidden" id="eliminarId" name="id" />
-</form>
+    <!-- Tabla de Cursos -->
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        @if (Model != null && Model.Any())
+        {
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Grado</th>
+                        <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase">Sección</th>
+                        <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase">Año Escolar</th>
+                        <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase">Aula</th>
+                        <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @foreach (var curso in Model)
+                    {
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900">@curso.Grado?.GradeName</div>
+                                <div class="text-xs text-gray-500">@curso.Grado?.Nivel</div>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                                    @curso.Seccion?.Nombre
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="text-lg font-semibold text-gray-900">@curso.AnioEscolar?.Periodo</span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="text-sm text-gray-600">@(curso.AulaBase?.NombreCompleto ?? "Sin asignar")</span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex justify-center gap-2">
+                                    <a asp-action="Detalles" asp-route-id="@curso.Id" class="px-3 py-2 bg-purple-500 hover:bg-purple-600 text-white text-xs rounded-lg transition">
+                                        Ver
+                                    </a>
+                                    <button onclick="editarCurso(@curso.Id)" class="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg">
+                                        Editar
+                                    </button>
+                                    <button onclick="eliminarCurso(@curso.Id)" class="px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-xs rounded-lg">
+                                        Eliminar
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="text-center py-16">
+                <div class="mx-auto h-24 w-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No hay cursos registrados</h3>
+                <button onclick="abrirModalCrear()" class="mt-4 px-6 py-3 bg-teal-500 text-white rounded-lg">
+                    Crear Primer Curso
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal Crear/Editar Curso -->
+<div id="modalCurso" class="hidden fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity" onclick="cerrarModal()"></div>
+
+        <div class="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 transform transition-all">
+            <!-- Header Modal -->
+            <div class="flex items-center justify-between mb-6">
+                <h2 id="modalTitulo" class="text-2xl font-bold text-gray-900">Nuevo Curso Académico</h2>
+                <button onclick="cerrarModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Formulario -->
+            <form id="formCurso" class="space-y-6">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="cursoId" name="id" value="0" />
+
+                <!-- Año Escolar (Primero) -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Año Escolar *</label>
+                    <select id="idAnioEscolar" name="idAnioEscolar" required onchange="cargarSeccionesDisponibles()" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                        <option value="">Cargando...</option>
+                    </select>
+                </div>
+
+                <!-- Grado -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Grado *</label>
+                    <select id="idGrado" name="idGrado" required onchange="cargarSeccionesDisponibles()" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                        <option value="">Seleccione un grado...</option>
+                    </select>
+                </div>
+
+                <!-- Sección con botón agregar -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sección *</label>
+                    <div class="flex gap-2">
+                        <select id="idSeccion" name="idSeccion" required class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                            <option value="">Primero seleccione grado y año...</option>
+                        </select>
+                        <button type="button" onclick="agregarNuevaSeccion()" class="px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Si no hay secciones disponibles, presiona + para crear una nueva</p>
+                </div>
+
+                <!-- Aula con buscador -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Aula Base (Opcional)</label>
+                    <input type="text" id="buscarAula" placeholder="Buscar aula..." class="w-full px-4 py-3 border border-gray-300 rounded-lg mb-2 focus:ring-2 focus:ring-teal-500" />
+                    <select id="idAulaBase" name="idAulaBase" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                        <option value="">Sin aula asignada</option>
+                    </select>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="button" onclick="cerrarModal()" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white rounded-lg">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        function confirmarEliminar(id, nombre) {
-            Swal.fire({
-                title: '¿Eliminar curso académico?',
-                html: `
-                    <div class="text-left space-y-3">
-                        <p class="text-gray-700">Estás a punto de eliminar el curso:</p>
-                        <div class="bg-gray-100 p-3 rounded-lg">
-                            <p class="font-semibold text-gray-900">${nombre}</p>
-                        </div>
-                        <div class="bg-red-50 border-l-4 border-red-400 p-3 rounded">
-                            <p class="text-sm text-red-700">
-                                <strong>Esta acción NO se puede deshacer.</strong><br>
-                                Se eliminarán todos los datos asociados a este curso.
-                            </p>
-                        </div>
-                    </div>
-                `,
+        let grados = [];
+        let secciones = [];
+        let aniosEscolares = [];
+        let aulas = [];
+
+        // Cargar datos iniciales
+        document.addEventListener('DOMContentLoaded', async function() {
+            await cargarGrados();
+            await cargarAniosEscolares();
+            await cargarAulas();
+        });
+
+        async function cargarGrados() {
+            const response = await fetch('@Url.Action("ObtenerGrados", "CursoAcademico")');
+            const result = await response.json();
+            grados = result.data || [];
+
+            const select = document.getElementById('idGrado');
+            select.innerHTML = '<option value="">Seleccione un grado...</option>';
+            grados.forEach(g => {
+                select.innerHTML += `<option value="${g.id}">${g.gradeName} - ${g.nivel}</option>`;
+            });
+        }
+
+        async function cargarSeccionesDisponibles() {
+            const idGrado = document.getElementById('idGrado').value;
+            const idAnio = document.getElementById('idAnioEscolar').value;
+
+            if (!idGrado || !idAnio) {
+                document.getElementById('idSeccion').innerHTML = '<option value="">Primero seleccione grado y año...</option>';
+                return;
+            }
+
+            // Aquí deberías llamar al endpoint que implementes para obtener secciones disponibles
+            // Por ahora, cargaremos todas las secciones
+            await cargarTodasLasSecciones();
+        }
+
+        async function cargarTodasLasSecciones() {7
+    try {
+        // Usar el endpoint del controlador Web
+        const response = await fetch('@Url.Action("ObtenerSecciones", "CursoAcademico")');
+        const result = await response.json();
+        
+        if (!result.success) {
+            console.error('Error al cargar secciones:', result.message);
+            secciones = [];
+        } else {
+            secciones = result.data || [];
+        }
+
+        const select = document.getElementById('idSeccion');
+        select.innerHTML = '<option value="">Seleccione una sección...</option>';
+
+        if (secciones.length === 0) {
+            select.innerHTML += '<option value="" disabled>No hay secciones - Presione + para crear</option>';
+        } else {
+            secciones.forEach(s => {
+                select.innerHTML += `<option value="${s.id}">Sección ${s.nombre} (Capacidad: ${s.capacidadMaxima})</option>`;
+            });
+        }
+    } catch (error) {
+        console.error('Error al cargar secciones:', error);
+        const select = document.getElementById('idSeccion');
+        select.innerHTML = '<option value="">Error al cargar secciones</option>';
+    }
+}
+
+        async function cargarAniosEscolares() {
+            const response = await fetch('@Url.Action("ObtenerAniosEscolares", "CursoAcademico")');
+            const result = await response.json();
+            aniosEscolares = result.data || [];
+
+            const select = document.getElementById('idAnioEscolar');
+            select.innerHTML = '<option value="">Seleccione un año...</option>';
+
+            aniosEscolares.forEach(a => {
+                const selected = a.activo ? 'selected' : '';
+                select.innerHTML += `<option value="${a.id}" ${selected}>${a.periodo}${a.activo ? ' (Actual)' : ''}</option>`;
+            });
+        }
+
+        async function cargarAulas() {
+            const response = await fetch('@Url.Action("ObtenerAulasDisponibles", "CursoAcademico")');
+            const result = await response.json();
+            aulas = result.data || [];
+            actualizarSelectAulas(aulas);
+        }
+
+        function actualizarSelectAulas(aulasFiltradas) {
+            const select = document.getElementById('idAulaBase');
+            select.innerHTML = '<option value="">Sin aula asignada</option>';
+            aulasFiltradas.forEach(a => {
+                select.innerHTML += `<option value="${a.id}">${a.nombreCompleto}</option>`;
+            });
+        }
+
+        // Buscador de aulas
+        document.getElementById('buscarAula')?.addEventListener('input', function(e) {
+            const busqueda = e.target.value.toLowerCase();
+            const aulasFiltradas = aulas.filter(a =>
+                a.codigo.toLowerCase().includes(busqueda) ||
+                a.nombre.toLowerCase().includes(busqueda)
+            );
+            actualizarSelectAulas(aulasFiltradas);
+        });
+
+        async function agregarNuevaSeccion() {
+    try {
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        
+        const response = await fetch('/CursoAcademico/CrearSeccionAutomatica', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': token
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+            await Swal.fire('¡Éxito!', result.message, 'success');
+            await cargarTodasLasSecciones();
+            
+            // Seleccionar automáticamente la nueva sección creada
+            if (result.data && result.data.id) {
+                document.getElementById('idSeccion').value = result.data.id;
+            }
+        } else {
+            Swal.fire('Error', result.message || 'Error al crear la sección', 'error');
+        }
+    } catch (error) {
+        console.error('Error completo:', error);
+        Swal.fire('Error', 'Error al crear la sección: ' + error.message, 'error');
+    }
+}
+
+        function abrirModalCrear() {
+            document.getElementById('modalTitulo').textContent = 'Nuevo Curso Académico';
+            document.getElementById('formCurso').reset();
+            document.getElementById('cursoId').value = '0';
+            document.getElementById('modalCurso').classList.remove('hidden');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalCurso').classList.add('hidden');
+        }
+
+        async function editarCurso(id) {
+            // Puedes implementar esto si quieres editar en modal
+            Swal.fire('Información', 'Funcionalidad de edición en desarrollo', 'info');
+        }
+
+        document.getElementById('formCurso').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const idAulaValue = document.getElementById('idAulaBase').value;
+            const formData = {
+                idGrado: parseInt(document.getElementById('idGrado').value),
+                idSeccion: parseInt(document.getElementById('idSeccion').value),
+                idAnioEscolar: parseInt(document.getElementById('idAnioEscolar').value),
+                idAulaBase: idAulaValue ? parseInt(idAulaValue) : null
+            };
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            try {
+                const response = await fetch('/CursoAcademico/Crear', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire('¡Éxito!', result.message, 'success').then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Error', result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire('Error', 'Error al procesar la solicitud', 'error');
+            }
+        });
+
+        async function eliminarCurso(id) {
+            const result = await Swal.fire({
+                title: '¿Eliminar curso?',
+                text: 'Esta acción no se puede deshacer',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc2626',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Sí, eliminar',
                 cancelButtonText: 'Cancelar',
-                width: '600px',
-                customClass: {
-                    popup: 'rounded-2xl',
-                    confirmButton: 'rounded-lg px-6 py-2.5',
-                    cancelButton: 'rounded-lg px-6 py-2.5'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById('eliminarId').value = id;
-                    document.getElementById('formEliminar').submit();
-                }
+                confirmButtonText: 'Sí, eliminar'
             });
+
+            if (result.isConfirmed) {
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const response = await fetch(`/CursoAcademico/Eliminar/${id}`, { 
+                        method: 'DELETE',
+                        headers: {
+                            'RequestVerificationToken': token
+                        }
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        Swal.fire('¡Eliminado!', data.message, 'success').then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'Error al eliminar el curso', 'error');
+                }
+            }
         }
     </script>
-
-    <style>
-        @@keyframes fade-in {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-fade-in {
-            animation: fade-in 0.3s ease-out;
-        }
-    </style>
 }

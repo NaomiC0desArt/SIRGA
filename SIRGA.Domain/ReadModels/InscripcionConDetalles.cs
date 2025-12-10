@@ -13,17 +13,18 @@ namespace SIRGA.Domain.ReadModels
         public int IdCursoAcademico { get; set; }
         public DateTime FechaInscripcion { get; set; }
 
-        // datos del estudiante
+        // Estudiante
         public string EstudianteMatricula { get; set; }
         public string EstudianteNombre { get; set; }
         public string EstudianteApellido { get; set; }
 
-        // datos del curso
-        public string GradoNombre { get; set; }
-        public string GradoSeccion { get; set; }
-        public string SchoolYear { get; set; }
-
         public string EstudianteNombreCompleto => $"{EstudianteNombre} {EstudianteApellido}";
-        public string CursoNombre => $"{GradoNombre} {GradoSeccion} - {SchoolYear}";
+
+        // Curso
+        public string GradoNombre { get; set; }
+        public string SeccionNombre { get; set; }
+        public string AnioEscolarPeriodo { get; set; }
+
+        public string CursoNombre => $"{GradoNombre} - Sección {SeccionNombre} ({AnioEscolarPeriodo})";
     }
 }

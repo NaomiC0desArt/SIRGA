@@ -79,7 +79,7 @@ namespace SIRGA.Web.Controllers
                         .Select(c => new SelectListItem
                         {
                             Value = c.Id.ToString(),
-                            Text = $"{(c.Grado != null ? $"{c.Grado.GradeName} {c.Grado.Section}" : "N/A")} - {c.SchoolYear}"
+                            Text = $"{(c.Grado != null ? $"{c.Grado.GradeName} {c.Grado.GradeName}" : "N/A")} - {c.AnioEscolar}"
                         })
                         .ToList();
 
@@ -296,7 +296,7 @@ namespace SIRGA.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        
+
         private async Task CargarDropdowns()
         {
             try
@@ -319,7 +319,6 @@ namespace SIRGA.Web.Controllers
 
                     ViewBag.Estudiantes = new SelectList(estudiantes, "Value", "Text");
 
-                    // Datos para JavaScript (búsqueda)
                     ViewBag.EstudiantesData = estudiantesResponse.Data
                         .Where(e => e.IsActive)
                         .OrderBy(e => e.FirstName)
@@ -338,7 +337,7 @@ namespace SIRGA.Web.Controllers
                     ViewBag.EstudiantesData = new List<object>();
                 }
 
-                // Cargar Cursos Académicos
+                // Cargar Cursos Académicos - AJUSTADO PARA TU DTO
                 var cursosResponse = await _apiService.GetAsync<ApiResponse<List<CursoAcademicoDto>>>("api/CursoAcademico/GetAll");
 
                 if (cursosResponse?.Data != null && cursosResponse.Data.Any())
@@ -347,7 +346,7 @@ namespace SIRGA.Web.Controllers
                         .Select(c => new SelectListItem
                         {
                             Value = c.Id.ToString(),
-                            Text = $"{(c.Grado != null ? $"{c.Grado.GradeName} {c.Grado.Section}" : "N/A")} - {c.SchoolYear}"
+                            Text = c.NombreCompleto ?? BuildCursoNombre(c)
                         })
                         .ToList();
 
@@ -362,11 +361,20 @@ namespace SIRGA.Web.Controllers
             {
                 _logger.LogError(ex, "Error al cargar dropdowns");
 
-                // Valores por defecto en caso de error
                 ViewBag.Estudiantes = new SelectList(Enumerable.Empty<SelectListItem>());
                 ViewBag.EstudiantesData = new List<object>();
                 ViewBag.CursosAcademicos = new SelectList(Enumerable.Empty<SelectListItem>());
             }
+        }
+
+        // Método helper para construir nombres (igual que en ClaseProgramada)
+        private string BuildCursoNombre(CursoAcademicoDto curso)
+        {
+            var gradoNombre = curso.Grado?.GradeName ?? "N/A";
+            var seccionNombre = curso.Seccion?.Nombre ?? "N/A";
+            var periodo = curso.AnioEscolar?.Periodo ?? "N/A";
+
+            return $"{gradoNombre} - Sección {seccionNombre} ({periodo})";
         }
     }
 }

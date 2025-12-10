@@ -15,11 +15,18 @@ namespace SIRGA.Persistence.DbContext
 
 		public DbSet<Estudiante> Estudiantes { get; set; }
 		public DbSet<Profesor> Profesores { get; set; }
+
 		public DbSet<Grado> Grados { get; set; }
-		public DbSet<Asignatura> Asignaturas { get; set; }
+        public DbSet<Seccion> Secciones { get; set; }
+        public DbSet<AnioEscolar> AniosEscolares { get; set; }
+        public DbSet<Periodo> Periodos { get; set; }
+        public DbSet<Aula> Aulas { get; set; }
+
+        public DbSet<Asignatura> Asignaturas { get; set; }
 		public DbSet<CursoAcademico> CursosAcademicos { get; set; }
 		public DbSet<ClaseProgramada> ClasesProgramadas { get; set; }
 		public DbSet<Inscripcion> Inscripciones { get; set; }
+
         public DbSet<Asistencia> Asistencias { get; set; }
         public DbSet<ActividadExtracurricular> ActividadesExtracurriculares { get; set; }
         public DbSet<InscripcionActividad> InscripcionesActividades { get; set; }
@@ -125,6 +132,113 @@ namespace SIRGA.Persistence.DbContext
                     .WithOne(i => i.Actividad)
                     .HasForeignKey(i => i.IdActividad)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<Grado>(entity =>
+            {
+                entity.HasKey(g => g.Id);
+                entity.Property(g => g.GradeName).IsRequired().HasMaxLength(50);
+            });
+
+            // Configuración de Sección
+            builder.Entity<Seccion>(entity =>
+            {
+                entity.HasKey(s => s.Id);
+                entity.Property(s => s.Nombre).IsRequired().HasMaxLength(10);
+                entity.HasIndex(s => s.Nombre).IsUnique();
+            });
+
+            // Configuración de Año Escolar
+            builder.Entity<AnioEscolar>(entity =>
+            {
+                entity.HasKey(a => a.Id);
+                entity.Property(a => a.AnioInicio).IsRequired();
+                entity.Property(a => a.AnioFin).IsRequired();
+            });
+
+            // Configuración de Periodo
+            builder.Entity<Periodo>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+                entity.Property(p => p.Numero).IsRequired();
+                entity.HasOne(p => p.AnioEscolar)
+                    .WithMany()
+                    .HasForeignKey(p => p.AnioEscolarId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Configuración de Curso Académico
+            builder.Entity<CursoAcademico>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+
+                entity.HasOne(c => c.Grado)
+                    .WithMany()
+                    .HasForeignKey(c => c.IdGrado)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(c => c.Seccion)
+                    .WithMany()
+                    .HasForeignKey(c => c.IdSeccion)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(c => c.AnioEscolar)
+                    .WithMany()
+                    .HasForeignKey(c => c.IdAnioEscolar)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(c => c.AulaBase)
+                    .WithMany()
+                    .HasForeignKey(c => c.IdAulaBase)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired(false);
+
+                // Índice único para evitar duplicados
+                entity.HasIndex(c => new { c.IdGrado, c.IdSeccion, c.IdAnioEscolar })
+                    .IsUnique()
+                    .HasDatabaseName("IX_CursoAcademico_Unique");
+            });
+
+            // Configuración de Clase Programada
+            builder.Entity<ClaseProgramada>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+
+                entity.HasOne(c => c.Asignatura)
+                    .WithMany()
+                    .HasForeignKey(c => c.IdAsignatura)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(c => c.Profesor)
+                    .WithMany()
+                    .HasForeignKey(c => c.IdProfesor)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(c => c.CursoAcademico)
+                    .WithMany()
+                    .HasForeignKey(c => c.IdCursoAcademico)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Configuración de Inscripción
+            builder.Entity<Inscripcion>(entity =>
+            {
+                entity.HasKey(i => i.Id);
+
+                entity.HasOne(i => i.Estudiante)
+                    .WithMany()
+                    .HasForeignKey(i => i.IdEstudiante)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(i => i.CursoAcademico)
+                    .WithMany()
+                    .HasForeignKey(i => i.IdCursoAcademico)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Un estudiante solo puede estar inscrito una vez en un curso
+                entity.HasIndex(i => new { i.IdEstudiante, i.IdCursoAcademico })
+                    .IsUnique()
+                    .HasDatabaseName("IX_Inscripcion_Unique");
             });
 
             builder.Entity<InscripcionActividad>(entity =>

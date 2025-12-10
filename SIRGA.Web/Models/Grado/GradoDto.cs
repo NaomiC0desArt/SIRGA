@@ -9,10 +9,6 @@ namespace SIRGA.Web.Models.Grado
         [Display(Name = "Grado")]
         public string GradeName { get; set; }
 
-        [Display(Name = "Sección")]
-        public string Section { get; set; }
-
-        [Display(Name = "Límite de Estudiantes")]
-        public int StudentsLimit { get; set; }
+        public string Nivel { get; set; }
     }
 }

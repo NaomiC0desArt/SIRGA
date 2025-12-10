@@ -186,8 +186,8 @@ El resumen debe:
 
                 if (inscripcion != null)
                 {
-                    contexto.AppendLine($"Grado: {inscripcion.CursoAcademico.Grado.GradeName} - {inscripcion.CursoAcademico.Grado.Section}");
-                    contexto.AppendLine($"Año académico: {inscripcion.CursoAcademico.SchoolYear}");
+                   // contexto.AppendLine($"Grado: {inscripcion.CursoAcademico.Grado.GradeName} - {inscripcion.CursoAcademico.Grado.Section}");
+                    contexto.AppendLine($"Año académico: {inscripcion.CursoAcademico.AnioEscolar}");
                 }
 
                 contexto.AppendLine($"Asistencias registradas: {totalAsistencias}");

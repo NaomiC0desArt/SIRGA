@@ -223,6 +223,28 @@ namespace SIRGA.Persistence.Migrations
                     b.ToTable("ActividadesExtracurriculares");
                 });
 
+            modelBuilder.Entity("SIRGA.Domain.Entities.AnioEscolar", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("AnioFin")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AnioInicio")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AniosEscolares");
+                });
+
             modelBuilder.Entity("SIRGA.Domain.Entities.Asignatura", b =>
                 {
                     b.Property<int>("Id")
@@ -333,6 +355,36 @@ namespace SIRGA.Persistence.Migrations
                     b.ToTable("Asistencias");
                 });
 
+            modelBuilder.Entity("SIRGA.Domain.Entities.Aula", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Capacidad")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("EstaDisponible")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Aulas");
+                });
+
             modelBuilder.Entity("SIRGA.Domain.Entities.ClaseProgramada", b =>
                 {
                     b.Property<int>("Id")
@@ -382,16 +434,29 @@ namespace SIRGA.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("IdAnioEscolar")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("IdAulaBase")
+                        .HasColumnType("int");
+
                     b.Property<int>("IdGrado")
                         .HasColumnType("int");
 
-                    b.Property<string>("SchoolYear")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("IdSeccion")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IdGrado");
+                    b.HasIndex("IdAnioEscolar");
+
+                    b.HasIndex("IdAulaBase");
+
+                    b.HasIndex("IdSeccion");
+
+                    b.HasIndex("IdGrado", "IdSeccion", "IdAnioEscolar")
+                        .IsUnique()
+                        .HasDatabaseName("IX_CursoAcademico_Unique");
 
                     b.ToTable("CursosAcademicos");
                 });
@@ -450,13 +515,10 @@ namespace SIRGA.Persistence.Migrations
 
                     b.Property<string>("GradeName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("Section")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("StudentsLimit")
+                    b.Property<int>("Nivel")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -485,7 +547,9 @@ namespace SIRGA.Persistence.Migrations
 
                     b.HasIndex("IdCursoAcademico");
 
-                    b.HasIndex("IdEstudiante");
+                    b.HasIndex("IdEstudiante", "IdCursoAcademico")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Inscripcion_Unique");
 
                     b.ToTable("Inscripciones");
                 });
@@ -519,6 +583,33 @@ namespace SIRGA.Persistence.Migrations
                     b.ToTable("InscripcionesActividades");
                 });
 
+            modelBuilder.Entity("SIRGA.Domain.Entities.Periodo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AnioEscolarId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaFin")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaInicio")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Numero")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AnioEscolarId");
+
+                    b.ToTable("Periodos");
+                });
+
             modelBuilder.Entity("SIRGA.Domain.Entities.Profesor", b =>
                 {
                     b.Property<int>("Id")
@@ -542,6 +633,30 @@ namespace SIRGA.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Profesores");
+                });
+
+            modelBuilder.Entity("SIRGA.Domain.Entities.Seccion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CapacidadMaxima")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("Secciones");
                 });
 
             modelBuilder.Entity("SIRGA.Identity.Shared.Entities.ApplicationUser", b =>
@@ -772,13 +887,36 @@ namespace SIRGA.Persistence.Migrations
 
             modelBuilder.Entity("SIRGA.Domain.Entities.CursoAcademico", b =>
                 {
+                    b.HasOne("SIRGA.Domain.Entities.AnioEscolar", "AnioEscolar")
+                        .WithMany()
+                        .HasForeignKey("IdAnioEscolar")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SIRGA.Domain.Entities.Aula", "AulaBase")
+                        .WithMany()
+                        .HasForeignKey("IdAulaBase")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SIRGA.Domain.Entities.Grado", "Grado")
                         .WithMany()
                         .HasForeignKey("IdGrado")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SIRGA.Domain.Entities.Seccion", "Seccion")
+                        .WithMany()
+                        .HasForeignKey("IdSeccion")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AnioEscolar");
+
+                    b.Navigation("AulaBase");
+
                     b.Navigation("Grado");
+
+                    b.Navigation("Seccion");
                 });
 
             modelBuilder.Entity("SIRGA.Domain.Entities.Estudiante", b =>
@@ -826,6 +964,17 @@ namespace SIRGA.Persistence.Migrations
                     b.Navigation("Actividad");
 
                     b.Navigation("Estudiante");
+                });
+
+            modelBuilder.Entity("SIRGA.Domain.Entities.Periodo", b =>
+                {
+                    b.HasOne("SIRGA.Domain.Entities.AnioEscolar", "AnioEscolar")
+                        .WithMany()
+                        .HasForeignKey("AnioEscolarId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AnioEscolar");
                 });
 
             modelBuilder.Entity("SIRGA.Domain.Entities.Profesor", b =>

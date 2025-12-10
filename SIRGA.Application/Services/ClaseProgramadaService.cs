@@ -236,7 +236,7 @@ namespace SIRGA.Application.Services
                 IdProfesor = detalles.IdProfesor,
                 ProfesorNombre = $"{detalles.ProfesorFirstName} {detalles.ProfesorLastName}",
                 IdCursoAcademico = detalles.IdCursoAcademico,
-                CursoAcademicoNombre = $"{detalles.GradoNombre} {detalles.GradoSeccion}"
+                CursoAcademicoNombre = $"{detalles.GradoNombre} - Sección {detalles.SeccionNombre} ({detalles.AnioEscolarPeriodo})"
             };
         }
         #endregion

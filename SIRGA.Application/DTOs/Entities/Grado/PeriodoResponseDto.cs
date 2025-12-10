@@ -1,0 +1,15 @@
+﻿namespace SIRGA.Application.DTOs.Entities.Grado
+{
+    public class PeriodoResponseDto
+    {
+        public int Id { get; set; }
+        public int Numero { get; set; }
+        public DateTime FechaInicio { get; set; }
+        public DateTime FechaFin { get; set; }
+        public int AnioEscolarId { get; set; }
+        public string AnioEscolar { get; set; }
+        public string NombrePeriodo { get; set; }
+        public int DuracionDias { get; set; }
+    }
+
+}

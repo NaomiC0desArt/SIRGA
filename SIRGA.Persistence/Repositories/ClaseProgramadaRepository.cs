@@ -16,6 +16,7 @@ namespace SIRGA.Persistence.Repositories
         {
             _context = context;
         }
+
         public async Task<List<ClaseProgramadaConDetalles>> GetAllWithDetailsAsync()
         {
             return await (from cp in _context.ClasesProgramadas
@@ -24,6 +25,8 @@ namespace SIRGA.Persistence.Repositories
                           join user in _context.Users on prof.ApplicationUserId equals user.Id
                           join curso in _context.CursosAcademicos on cp.IdCursoAcademico equals curso.Id
                           join grado in _context.Grados on curso.IdGrado equals grado.Id
+                          join seccion in _context.Secciones on curso.IdSeccion equals seccion.Id
+                          join anio in _context.AniosEscolares on curso.IdAnioEscolar equals anio.Id
                           select new ClaseProgramadaConDetalles
                           {
                               Id = cp.Id,
@@ -38,8 +41,8 @@ namespace SIRGA.Persistence.Repositories
                               ProfesorLastName = user.LastName,
                               IdCursoAcademico = cp.IdCursoAcademico,
                               GradoNombre = grado.GradeName,
-                              GradoSeccion = grado.Section,
-                              SchoolYear = curso.SchoolYear
+                              SeccionNombre = seccion.Nombre,
+                              AnioEscolarPeriodo = anio.Periodo
                           }).ToListAsync();
         }
 
@@ -51,6 +54,8 @@ namespace SIRGA.Persistence.Repositories
                           join user in _context.Users on prof.ApplicationUserId equals user.Id
                           join curso in _context.CursosAcademicos on cp.IdCursoAcademico equals curso.Id
                           join grado in _context.Grados on curso.IdGrado equals grado.Id
+                          join seccion in _context.Secciones on curso.IdSeccion equals seccion.Id
+                          join anio in _context.AniosEscolares on curso.IdAnioEscolar equals anio.Id
                           where cp.Id == id
                           select new ClaseProgramadaConDetalles
                           {
@@ -66,8 +71,8 @@ namespace SIRGA.Persistence.Repositories
                               ProfesorLastName = user.LastName,
                               IdCursoAcademico = cp.IdCursoAcademico,
                               GradoNombre = grado.GradeName,
-                              GradoSeccion = grado.Section,
-                              SchoolYear = curso.SchoolYear
+                              SeccionNombre = seccion.Nombre,
+                              AnioEscolarPeriodo = anio.Periodo
                           }).FirstOrDefaultAsync();
         }
 
@@ -78,87 +83,75 @@ namespace SIRGA.Persistence.Repositories
                 .Include(c => c.Profesor)
                 .Include(c => c.CursoAcademico)
                     .ThenInclude(ca => ca.Grado)
+                .Include(c => c.CursoAcademico)
+                    .ThenInclude(ca => ca.Seccion)
+                .Include(c => c.CursoAcademico)
+                    .ThenInclude(ca => ca.AnioEscolar)
                 .Where(c => c.IdProfesor == idProfesor && c.WeekDay == diaSemana)
                 .OrderBy(c => c.StartTime)
                 .ToListAsync();
         }
+
         public async Task<List<ClaseConDetallesParaHorario>> GetClasesPorCursoAcademicoAsync(int idCursoAcademico)
         {
-            return await _context.ClasesProgramadas
-                .Where(c => c.IdCursoAcademico == idCursoAcademico)
-                .Join(_context.Asignaturas,
-                    c => c.IdAsignatura,
-                    a => a.Id,
-                    (c, a) => new { c, a })
-                .Join(_context.Profesores,
-                    x => x.c.IdProfesor,
-                    p => p.Id,
-                    (x, p) => new { x.c, x.a, p })
-                .Join(_context.Users,
-                    x => x.p.ApplicationUserId,
-                    u => u.Id,
-                    (x, u) => new { x.c, x.a, x.p, u })
-                .Join(_context.CursosAcademicos.Include(ca => ca.Grado),
-                    x => x.c.IdCursoAcademico,
-                    ca => ca.Id,
-                    (x, ca) => new ClaseConDetallesParaHorario
-                    {
-                        Id = x.c.Id,
-                        StartTime = x.c.StartTime,
-                        EndTime = x.c.EndTime,
-                        WeekDay = x.c.WeekDay,
-                        Location = x.c.Location,
-                        IdAsignatura = x.a.Id,
-                        AsignaturaNombre = x.a.Nombre,
-                        IdProfesor = x.p.Id,
-                        ProfesorNombre = x.u.FirstName,
-                        ProfesorApellido = x.u.LastName,
-                        IdCursoAcademico = ca.Id,
-                        GradoNombre = ca.Grado.GradeName,
-                        GradoSeccion = ca.Grado.Section,
-                        SchoolYear = ca.SchoolYear
-                    })
-                .ToListAsync();
+            return await (from cp in _context.ClasesProgramadas
+                          join asig in _context.Asignaturas on cp.IdAsignatura equals asig.Id
+                          join prof in _context.Profesores on cp.IdProfesor equals prof.Id
+                          join user in _context.Users on prof.ApplicationUserId equals user.Id
+                          join curso in _context.CursosAcademicos on cp.IdCursoAcademico equals curso.Id
+                          join grado in _context.Grados on curso.IdGrado equals grado.Id
+                          join seccion in _context.Secciones on curso.IdSeccion equals seccion.Id
+                          join anio in _context.AniosEscolares on curso.IdAnioEscolar equals anio.Id
+                          where cp.IdCursoAcademico == idCursoAcademico
+                          select new ClaseConDetallesParaHorario
+                          {
+                              Id = cp.Id,
+                              StartTime = cp.StartTime,
+                              EndTime = cp.EndTime,
+                              WeekDay = cp.WeekDay,
+                              Location = cp.Location,
+                              IdAsignatura = asig.Id,
+                              AsignaturaNombre = asig.Nombre,
+                              IdProfesor = prof.Id,
+                              ProfesorNombre = user.FirstName,
+                              ProfesorApellido = user.LastName,
+                              IdCursoAcademico = curso.Id,
+                              GradoNombre = grado.GradeName,
+                              SeccionNombre = seccion.Nombre,
+                              AnioEscolarPeriodo = anio.Periodo
+                          }).ToListAsync();
         }
 
         public async Task<List<ClaseConDetallesParaHorario>> GetClasesPorCursoYDiaAsync(int idCursoAcademico, DayOfWeek dia)
         {
-            return await _context.ClasesProgramadas
-                .Where(c => c.IdCursoAcademico == idCursoAcademico && c.WeekDay == dia)
-                .Join(_context.Asignaturas,
-                    c => c.IdAsignatura,
-                    a => a.Id,
-                    (c, a) => new { c, a })
-                .Join(_context.Profesores,
-                    x => x.c.IdProfesor,
-                    p => p.Id,
-                    (x, p) => new { x.c, x.a, p })
-                .Join(_context.Users,
-                    x => x.p.ApplicationUserId,
-                    u => u.Id,
-                    (x, u) => new { x.c, x.a, x.p, u })
-                .Join(_context.CursosAcademicos.Include(ca => ca.Grado),
-                    x => x.c.IdCursoAcademico,
-                    ca => ca.Id,
-                    (x, ca) => new ClaseConDetallesParaHorario
-                    {
-                        Id = x.c.Id,
-                        StartTime = x.c.StartTime,
-                        EndTime = x.c.EndTime,
-                        WeekDay = x.c.WeekDay,
-                        Location = x.c.Location,
-                        IdAsignatura = x.a.Id,
-                        AsignaturaNombre = x.a.Nombre,
-                        IdProfesor = x.p.Id,
-                        ProfesorNombre = x.u.FirstName,
-                        ProfesorApellido = x.u.LastName,
-                        IdCursoAcademico = ca.Id,
-                        GradoNombre = ca.Grado.GradeName,
-                        GradoSeccion = ca.Grado.Section,
-                        SchoolYear = ca.SchoolYear
-                    })
-                .OrderBy(c => c.StartTime)
-                .ToListAsync();
+            return await (from cp in _context.ClasesProgramadas
+                          join asig in _context.Asignaturas on cp.IdAsignatura equals asig.Id
+                          join prof in _context.Profesores on cp.IdProfesor equals prof.Id
+                          join user in _context.Users on prof.ApplicationUserId equals user.Id
+                          join curso in _context.CursosAcademicos on cp.IdCursoAcademico equals curso.Id
+                          join grado in _context.Grados on curso.IdGrado equals grado.Id
+                          join seccion in _context.Secciones on curso.IdSeccion equals seccion.Id
+                          join anio in _context.AniosEscolares on curso.IdAnioEscolar equals anio.Id
+                          where cp.IdCursoAcademico == idCursoAcademico && cp.WeekDay == dia
+                          select new ClaseConDetallesParaHorario
+                          {
+                              Id = cp.Id,
+                              StartTime = cp.StartTime,
+                              EndTime = cp.EndTime,
+                              WeekDay = cp.WeekDay,
+                              Location = cp.Location,
+                              IdAsignatura = asig.Id,
+                              AsignaturaNombre = asig.Nombre,
+                              IdProfesor = prof.Id,
+                              ProfesorNombre = user.FirstName,
+                              ProfesorApellido = user.LastName,
+                              IdCursoAcademico = curso.Id,
+                              GradoNombre = grado.GradeName,
+                              SeccionNombre = seccion.Nombre,
+                              AnioEscolarPeriodo = anio.Periodo
+                          })
+                          .OrderBy(c => c.StartTime)
+                          .ToListAsync();
         }
     }
 }

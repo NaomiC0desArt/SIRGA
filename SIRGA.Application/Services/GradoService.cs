@@ -1,15 +1,15 @@
 ﻿using Microsoft.Extensions.Logging;
-using SIRGA.Application.DTOs.Common;
-using SIRGA.Application.DTOs.Entities;
+using SIRGA.Application.DTOs.Entities.Grado;
 using SIRGA.Application.DTOs.ResponseDto;
 using SIRGA.Application.Interfaces.Entities;
 using SIRGA.Application.Services.Base;
 using SIRGA.Domain.Entities;
+using SIRGA.Domain.Enum;
 using SIRGA.Domain.Interfaces;
 
 namespace SIRGA.Application.Services
 {
-    public class GradoService : BaseService<Grado, GradoDto, GradoResponseDto>, IGradoService
+    public class GradoService : BaseService<Grado, CreateGradoDto, GradoDto>, IGradoService
     {
         public GradoService(
             IGradoRepository gradoRepository,
@@ -20,34 +20,29 @@ namespace SIRGA.Application.Services
 
         protected override string EntityName => "Grado";
 
-        #region Mapeos
-        protected override Grado MapDtoToEntity(GradoDto dto)
+        protected override Grado MapDtoToEntity(CreateGradoDto dto)
         {
             return new Grado
             {
                 GradeName = dto.GradeName,
-                Section = dto.Section,
-                StudentsLimit = dto.StudentsLimit
+                Nivel = (NivelEducativo)dto.Nivel
             };
         }
 
-        protected override GradoResponseDto MapEntityToResponse(Grado entity)
+        protected override GradoDto MapEntityToResponse(Grado entity)
         {
-            return new GradoResponseDto
+            return new GradoDto
             {
                 Id = entity.Id,
                 GradeName = entity.GradeName,
-                Section = entity.Section,
-                StudentsLimit = entity.StudentsLimit
+                Nivel = entity.Nivel.ToString()
             };
         }
 
-        protected override void UpdateEntityFromDto(Grado entity, GradoDto dto)
+        protected override void UpdateEntityFromDto(Grado entity, CreateGradoDto dto)
         {
             entity.GradeName = dto.GradeName;
-            entity.Section = dto.Section;
-            entity.StudentsLimit = dto.StudentsLimit;
+            entity.Nivel = (NivelEducativo)dto.Nivel;
         }
-        #endregion
     }
 }

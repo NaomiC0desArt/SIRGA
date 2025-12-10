@@ -4,13 +4,15 @@ namespace SIRGA.Web.Models.CursoAcademico
 {
     public class CreateCursoAcademicoDto
     {
-        [Required(ErrorMessage = "Debe seleccionar un grado")]
-        [Display(Name = "Grado")]
+        [Required(ErrorMessage = "Favor seleccionar un grado")]
         public int IdGrado { get; set; }
 
-        [Required(ErrorMessage = "El año escolar es requerido")]
-        [RegularExpression(@"^\d{4}-\d{4}$", ErrorMessage = "El formato debe ser YYYY-YYYY (ej: 2024-2025)")]
-        [Display(Name = "Año Escolar")]
-        public string SchoolYear { get; set; }
+        [Required(ErrorMessage = "La sección es obligatoria")]
+        public int IdSeccion { get; set; }
+
+        [Required(ErrorMessage = "El año escolar es obligatorio")]
+        public int IdAnioEscolar { get; set; }
+
+        public int? IdAulaBase { get; set; }
     }
 }

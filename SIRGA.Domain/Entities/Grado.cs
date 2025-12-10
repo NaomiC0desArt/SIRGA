@@ -1,10 +1,11 @@
-﻿namespace SIRGA.Domain.Entities
+﻿using SIRGA.Domain.Enum;
+
+namespace SIRGA.Domain.Entities
 {
     public class Grado
     {
         public int Id { get; set; }
         public string GradeName { get; set; }
-        public string Section { get; set; }
-        public int StudentsLimit { get; set; } = 25;
+        public NivelEducativo Nivel { get; set; }
     }
 }

@@ -14,22 +14,19 @@ namespace SIRGA.Domain.ReadModels
         public DayOfWeek WeekDay { get; set; }
         public string Location { get; set; }
 
-        // Asignatura
         public int IdAsignatura { get; set; }
         public string AsignaturaNombre { get; set; }
 
-        // Profesor
         public int IdProfesor { get; set; }
         public string ProfesorNombre { get; set; }
         public string ProfesorApellido { get; set; }
 
-        // Curso Académico
         public int IdCursoAcademico { get; set; }
         public string GradoNombre { get; set; }
-        public string GradoSeccion { get; set; }
-        public string SchoolYear { get; set; }
+        public string SeccionNombre { get; set; }
+        public string AnioEscolarPeriodo { get; set; }
 
         public string ProfesorNombreCompleto => $"{ProfesorNombre} {ProfesorApellido}";
-        public string CursoNombre => $"{GradoNombre} {GradoSeccion}";
+        
     }
 }
