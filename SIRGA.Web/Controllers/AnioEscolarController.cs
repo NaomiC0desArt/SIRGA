@@ -43,6 +43,32 @@ namespace SIRGA.Web.Controllers
             }
         }
 
+        // ==================== OBTENER TODOS (para dropdowns) ====================
+        [HttpGet]
+        public async Task<IActionResult> ObtenerTodos()
+        {
+            try
+            {
+                _logger.LogInformation("Solicitando años escolares desde la API");
+
+                var response = await _apiService.GetAsync<ApiResponse<List<AnioEscolarDto>>>("api/AnioEscolar/GetAll");
+
+                if (response?.Success != true)
+                {
+                    _logger.LogWarning("No se pudieron obtener los años escolares: {Message}", response?.Message);
+                    return Json(new { success = false, message = "Error al cargar años escolares" });
+                }
+
+                _logger.LogInformation("Años escolares obtenidos exitosamente: {Count}", response.Data?.Count ?? 0);
+                return Json(new { success = true, data = response.Data });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al cargar años escolares");
+                return Json(new { success = false, message = "Error al cargar años escolares" });
+            }
+        }
+
         // ==================== CREAR ====================
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -140,6 +166,5 @@ namespace SIRGA.Web.Controllers
                 return Json(new { success = false, message = "Error al cargar el año escolar" });
             }
         }
-
     }
 }

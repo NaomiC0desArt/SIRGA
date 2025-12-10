@@ -241,143 +241,215 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // Cargar años escolares al iniciar
-        document.addEventListener('DOMContentLoaded', async function() {
-            await cargarAniosEscolares();
-            calcularDuracion();
-        });
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('Iniciando carga de la página...');
+    await cargarAniosEscolares();
+    calcularDuracion();
+});
 
-        // Calcular duración al cambiar fechas
-        document.getElementById('fechaInicio')?.addEventListener('change', calcularDuracion);
-        document.getElementById('fechaFin')?.addEventListener('change', calcularDuracion);
+// Calcular duración al cambiar fechas
+document.getElementById('fechaInicio')?.addEventListener('change', calcularDuracion);
+document.getElementById('fechaFin')?.addEventListener('change', calcularDuracion);
 
-        function calcularDuracion() {
-            const inicio = document.getElementById('fechaInicio').value;
-            const fin = document.getElementById('fechaFin').value;
+function calcularDuracion() {
+    const inicio = document.getElementById('fechaInicio').value;
+    const fin = document.getElementById('fechaFin').value;
 
-            if (inicio && fin) {
-                const fecha1 = new Date(inicio);
-                const fecha2 = new Date(fin);
-                const dias = Math.floor((fecha2 - fecha1) / (1000 * 60 * 60 * 24)) + 1;
-                const semanas = Math.ceil(dias / 7);
+    if (inicio && fin) {
+        const fecha1 = new Date(inicio);
+        const fecha2 = new Date(fin);
+        const dias = Math.floor((fecha2 - fecha1) / (1000 * 60 * 60 * 24)) + 1;
+        const semanas = Math.ceil(dias / 7);
 
-                const info = document.getElementById('duracionInfo');
-                const texto = document.getElementById('duracionTexto');
+        const info = document.getElementById('duracionInfo');
+        const texto = document.getElementById('duracionTexto');
 
-                if (dias < 42) {
-                    texto.innerHTML = `<span class="text-red-600 font-semibold">${semanas} semanas (${dias} días) - Mínimo 6 semanas</span>`;
-                    info.classList.remove('hidden');
-                } else if (dias > 98) {
-                    texto.innerHTML = `<span class="text-red-600 font-semibold">${semanas} semanas (${dias} días) - Máximo 14 semanas</span>`;
-                    info.classList.remove('hidden');
-                } else {
-                    texto.innerHTML = `<span class="text-green-600 font-semibold">${semanas} semanas (${dias} días) ✓</span>`;
-                    info.classList.remove('hidden');
-                }
+        if (dias < 42) {
+            texto.innerHTML = `<span class="text-red-600 font-semibold">${semanas} semanas (${dias} días) - Mínimo 6 semanas</span>`;
+            info.classList.remove('hidden');
+        } else if (dias > 98) {
+            texto.innerHTML = `<span class="text-red-600 font-semibold">${semanas} semanas (${dias} días) - Máximo 14 semanas</span>`;
+            info.classList.remove('hidden');
+        } else {
+            texto.innerHTML = `<span class="text-green-600 font-semibold">${semanas} semanas (${dias} días) ✓</span>`;
+            info.classList.remove('hidden');
+        }
+    }
+}
+
+async function cargarAniosEscolares() {
+    try {
+        console.log('🔄 Cargando años escolares...');
+        const response = await fetch('/AnioEscolar/ObtenerTodos');
+        console.log('📡 Response status:', response.status);
+        
+        if (!response.ok) {
+            console.error('❌ Error en la respuesta:', response.statusText);
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('📦 Data recibida:', data);
+
+        const select = document.getElementById('anioEscolarId');
+        const filtro = document.getElementById('filtroAnioEscolar');
+
+        if (!select) {
+            console.error('❌ No se encontró el select con id anioEscolarId');
+            return;
+        }
+
+        if (data.success && data.data) {
+            console.log(`✅ Años escolares encontrados: ${data.data.length}`);
+            
+            // Limpiar opciones existentes excepto la primera
+            select.innerHTML = '<option value="">Seleccione...</option>';
+            if (filtro) {
+                filtro.innerHTML = '<option value="">Todos los años</option>';
             }
-        }
 
-        async function cargarAniosEscolares() {
-            try {
-                const response = await fetch('/AnioEscolar/ObtenerTodos');
-                const data = await response.json();
-
-                const select = document.getElementById('anioEscolarId');
-                const filtro = document.getElementById('filtroAnioEscolar');
-
-                if (data.success) {
-                    data.data.forEach(anio => {
-                        select.innerHTML += `<option value="${anio.id}">${anio.periodo}</option>`;
-                        if (filtro) {
-                            filtro.innerHTML += `<option value="${anio.id}">${anio.periodo}</option>`;
-                        }
-                    });
+            // Agregar las opciones
+            data.data.forEach(anio => {
+                console.log(`Agregando: ${anio.periodo} (ID: ${anio.id})`);
+                select.innerHTML += `<option value="${anio.id}">${anio.periodo}</option>`;
+                if (filtro) {
+                    filtro.innerHTML += `<option value="${anio.id}">${anio.periodo}</option>`;
                 }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-
-        function abrirModalCrear() {
-            document.getElementById('modalTitulo').textContent = 'Nuevo Período';
-            document.getElementById('formPeriodo').reset();
-            document.getElementById('periodoId').value = '';
-            document.getElementById('modalPeriodo').classList.remove('hidden');
-        }
-
-        function cerrarModal() {
-            document.getElementById('modalPeriodo').classList.add('hidden');
-        }
-
-        document.getElementById('formPeriodo').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const periodoId = document.getElementById('periodoId').value;
-            const formData = {
-                numero: parseInt(document.getElementById('numero').value),
-                fechaInicio: document.getElementById('fechaInicio').value,
-                fechaFin: document.getElementById('fechaFin').value,
-                anioEscolarId: parseInt(document.getElementById('anioEscolarId').value)
-            };
-
-            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-            const url = periodoId ? `/Periodo/Actualizar/${periodoId}` : '/Periodo/Crear';
-            const method = periodoId ? 'PUT' : 'POST';
-
-            try {
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    Swal.fire('¡Éxito!', result.message, 'success').then(() => location.reload());
-                } else {
-                    Swal.fire('Error', result.message, 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                Swal.fire('Error', 'Error al procesar la solicitud', 'error');
-            }
-        });
-
-        async function eliminarPeriodo(id, nombre) {
-            const result = await Swal.fire({
-                title: '¿Eliminar período?',
-                html: `Se eliminará el <strong>${nombre}</strong>`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
             });
 
-            if (result.isConfirmed) {
-                try {
-                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-                    const response = await fetch(`/Periodo/Eliminar/${id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'RequestVerificationToken': token
-                        }
-                    });
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        Swal.fire('¡Éxito!', data.message, 'success').then(() => location.reload());
-                    } else {
-                        Swal.fire('Error', data.message, 'error');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'Error al eliminar el período', 'error');
-                }
-            }
+            console.log('✅ Años escolares cargados exitosamente');
+        } else {
+            console.error('❌ Error en la respuesta:', data.message);
+            Swal.fire('Error', 'No se pudieron cargar los años escolares', 'error');
         }
+    } catch (error) {
+        console.error('❌ Error al cargar años escolares:', error);
+        Swal.fire('Error', 'Error de conexión al cargar años escolares', 'error');
+    }
+}
+
+function abrirModalCrear() {
+    document.getElementById('modalTitulo').textContent = 'Nuevo Período';
+    document.getElementById('formPeriodo').reset();
+    document.getElementById('periodoId').value = '';
+    document.getElementById('duracionInfo').classList.add('hidden');
+    document.getElementById('modalPeriodo').classList.remove('hidden');
+}
+
+function cerrarModal() {
+    document.getElementById('modalPeriodo').classList.add('hidden');
+}
+
+async function editarPeriodo(id) {
+    try {
+        const response = await fetch(`/Periodo/ObtenerDetalle?id=${id}`);
+        const result = await response.json();
+
+        if (result.success) {
+            document.getElementById('modalTitulo').textContent = 'Editar Período';
+            document.getElementById('periodoId').value = result.data.id;
+            document.getElementById('numero').value = result.data.numero;
+            document.getElementById('anioEscolarId').value = result.data.anioEscolarId;
+            document.getElementById('fechaInicio').value = result.data.fechaInicio.split('T')[0];
+            document.getElementById('fechaFin').value = result.data.fechaFin.split('T')[0];
+            
+            calcularDuracion();
+            document.getElementById('modalPeriodo').classList.remove('hidden');
+        } else {
+            Swal.fire('Error', result.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire('Error', 'Error al cargar el período', 'error');
+    }
+}
+
+document.getElementById('formPeriodo').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const periodoId = document.getElementById('periodoId').value;
+    const formData = {
+        numero: parseInt(document.getElementById('numero').value),
+        fechaInicio: document.getElementById('fechaInicio').value,
+        fechaFin: document.getElementById('fechaFin').value,
+        anioEscolarId: parseInt(document.getElementById('anioEscolarId').value)
+    };
+
+    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    const url = periodoId ? `/Periodo/Actualizar/${periodoId}` : '/Periodo/Crear';
+    const method = periodoId ? 'PUT' : 'POST';
+
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': token
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            Swal.fire('¡Éxito!', result.message, 'success').then(() => location.reload());
+        } else {
+            Swal.fire('Error', result.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire('Error', 'Error al procesar la solicitud', 'error');
+    }
+});
+
+async function eliminarPeriodo(id, nombre) {
+    const result = await Swal.fire({
+        title: '¿Eliminar período?',
+        html: `Se eliminará el <strong>${nombre}</strong>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const response = await fetch(`/Periodo/Eliminar/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'RequestVerificationToken': token
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                Swal.fire('¡Éxito!', data.message, 'success').then(() => location.reload());
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire('Error', 'Error al eliminar el período', 'error');
+        }
+    }
+}
+
+// Filtro por año escolar
+document.getElementById('filtroAnioEscolar')?.addEventListener('change', function() {
+    const anioSeleccionado = this.value;
+    const filas = document.querySelectorAll('tbody tr');
+
+    filas.forEach(fila => {
+        if (!anioSeleccionado || fila.dataset.anioId === anioSeleccionado) {
+            fila.style.display = '';
+        } else {
+            fila.style.display = 'none';
+        }
+    });
+});
     </script>
 }
