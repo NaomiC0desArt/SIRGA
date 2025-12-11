@@ -13,7 +13,7 @@ namespace SIRGA.Application.Interfaces.Entities
     {
         Task<ApiResponse<List<AsignaturaProfesorDto>>> GetAsignaturasProfesorAsync(string applicationUserId);
         Task<ApiResponse<CapturaMasivaDto>> GetEstudiantesParaCalificarAsync(string applicationUserId, int idAsignatura, int idCursoAcademico);
-        Task<ApiResponse<bool>> GuardarCalificacionesAsync(CapturaMasivaDto dto);
+        Task<ApiResponse<bool>> GuardarCalificacionesAsync(GuardarCalificacionesRequestDto dto);
         Task<ApiResponse<bool>> PublicarCalificacionesAsync(PublicarCalificacionesDto dto);
         Task<ApiResponse<List<CalificacionEstudianteViewDto>>> GetCalificacionesEstudianteAsync(string applicationUserId);
         Task<ApiResponse<bool>> EditarCalificacionAsync(EditarCalificacionDto dto, string usuarioId, string usuarioNombre, string rol);

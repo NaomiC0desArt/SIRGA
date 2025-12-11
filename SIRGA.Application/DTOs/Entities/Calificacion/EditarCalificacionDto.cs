@@ -12,6 +12,6 @@ namespace SIRGA.Application.DTOs.Entities.Calificacion
         public string MotivoModificacion { get; set; }
 
         [Required]
-        public CalificacionEstudianteDto NuevaCalificacion { get; set; }
+        public GuardarCalificacionDto NuevaCalificacion { get; set; }
     }
 }

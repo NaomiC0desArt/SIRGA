@@ -4,6 +4,7 @@ using SIRGA.Application.DTOs.Entities.Calificacion;
 using SIRGA.Web.Models.API;
 using SIRGA.Web.Services;
 using System.Security.Claims;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SIRGA.Web.Controllers
 {
@@ -152,7 +153,12 @@ namespace SIRGA.Web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("⚠️ ModelState inválido");
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                _logger.LogWarning("⚠️ ModelState inválido", string.Join(", ", errors));
                 return Json(new { success = false, message = "Datos inválidos" });
             }
 

@@ -1,8 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace SIRGA.Application.DTOs.Entities.Calificacion
 {
-    public class CapturaMasivaDto
+    public class GuardarCalificacionesRequestDto
     {
         [Required]
         public int IdAsignatura { get; set; }
@@ -21,8 +26,8 @@ namespace SIRGA.Application.DTOs.Entities.Calificacion
 
         public List<ComponenteDto> Componentes { get; set; }
 
-        public List<CalificacionEstudianteDto> Calificaciones { get; set; }
-
-        public bool TodasPublicadas { get; set; } = false;
+        // ✅ USA GuardarCalificacionDto para GUARDAR
+        [Required]
+        public List<GuardarCalificacionDto> Calificaciones { get; set; }
     }
 }

@@ -100,7 +100,7 @@ namespace SIRGA.API.Controllers.System
 
         [Authorize(Roles = "Profesor")]
         [HttpPost("Guardar")]
-        public async Task<IActionResult> GuardarCalificaciones([FromBody] CapturaMasivaDto dto)
+        public async Task<IActionResult> GuardarCalificaciones([FromBody] GuardarCalificacionesRequestDto dto)
         {
             if (!ModelState.IsValid)
             {
@@ -262,5 +262,7 @@ namespace SIRGA.API.Controllers.System
                 return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
             }
         }
+
+
     }
 }

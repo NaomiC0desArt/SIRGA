@@ -2,7 +2,15 @@
 
 @{
     ViewData["Title"] = "Mis Calificaciones";
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = User.Identity.Name;
+    ViewBag.UserRole = "Estudiante";
 }
+
+@section SidebarMenu {
+    <partial name="_EstudianteSidebarMenu" />
+}
+
 
 <div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
     <div class="max-w-7xl mx-auto">
@@ -98,7 +106,7 @@
                                         var primerPeriodo = asignatura.Periodos.FirstOrDefault();
                                         if (primerPeriodo != null)
                                         {
-                                            foreach (var componente in primerPeriodo.Componentes)
+                                            foreach (var componente in primerPeriodo.Componentes.OrderBy(c => c.Key))
                                             {
                                                 <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                                                     @componente.Key
@@ -128,14 +136,14 @@
 
                                         @if (periodo != null && periodo.Publicada)
                                         {
-                                            @foreach (var componente in periodo.Componentes)
+                                            @foreach (var componente in periodo.Componentes.OrderBy(c => c.Key))
                                             {
                                                 <td class="px-4 py-4 text-center">
                                                     @if (componente.Value.HasValue)
                                                     {
                                                         <span class="inline-block px-3 py-1 rounded-lg text-sm font-semibold
-                                                            @(componente.Value >= (GetMaxValue(asignatura.TipoAsignatura, componente.Key) * 0.7m) ? "bg-green-100 text-green-800" :
-                                                              componente.Value >= (GetMaxValue(asignatura.TipoAsignatura, componente.Key) * 0.5m) ? "bg-yellow-100 text-yellow-800" :
+                                                            @(componente.Value >= 70 ? "bg-green-100 text-green-800" :
+                                                              componente.Value >= 50 ? "bg-yellow-100 text-yellow-800" :
                                                               "bg-red-100 text-red-800")">
                                                             @componente.Value.Value.ToString("F2")
                                                         </span>
@@ -236,41 +244,3 @@
 
     </div>
 </div>
-
-@functions {
-    decimal GetMaxValue(string tipoAsignatura, string componente)
-    {
-        var estructuras = new Dictionary<string, Dictionary<string, decimal>>
-            {
-                ["Teorica"] = new Dictionary<string, decimal>
-                {
-                    ["Tareas"] = 40,
-                    ["Exámenes"] = 25,
-                    ["Exposiciones"] = 20,
-                    ["Participación"] = 15
-                },
-                ["Practica"] = new Dictionary<string, decimal>
-                {
-                    ["Prácticas"] = 50,
-                    ["Proyecto Final"] = 30,
-                    ["Teoría"] = 10,
-                    ["Participación"] = 10
-                },
-                ["TeoricoPractica"] = new Dictionary<string, decimal>
-                {
-                    ["Exámenes"] = 30,
-                    ["Prácticas"] = 40,
-                    ["Proyectos"] = 20,
-                    ["Participación"] = 10
-                }
-            };
-
-        if (estructuras.ContainsKey(tipoAsignatura) &&
-            estructuras[tipoAsignatura].ContainsKey(componente))
-        {
-            return estructuras[tipoAsignatura][componente];
-        }
-
-        return 100;
-    }
-}

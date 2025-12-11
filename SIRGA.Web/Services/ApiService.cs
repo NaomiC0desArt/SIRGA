@@ -9,6 +9,18 @@ namespace SIRGA.Web.Services
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<ApiService> _logger;
+        private readonly JsonSerializerOptions _jsonOptions;
+
+        // Endpoints que NO requieren autenticación
+        private static readonly HashSet<string> PublicEndpoints = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "api/Auth/Login",
+            "api/Auth/register",
+            "api/Auth/Forgot-Password",
+            "api/Auth/Reset-Password",
+            "api/Auth/Confirm-Email",
+            "api/Auth/User-Exists"
+        };
 
         public ApiService(
             IHttpClientFactory httpClientFactory,
@@ -18,28 +30,42 @@ namespace SIRGA.Web.Services
             _httpClientFactory = httpClientFactory;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
+            _jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
         }
 
-        private HttpClient CreateClient()
+        /// <summary>
+        /// Crea un HttpClient con o sin autenticación según el endpoint
+        /// </summary>
+        private HttpClient CreateClient(string endpoint)
         {
             var client = _httpClientFactory.CreateClient("SIRGA_API");
 
+            // Si es un endpoint público, NO agregar token
+            if (IsPublicEndpoint(endpoint))
+            {
+                _logger.LogDebug($"📖 Endpoint público: {endpoint} (sin token)");
+                return client;
+            }
+
+            // Para endpoints protegidos, intentar agregar token
             var token = _httpContextAccessor.HttpContext?.Session.GetString("JWTToken");
 
             if (!string.IsNullOrEmpty(token))
             {
-                // ✅ Solo verificar expiración si el token existe
                 if (IsTokenExpired(token))
                 {
-                    _logger.LogWarning("⚠️ Token expirado detectado");
+                    _logger.LogWarning("⚠️ Token expirado detectado - será removido");
                     _httpContextAccessor.HttpContext.Session.Remove("JWTToken");
-                    // NO lanzar excepción aquí - dejar que la API responda 401
                 }
                 else
                 {
                     client.DefaultRequestHeaders.Authorization =
                         new AuthenticationHeaderValue("Bearer", token);
-                    _logger.LogDebug($"✅ Token adjunto al request");
+                    _logger.LogDebug($"🔐 Token adjunto al request");
                 }
             }
             else
@@ -50,32 +76,45 @@ namespace SIRGA.Web.Services
             return client;
         }
 
+        /// <summary>
+        /// Verifica si un endpoint es público (no requiere autenticación)
+        /// </summary>
+        private bool IsPublicEndpoint(string endpoint)
+        {
+            return PublicEndpoints.Any(publicEndpoint =>
+                endpoint.StartsWith(publicEndpoint, StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// Maneja respuestas 401/403 de forma centralizada
+        /// </summary>
+        private void HandleUnauthorizedResponse(string endpoint, System.Net.HttpStatusCode statusCode)
+        {
+            _logger.LogWarning($"🚫 {statusCode} en {endpoint}");
+
+            if (statusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                _httpContextAccessor.HttpContext?.Session.Remove("JWTToken");
+                throw new UnauthorizedAccessException("El token ha expirado o no es válido.");
+            }
+        }
+
+        // ==================== MÉTODOS PÚBLICOS ====================
+
         public async Task<T?> GetAsync<T>(string endpoint)
         {
             try
             {
-                var client = CreateClient();
-                var fullUrl = $"{client.BaseAddress}{endpoint}";
-                _logger.LogDebug($"➡️ GET {fullUrl}");
+                var client = CreateClient(endpoint);
+                _logger.LogDebug($"➡️ GET {endpoint}");
 
                 var response = await client.GetAsync(endpoint);
-
                 _logger.LogDebug($"⬅️ Response: {(int)response.StatusCode}");
 
-                // ✅ Manejar 401/403 sin lanzar excepción - dejar que el controlador decida
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
                     response.StatusCode == System.Net.HttpStatusCode.Forbidden)
                 {
-                    _logger.LogWarning($"🚫 {response.StatusCode} en {endpoint}");
-
-                    // Limpiar token solo si es 401
-                    if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                    {
-                        _httpContextAccessor.HttpContext?.Session.Remove("JWTToken");
-                        throw new UnauthorizedAccessException("El token ha expirado o no es válido. Requiere re-login.");
-                    }
-
-                    return default;
+                    HandleUnauthorizedResponse(endpoint, response.StatusCode);
                 }
 
                 if (!response.IsSuccessStatusCode)
@@ -86,20 +125,16 @@ namespace SIRGA.Web.Services
                 }
 
                 var body = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<T>(body, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                return JsonSerializer.Deserialize<T>(body, _jsonOptions);
             }
             catch (UnauthorizedAccessException)
             {
-                // Re-lanzar para que el controlador lo maneje
-                throw;
+                throw; // Re-lanzar para que el controlador lo maneje
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"❌ Exception during GET {endpoint}");
-                throw; // Re-lanzar para que el controlador lo maneje
+                _logger.LogError(ex, $"❌ Error en GET {endpoint}");
+                throw;
             }
         }
 
@@ -107,11 +142,8 @@ namespace SIRGA.Web.Services
         {
             try
             {
-                var client = CreateClient();
-                var json = JsonSerializer.Serialize(data, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                });
+                var client = CreateClient(endpoint);
+                var json = JsonSerializer.Serialize(data, _jsonOptions);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 _logger.LogDebug($"➡️ POST {endpoint}");
@@ -123,27 +155,16 @@ namespace SIRGA.Web.Services
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
                     response.StatusCode == System.Net.HttpStatusCode.Forbidden)
                 {
-                    _logger.LogWarning($"🚫 {response.StatusCode} en POST {endpoint}");
-
-                    if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                    {
-                        _httpContextAccessor.HttpContext?.Session.Remove("JWTToken");
-                        throw new UnauthorizedAccessException("El token ha expirado o no es válido.");
-                    }
-
-                    return default;
+                    HandleUnauthorizedResponse(endpoint, response.StatusCode);
                 }
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning($"⚠️ POST {endpoint} failed: {responseContent}");
+                    _logger.LogWarning($"⚠️ POST {endpoint} failed: {response.StatusCode} - {responseContent}");
                     return default;
                 }
 
-                return JsonSerializer.Deserialize<TResponse>(responseContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                return JsonSerializer.Deserialize<TResponse>(responseContent, _jsonOptions);
             }
             catch (UnauthorizedAccessException)
             {
@@ -151,7 +172,7 @@ namespace SIRGA.Web.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"❌ Error in POST {endpoint}");
+                _logger.LogError(ex, $"❌ Error en POST {endpoint}");
                 throw;
             }
         }
@@ -160,16 +181,16 @@ namespace SIRGA.Web.Services
         {
             try
             {
-                var client = CreateClient();
-                var json = JsonSerializer.Serialize(data);
+                var client = CreateClient(endpoint);
+                var json = JsonSerializer.Serialize(data, _jsonOptions);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
+                _logger.LogDebug($"➡️ PUT {endpoint}");
                 var response = await client.PutAsync(endpoint, content);
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    _httpContextAccessor.HttpContext?.Session.Remove("JWTToken");
-                    throw new UnauthorizedAccessException("El token ha expirado.");
+                    HandleUnauthorizedResponse(endpoint, response.StatusCode);
                 }
 
                 return response.IsSuccessStatusCode;
@@ -180,7 +201,7 @@ namespace SIRGA.Web.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"❌ Error in PUT {endpoint}");
+                _logger.LogError(ex, $"❌ Error en PUT {endpoint}");
                 return false;
             }
         }
@@ -189,13 +210,13 @@ namespace SIRGA.Web.Services
         {
             try
             {
-                var client = CreateClient();
+                var client = CreateClient(endpoint);
+                _logger.LogDebug($"➡️ DELETE {endpoint}");
                 var response = await client.DeleteAsync(endpoint);
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    _httpContextAccessor.HttpContext?.Session.Remove("JWTToken");
-                    throw new UnauthorizedAccessException("El token ha expirado.");
+                    HandleUnauthorizedResponse(endpoint, response.StatusCode);
                 }
 
                 return response.IsSuccessStatusCode;
@@ -206,7 +227,7 @@ namespace SIRGA.Web.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"❌ Error in DELETE {endpoint}");
+                _logger.LogError(ex, $"❌ Error en DELETE {endpoint}");
                 return false;
             }
         }
@@ -215,14 +236,15 @@ namespace SIRGA.Web.Services
         {
             try
             {
-                var client = CreateClient();
+                var client = CreateClient(endpoint);
                 var request = new HttpRequestMessage(new HttpMethod("PATCH"), endpoint);
+
+                _logger.LogDebug($"➡️ PATCH {endpoint}");
                 var response = await client.SendAsync(request);
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    _httpContextAccessor.HttpContext?.Session.Remove("JWTToken");
-                    throw new UnauthorizedAccessException("El token ha expirado.");
+                    HandleUnauthorizedResponse(endpoint, response.StatusCode);
                 }
 
                 return response.IsSuccessStatusCode;
@@ -233,7 +255,7 @@ namespace SIRGA.Web.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"❌ Error in PATCH {endpoint}");
+                _logger.LogError(ex, $"❌ Error en PATCH {endpoint}");
                 return false;
             }
         }
@@ -242,8 +264,8 @@ namespace SIRGA.Web.Services
         {
             try
             {
-                var client = CreateClient();
-                var json = JsonSerializer.Serialize(data);
+                var client = CreateClient(endpoint);
+                var json = JsonSerializer.Serialize(data, _jsonOptions);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 var request = new HttpRequestMessage(new HttpMethod("PATCH"), endpoint)
@@ -251,12 +273,12 @@ namespace SIRGA.Web.Services
                     Content = content
                 };
 
+                _logger.LogDebug($"➡️ PATCH {endpoint}");
                 var response = await client.SendAsync(request);
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    _httpContextAccessor.HttpContext?.Session.Remove("JWTToken");
-                    throw new UnauthorizedAccessException("El token ha expirado.");
+                    HandleUnauthorizedResponse(endpoint, response.StatusCode);
                 }
 
                 return response.IsSuccessStatusCode;
@@ -267,18 +289,31 @@ namespace SIRGA.Web.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"❌ Error in PATCH {endpoint}");
+                _logger.LogError(ex, $"❌ Error en PATCH {endpoint}");
                 return false;
             }
         }
 
+        // ==================== MÉTODOS PRIVADOS ====================
+
+        /// <summary>
+        /// Verifica si un token JWT ha expirado
+        /// </summary>
         private bool IsTokenExpired(string token)
         {
             try
             {
-                var payloadBase64 = token.Split('.')[1];
+                var parts = token.Split('.');
+                if (parts.Length != 3)
+                {
+                    _logger.LogWarning("⚠️ Token JWT con formato inválido");
+                    return true;
+                }
+
+                var payloadBase64 = parts[1];
                 var base64 = payloadBase64.Replace('-', '+').Replace('_', '/');
 
+                // Agregar padding si es necesario
                 switch (base64.Length % 4)
                 {
                     case 2: base64 += "=="; break;
@@ -288,25 +323,24 @@ namespace SIRGA.Web.Services
                 var jsonBytes = Convert.FromBase64String(base64);
                 var jsonPayload = Encoding.UTF8.GetString(jsonBytes);
 
-                using (var document = JsonDocument.Parse(jsonPayload))
+                using var document = JsonDocument.Parse(jsonPayload);
+                if (document.RootElement.TryGetProperty("exp", out var expElement))
                 {
-                    if (document.RootElement.TryGetProperty("exp", out var expElement))
+                    var expirationTimeUnix = expElement.GetInt64();
+                    var expirationTime = DateTimeOffset.FromUnixTimeSeconds(expirationTimeUnix);
+
+                    // Margen de 5 minutos antes de expiración
+                    var isExpired = expirationTime.Subtract(TimeSpan.FromMinutes(5)) < DateTimeOffset.UtcNow;
+
+                    if (isExpired)
                     {
-                        var expirationTimeUnix = expElement.GetInt64();
-                        var expirationTime = DateTimeOffset.FromUnixTimeSeconds(expirationTimeUnix);
-
-                        // ✅ Margen de 5 minutos antes de expiración
-                        var isExpired = expirationTime.Subtract(TimeSpan.FromMinutes(5)) < DateTimeOffset.UtcNow;
-
-                        if (isExpired)
-                        {
-                            _logger.LogWarning($"⏰ Token expira en: {expirationTime:yyyy-MM-dd HH:mm:ss UTC}");
-                        }
-
-                        return isExpired;
+                        _logger.LogWarning($"⏰ Token expirado. Expira: {expirationTime:yyyy-MM-dd HH:mm:ss UTC}");
                     }
+
+                    return isExpired;
                 }
 
+                _logger.LogWarning("⚠️ Token sin claim 'exp'");
                 return true; // Si no tiene 'exp', asumir expirado
             }
             catch (Exception ex)
@@ -315,7 +349,6 @@ namespace SIRGA.Web.Services
                 return true; // Asumir expirado si hay error
             }
         }
-
 
     }
 }

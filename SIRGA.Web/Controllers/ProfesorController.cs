@@ -204,19 +204,24 @@ namespace SIRGA.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> GuardarCalificaciones([FromBody] CapturaMasivaDto model)
+        public async Task<IActionResult> GuardarCalificaciones([FromBody] GuardarCalificacionesRequestDto model)
         {
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("⚠️ ModelState inválido");
-                return Json(new { success = false, message = "Datos inválidos" });
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                _logger.LogWarning($"⚠️ ModelState inválido: {string.Join(", ", errors)}");
+                return Json(new { success = false, message = "Datos inválidos: " + string.Join(", ", errors) });
             }
 
             try
             {
                 _logger.LogInformation($"💾 Guardando {model.Calificaciones?.Count ?? 0} calificaciones");
 
-                var response = await _apiService.PostAsync<CapturaMasivaDto, ApiResponse<bool>>(
+                var response = await _apiService.PostAsync<GuardarCalificacionesRequestDto, ApiResponse<bool>>(
                     "api/Calificacion/Guardar", model);
 
                 if (response?.Success == true)

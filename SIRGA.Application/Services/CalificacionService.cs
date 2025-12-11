@@ -126,13 +126,12 @@ namespace SIRGA.Application.Services
         }
 
         public async Task<ApiResponse<CapturaMasivaDto>> GetEstudiantesParaCalificarAsync(
-            string applicationUserId, int idAsignatura, int idCursoAcademico)
+    string applicationUserId, int idAsignatura, int idCursoAcademico)
         {
             try
             {
                 _logger.LogInformation($"🔍 GetEstudiantesParaCalificarAsync - UserId: {applicationUserId}, Asignatura: {idAsignatura}, Curso: {idCursoAcademico}");
 
-                // PASO 1: Obtener el profesor por ApplicationUserId
                 var profesor = await _profesorRepository.GetByApplicationUserIdAsync(applicationUserId);
                 if (profesor == null)
                 {
@@ -166,6 +165,9 @@ namespace SIRGA.Application.Services
 
                 var calificaciones = new List<CalificacionEstudianteDto>();
 
+                // ✅ AGREGAR: Variable para saber si todas están publicadas
+                bool todasPublicadas = true;
+
                 foreach (var inscripcion in inscripciones)
                 {
                     var calificacionExistente = await _calificacionRepository.GetCalificacionConDetallesAsync(
@@ -181,18 +183,27 @@ namespace SIRGA.Application.Services
                         Componentes = new Dictionary<int, decimal?>()
                     };
 
-                    // Si ya existe calificación, cargar los valores
                     if (calificacionExistente != null)
                     {
-                        _logger.LogInformation($"📊 Calificación existente para estudiante {dto.Matricula}");
+                        _logger.LogInformation($"📊 Calificación existente para estudiante {dto.Matricula} - Publicada: {calificacionExistente.Publicada}");
+
+                        // ✅ Si al menos una no está publicada
+                        if (!calificacionExistente.Publicada)
+                        {
+                            todasPublicadas = false;
+                        }
+
                         foreach (var detalle in calificacionExistente.Detalles)
                         {
                             dto.Componentes[detalle.IdComponenteCalificacion] = detalle.Valor;
                         }
                         dto.Observaciones = calificacionExistente.Observaciones;
                     }
+                    else
+                    {
+                        todasPublicadas = false;
+                    }
 
-                    // Asegurar que todos los componentes están presentes
                     foreach (var componente in componentes)
                     {
                         if (!dto.Componentes.ContainsKey(componente.Id))
@@ -209,7 +220,7 @@ namespace SIRGA.Application.Services
                     IdAsignatura = idAsignatura,
                     IdCursoAcademico = idCursoAcademico,
                     IdPeriodo = periodoActivo.Id,
-                    IdProfesor = profesor.Id, // ✅ Ahora usamos el ID numérico correcto
+                    IdProfesor = profesor.Id,
                     TipoAsignatura = asignatura.TipoAsignatura,
                     Componentes = componentes.Select(c => new ComponenteDto
                     {
@@ -218,10 +229,12 @@ namespace SIRGA.Application.Services
                         ValorMaximo = c.ValorMaximo,
                         Orden = c.Orden
                     }).ToList(),
-                    Calificaciones = calificaciones
+                    Calificaciones = calificaciones,
+                    // ✅ AGREGAR: Indicador de si están publicadas
+                    TodasPublicadas = todasPublicadas
                 };
 
-                _logger.LogInformation($"✅ Datos preparados correctamente. IdProfesor: {resultado.IdProfesor}");
+                _logger.LogInformation($"✅ Datos preparados correctamente. IdProfesor: {resultado.IdProfesor}, Publicadas: {todasPublicadas}");
                 return ApiResponse<CapturaMasivaDto>.SuccessResponse(resultado);
             }
             catch (Exception ex)
@@ -232,17 +245,27 @@ namespace SIRGA.Application.Services
             }
         }
 
-        public async Task<ApiResponse<bool>> GuardarCalificacionesAsync(CapturaMasivaDto dto)
+        // ✅ ACTUALIZAR el método de guardar para prevenir modificación de publicadas
+        public async Task<ApiResponse<bool>> GuardarCalificacionesAsync(GuardarCalificacionesRequestDto dto)
         {
             try
             {
                 _logger.LogInformation($"💾 Guardando calificaciones - IdProfesor: {dto.IdProfesor}, IdAsignatura: {dto.IdAsignatura}");
 
+                // ✅ VALIDAR: Verificar si ya están publicadas
+                var calificacionesCurso = await _calificacionRepository.GetCalificacionesPorCursoYAsignaturaAsync(
+                    dto.IdCursoAcademico, dto.IdAsignatura, dto.IdPeriodo);
+
+                if (calificacionesCurso.Any(c => c.Publicada))
+                {
+                    return ApiResponse<bool>.ErrorResponse(
+                        "No se pueden modificar calificaciones ya publicadas. Contacte al administrador si necesita hacer cambios.");
+                }
+
                 var componentes = await _componenteRepository.GetByTipoAsignaturaAsync(dto.TipoAsignatura);
 
                 foreach (var calificacionDto in dto.Calificaciones)
                 {
-                    // Calcular total primero para validación
                     decimal total = 0;
                     foreach (var componenteValor in calificacionDto.Componentes)
                     {
@@ -251,21 +274,19 @@ namespace SIRGA.Application.Services
 
                         var valor = componenteValor.Value ?? 0;
 
-                        // Validar que no exceda el máximo del componente
                         if (valor > componente.ValorMaximo)
                         {
                             return ApiResponse<bool>.ErrorResponse(
-                                $"El valor de '{componente.Nombre}' ({valor}) excede el máximo ({componente.ValorMaximo}) para el estudiante {calificacionDto.Matricula}");
+                                $"El valor de '{componente.Nombre}' ({valor}) excede el máximo ({componente.ValorMaximo}) para el estudiante ID: {calificacionDto.IdEstudiante}");
                         }
 
                         total += valor;
                     }
 
-                    // Validar que el total no exceda 100
                     if (total > 100)
                     {
                         return ApiResponse<bool>.ErrorResponse(
-                            $"El total ({total} pts) excede 100 puntos para el estudiante {calificacionDto.Matricula}");
+                            $"El total ({total} pts) excede 100 puntos para el estudiante ID: {calificacionDto.IdEstudiante}");
                     }
 
                     var calificacionExistente = await _calificacionRepository.GetCalificacionConDetallesAsync(
@@ -295,7 +316,6 @@ namespace SIRGA.Application.Services
                         calificacion = calificacionExistente;
                     }
 
-                    // Guardar detalles
                     foreach (var componenteValor in calificacionDto.Componentes)
                     {
                         var componente = componentes.FirstOrDefault(c => c.Id == componenteValor.Key);
@@ -405,10 +425,24 @@ namespace SIRGA.Application.Services
                 var estudiante = await _estudianteRepository.GetByApplicationUserIdAsync(applicationUserId);
                 if (estudiante == null)
                 {
+                    _logger.LogWarning($"❌ Estudiante no encontrado para ApplicationUserId: {applicationUserId}");
                     return ApiResponse<List<CalificacionEstudianteViewDto>>.ErrorResponse("Estudiante no encontrado");
                 }
 
+                _logger.LogInformation($"✅ Estudiante encontrado - ID: {estudiante.Id}");
+
+                // ✅ SOLO obtener calificaciones PUBLICADAS
                 var calificaciones = await _calificacionRepository.GetCalificacionesPorEstudianteAsync(estudiante.Id);
+
+                _logger.LogInformation($"📊 Total de calificaciones publicadas encontradas: {calificaciones.Count}");
+
+                if (!calificaciones.Any())
+                {
+                    _logger.LogInformation("ℹ️ El estudiante no tiene calificaciones publicadas");
+                    return ApiResponse<List<CalificacionEstudianteViewDto>>.SuccessResponse(
+                        new List<CalificacionEstudianteViewDto>(),
+                        "No hay calificaciones publicadas disponibles");
+                }
 
                 var resultado = calificaciones
                     .GroupBy(c => new { c.IdAsignatura, c.Asignatura.Nombre, c.Asignatura.TipoAsignatura })
@@ -430,6 +464,7 @@ namespace SIRGA.Application.Services
                     })
                     .ToList();
 
+                _logger.LogInformation($"✅ Devolviendo {resultado.Count} asignaturas con calificaciones");
                 return ApiResponse<List<CalificacionEstudianteViewDto>>.SuccessResponse(resultado);
             }
             catch (Exception ex)
@@ -439,7 +474,6 @@ namespace SIRGA.Application.Services
                     "Error al obtener calificaciones", new List<string> { ex.Message });
             }
         }
-
         public async Task<ApiResponse<bool>> EditarCalificacionAsync(
             EditarCalificacionDto dto, string usuarioId, string usuarioNombre, string rol)
         {

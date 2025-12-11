@@ -113,12 +113,13 @@ namespace SIRGA.Web.Controllers
             }
         }
 
+        // En EstudianteController.cs - AGREGAR este método:
+
         [HttpGet]
         public async Task<IActionResult> MisCalificaciones()
         {
             try
             {
-                // Simplificado: la API usa el token automáticamente
                 var response = await _apiService.GetAsync<ApiResponse<List<CalificacionEstudianteViewDto>>>(
                     "api/Calificacion/Mis-Calificaciones");
 
@@ -129,8 +130,8 @@ namespace SIRGA.Web.Controllers
                 }
 
                 // Obtener año escolar actual
-                var anioResponse = await _apiService.GetAsync<ApiResponse<AnioEscolarDto>>("api/AnioEscolar/Activo");
-                ViewBag.PeriodoAcademico = anioResponse?.Data?.Periodo;
+                var anioResponse = await _apiService.GetAsync<ApiResponse<dynamic>>("api/AnioEscolar/Activo");
+                ViewBag.PeriodoAcademico = anioResponse?.Data?.GetProperty("periodo").GetString();
 
                 return View(response.Data ?? new List<CalificacionEstudianteViewDto>());
             }

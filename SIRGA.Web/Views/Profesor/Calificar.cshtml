@@ -3,6 +3,13 @@
 @{
     ViewData["Title"] = "Calificar Estudiantes";
     Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = User.Identity.Name;
+    ViewBag.UserRole = "Profesor";
+    var modoSoloLectura = Model.TodasPublicadas;
+}
+
+@section SidebarMenu {
+        <partial name="_ProfesorSidebarMenu" />
 }
 
 <div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
@@ -24,7 +31,7 @@
                         </p>
                     </div>
                 </div>
-                <a asp-action="MisAsignaturas" asp-controller="Profesor" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
+                <a asp-action="MisAsignaturas" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
                     <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
@@ -33,6 +40,35 @@
             </div>
         </div>
 
+        <!-- ✅ Alerta de Calificaciones Publicadas -->
+        @if (modoSoloLectura)
+        {
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-6 rounded-r-lg shadow-md">
+                    <div class="flex items-center">
+                        <svg class="w-8 h-8 text-yellow-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                        <div>
+                            <h3 class="text-lg font-bold text-yellow-900 mb-1">Calificaciones Publicadas - Modo Solo Lectura</h3>
+                            <p class="text-yellow-700">
+                                Estas calificaciones ya han sido publicadas y no pueden ser modificadas.
+                                Si necesitas hacer cambios, contacta al administrador del sistema.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+        }
+
+        @{
+            var tipoDisplay = Model.TipoAsignatura switch
+                {
+                    "Teorica" => "Teórica",
+                    "Practica" => "Práctica",
+                    "TeoricoPractica" => "Teórico-Práctica",
+        _            => Model.TipoAsignatura
+                };
+        }
+
         <!-- Información del Tipo -->
         <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-8">
             <div class="flex items-start">
@@ -40,11 +76,11 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <div>
-                    <p class="font-semibold text-blue-900 mb-2">Tipo: @ViewBag.TipoAsignatura</p>
+                    <p class="font-semibold text-blue-900 mb-2">Tipo: @tipoDisplay</p>
                     <div class="text-sm text-blue-700">
                         @foreach (var componente in Model.Componentes.OrderBy(c => c.Orden))
                         {
-                            <span class="inline-block mr-4">@componente.Nombre: @componente.ValorMaximo pts</span>
+                                <span class="inline-block mr-4">@componente.Nombre: @componente.ValorMaximo pts</span>
                         }
                     </div>
                 </div>
@@ -64,10 +100,10 @@
                             </th>
                             @foreach (var componente in Model.Componentes.OrderBy(c => c.Orden))
                             {
-                                <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase">
+                                    <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase">
                                     @componente.Nombre<br>
-                                    <span class="text-blue-600">(@componente.ValorMaximo pts)</span>
-                                </th>
+                                        <span class="text-blue-600">(@componente.ValorMaximo pts)</span>
+                                    </th>
                             }
                             <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase bg-green-50">
                                 Total
@@ -80,20 +116,20 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach (var estudiante in Model.Calificaciones)
                         {
-                            <tr class="hover:bg-gray-50" data-estudiante-id="@estudiante.IdEstudiante">
-                                <td class="px-6 py-4 whitespace-nowrap sticky left-0 bg-white">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10 bg-purple-100 rounded-full flex items-center justify-center">
-                                            <span class="text-purple-600 font-semibold text-sm">
+                                <tr class="hover:bg-gray-50" data-estudiante-id="@estudiante.IdEstudiante">
+                                    <td class="px-6 py-4 whitespace-nowrap sticky left-0 bg-white">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                                <span class="text-purple-600 font-semibold text-sm">
                                                 @estudiante.Matricula.Substring(0, 2)
-                                            </span>
+                                                </span>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900">@estudiante.NombreCompleto</p>
+                                                <p class="text-xs text-gray-500">@estudiante.Matricula</p>
+                                            </div>
                                         </div>
-                                        <div class="ml-3">
-                                            <p class="text-sm font-medium text-gray-900">@estudiante.NombreCompleto</p>
-                                            <p class="text-xs text-gray-500">@estudiante.Matricula</p>
-                                        </div>
-                                    </div>
-                                </td>
+                                    </td>
 
                                 @foreach (var componente in Model.Componentes.OrderBy(c => c.Orden))
                                 {
@@ -101,33 +137,35 @@
                                     ? estudiante.Componentes[componente.Id]
                                     : null;
 
-                                    <td class="px-6 py-4 text-center">
-                                        <input type="number"
-                                               class="componente-input w-20 px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-purple-500"
-                                               data-componente-id="@componente.Id"
-                                               data-max="@componente.ValorMaximo"
-                                               min="0"
-                                               max="@componente.ValorMaximo"
-                                               step="0.01"
-                                               value="@(valor?.ToString() ?? "")"
-                                               placeholder="0" />
-                                    </td>
+                                            <td class="px-6 py-4 text-center">
+                                                <input type="number"
+                                                       class="componente-input w-20 px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-purple-500 @(modoSoloLectura ? "bg-gray-100 cursor-not-allowed" : "")"
+                                                       data-componente-id="@componente.Id"
+                                                       data-max="@componente.ValorMaximo"
+                                                       min="0"
+                                                       max="@componente.ValorMaximo"
+                                                       step="0.01"
+                                                       value="@(valor?.ToString() ?? "")"
+                                                       placeholder="0"
+                                        @(modoSoloLectura ? "readonly disabled" : "") />
+                                            </td>
                                 }
 
-                                <td class="px-6 py-4 text-center bg-green-50">
-                                    <input type="number" readonly
-                                           class="total-input w-20 px-2 py-1 text-center font-bold text-green-700 bg-green-100 border-2 border-green-300 rounded"
-                                           value="0" step="0.01" />
-                                </td>
+                                    <td class="px-6 py-4 text-center bg-green-50">
+                                        <input type="number" readonly
+                                               class="total-input w-20 px-2 py-1 text-center font-bold text-green-700 bg-green-100 border-2 border-green-300 rounded"
+                                               value="0" step="0.01" />
+                                    </td>
 
-                                <td class="px-6 py-4">
-                                    <input type="text"
-                                           class="observaciones-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                                           placeholder="Opcional"
-                                           value="@estudiante.Observaciones"
-                                           maxlength="500" />
-                                </td>
-                            </tr>
+                                    <td class="px-6 py-4">
+                                        <input type="text"
+                                               class="observaciones-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 @(modoSoloLectura ? "bg-gray-100 cursor-not-allowed" : "")"
+                                               placeholder="Opcional"
+                                               value="@estudiante.Observaciones"
+                                               maxlength="500"
+                                    @(modoSoloLectura ? "readonly disabled" : "") />
+                                    </td>
+                                </tr>
                         }
                     </tbody>
                 </table>
@@ -137,23 +175,30 @@
             <div class="bg-gray-50 px-8 py-6 flex justify-between items-center border-t border-gray-200">
                 <div class="text-sm text-gray-600">
                     <span class="font-semibold">@Model.Calificaciones.Count</span> estudiantes
+                    @if (modoSoloLectura)
+                    {
+                            <span class="ml-4 text-green-600 font-semibold">✓ Publicadas</span>
+                    }
                 </div>
-                <div class="flex gap-3">
-                    <button type="button" onclick="guardarCalificaciones()"
-                            class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg shadow-lg transition-all">
-                        <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
-                        </svg>
-                        Guardar Borrador
-                    </button>
-                    <button type="button" onclick="publicarCalificaciones()"
-                            class="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg transition-all">
-                        <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        Publicar
-                    </button>
-                </div>
+                @if (!modoSoloLectura)
+                {
+                        <div class="flex gap-3">
+                            <button type="button" onclick="guardarCalificaciones()"
+                                    class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg shadow-lg transition-all">
+                                <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                                </svg>
+                                Guardar Borrador
+                            </button>
+                            <button type="button" onclick="publicarCalificaciones()"
+                                    class="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg transition-all">
+                                <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Publicar
+                            </button>
+                        </div>
+                }
             </div>
         </form>
 
@@ -161,201 +206,125 @@
 </div>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        console.log('🎯 Script de calificaciones cargado');
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            console.log('🎯 Script de calificaciones cargado');
+            const modoSoloLectura = @(modoSoloLectura ? "true" : "false");
 
-        // ✅ Calcular total de una fila
-        function calcularTotal(row) {
-            const inputs = row.querySelectorAll('.componente-input');
-            let total = 0;
-
-            inputs.forEach(input => {
-                const valor = parseFloat(input.value) || 0;
-                total += valor;
-            });
-
-            const totalInput = row.querySelector('.total-input');
-            totalInput.value = total.toFixed(2);
-
-            // Cambiar color según el total
-            if (total > 100) {
-                totalInput.className = 'total-input w-20 px-2 py-1 text-center font-bold bg-red-100 border-2 border-red-500 text-red-700 rounded';
-            } else if (total >= 70) {
-                totalInput.className = 'total-input w-20 px-2 py-1 text-center font-bold bg-green-100 border-2 border-green-300 text-green-700 rounded';
-            } else if (total >= 50) {
-                totalInput.className = 'total-input w-20 px-2 py-1 text-center font-bold bg-yellow-100 border-2 border-yellow-300 text-yellow-700 rounded';
-            } else {
-                totalInput.className = 'total-input w-20 px-2 py-1 text-center font-bold bg-red-100 border-2 border-red-300 text-red-700 rounded';
-            }
-        }
-
-        // ✅ Configurar eventos de input
-        document.querySelectorAll('.componente-input').forEach(input => {
-            input.addEventListener('input', function() {
-                // Validar que no exceda el máximo
-                const max = parseFloat(this.dataset.max);
-                if (parseFloat(this.value) > max) {
-                    this.value = max;
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Valor excedido',
-                        text: `El valor máximo para este componente es ${max} puntos`,
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
-                }
-
-                const row = this.closest('tr');
-                calcularTotal(row);
-            });
-        });
-
-        // ✅ Calcular todos los totales al cargar la página
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('📊 Calculando totales iniciales...');
-            document.querySelectorAll('tbody tr').forEach(row => {
-                calcularTotal(row);
-            });
-            console.log('✅ Totales calculados');
-        });
-
-        // ✅ Recopilar datos del formulario
-        function recopilarDatos() {
-            const calificaciones = [];
-
-            document.querySelectorAll('tbody tr').forEach(row => {
-                const idEstudiante = parseInt(row.dataset.estudianteId);
+            function calcularTotal(row) {
                 const inputs = row.querySelectorAll('.componente-input');
-                const observaciones = row.querySelector('.observaciones-input').value;
+                let total = 0;
 
-                const componentes = {};
                 inputs.forEach(input => {
-                    const idComponente = parseInt(input.dataset.componenteId);
-                    const valor = input.value ? parseFloat(input.value) : null;
-                    componentes[idComponente] = valor;
+                    const valor = parseFloat(input.value) || 0;
+                    total += valor;
                 });
 
-                calificaciones.push({
-                    IdEstudiante: idEstudiante,
-                    Componentes: componentes,
-                    Observaciones: observaciones
+                const totalInput = row.querySelector('.total-input');
+                totalInput.value = total.toFixed(2);
+
+                if (total > 100) {
+                    totalInput.className = 'total-input w-20 px-2 py-1 text-center font-bold bg-red-100 border-2 border-red-500 text-red-700 rounded';
+                } else if (total >= 70) {
+                    totalInput.className = 'total-input w-20 px-2 py-1 text-center font-bold bg-green-100 border-2 border-green-300 text-green-700 rounded';
+                } else if (total >= 50) {
+                    totalInput.className = 'total-input w-20 px-2 py-1 text-center font-bold bg-yellow-100 border-2 border-yellow-300 text-yellow-700 rounded';
+                } else {
+                    totalInput.className = 'total-input w-20 px-2 py-1 text-center font-bold bg-red-100 border-2 border-red-300 text-red-700 rounded';
+                }
+            }
+
+            // ✅ Solo configurar eventos si NO está en modo solo lectura
+            if (!modoSoloLectura) {
+                document.querySelectorAll('.componente-input').forEach(input => {
+                    input.addEventListener('input', function() {
+                        const max = parseFloat(this.dataset.max);
+                        if (parseFloat(this.value) > max) {
+                            this.value = max;
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Valor excedido',
+                                text: `El valor máximo para este componente es ${max} puntos`,
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000
+                            });
+                        }
+
+                        const row = this.closest('tr');
+                        calcularTotal(row);
+                    });
                 });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('📊 Calculando totales iniciales...');
+                document.querySelectorAll('tbody tr').forEach(row => {
+                    calcularTotal(row);
+                });
+                console.log('✅ Totales calculados');
             });
 
-            const datos = {
-                IdAsignatura: @Model.IdAsignatura,
-                IdCursoAcademico: @Model.IdCursoAcademico,
-                IdPeriodo: @Model.IdPeriodo,
-                IdProfesor: @Model.IdProfesor,
-                TipoAsignatura: '@Model.TipoAsignatura',
-                Componentes: @Html.Raw(Json.Serialize(Model.Componentes)),
-                Calificaciones: calificaciones
-            };
+            function recopilarDatos() {
+                const calificaciones = [];
 
-            console.log('📦 Datos recopilados:', datos);
-            return datos;
-        }
+                document.querySelectorAll('tbody tr').forEach(row => {
+                    const idEstudiante = parseInt(row.dataset.estudianteId);
+                    const inputs = row.querySelectorAll('.componente-input');
+                    const observaciones = row.querySelector('.observaciones-input').value;
 
-        // ✅ Guardar calificaciones
-        async function guardarCalificaciones() {
-            const datos = recopilarDatos();
-            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const componentes = {};
+                    inputs.forEach(input => {
+                        const idComponente = parseInt(input.dataset.componenteId);
+                        const valor = input.value ? parseFloat(input.value) : null;
+                        componentes[idComponente] = valor;
+                    });
 
-            console.log('💾 Guardando calificaciones...');
-
-            try {
-                const response = await fetch('/Calificacion/Guardar', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
-                    },
-                    body: JSON.stringify(datos)
+                    calificaciones.push({
+                        idEstudiante: idEstudiante,
+                        componentes: componentes,
+                        observaciones: observaciones
+                    });
                 });
 
-                const result = await response.json();
-                console.log('📥 Respuesta:', result);
+                const datos = {
+                    idAsignatura: @Model.IdAsignatura,
+                    idCursoAcademico: @Model.IdCursoAcademico,
+                    idPeriodo: @Model.IdPeriodo,
+                    idProfesor: @Model.IdProfesor,
+                    tipoAsignatura: '@Model.TipoAsignatura',
+                    componentes: @Html.Raw(Json.Serialize(Model.Componentes)),
+                    calificaciones: calificaciones
+                };
 
-                if (result.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: '¡Guardado!',
-                        text: 'Calificaciones guardadas como borrador',
-                        confirmButtonColor: '#8b5cf6'
-                    });
-                } else {
+                console.log('📦 Datos recopilados:', datos);
+                return datos;
+            }
+
+            async function guardarCalificaciones() {
+                if (modoSoloLectura) {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Error',
-                        text: result.message || 'Error al guardar calificaciones'
+                        title: 'Acción no permitida',
+                        text: 'Las calificaciones ya están publicadas y no pueden ser modificadas.'
                     });
+                    return;
                 }
-            } catch (error) {
-                console.error('❌ Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Error al procesar la solicitud'
-                });
-            }
-        }
 
-        // ✅ Publicar calificaciones
-        async function publicarCalificaciones() {
-            // Validar que ningún total exceda 100
-            let hayErrores = false;
-            document.querySelectorAll('.total-input').forEach(input => {
-                if (parseFloat(input.value) > 100) {
-                    hayErrores = true;
-                }
-            });
-
-            if (hayErrores) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error de validación',
-                    text: 'Hay estudiantes con totales que exceden 100 puntos. Por favor corrígelos antes de publicar.'
-                });
-                return;
-            }
-
-            const result = await Swal.fire({
-                title: '¿Publicar calificaciones?',
-                html: `
-                    <p class="text-gray-700 mb-4">Las calificaciones serán visibles para los estudiantes.</p>
-                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                        <p class="text-sm text-orange-700">
-                            <strong>⚠️ Advertencia:</strong> Solo el administrador podrá editarlas después.
-                        </p>
-                    </div>
-                `,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Sí, publicar',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#8b5cf6'
-            });
-
-            if (result.isConfirmed) {
+                const datos = recopilarDatos();
                 const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
-                console.log('📤 Publicando calificaciones...');
+                console.log('💾 Guardando calificaciones...');
 
                 try {
-                    const response = await fetch('/Calificacion/Publicar', {
+                    const response = await fetch('/Profesor/GuardarCalificaciones', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'RequestVerificationToken': token
                         },
-                        body: JSON.stringify({
-                            IdAsignatura: @Model.IdAsignatura,
-                            IdCursoAcademico: @Model.IdCursoAcademico,
-                            IdPeriodo: @Model.IdPeriodo
-                        })
+                        body: JSON.stringify(datos)
                     });
 
                     const result = await response.json();
@@ -364,15 +333,15 @@
                     if (result.success) {
                         Swal.fire({
                             icon: 'success',
-                            title: '¡Publicado!',
-                            text: result.message || 'Calificaciones publicadas exitosamente',
+                            title: '¡Guardado!',
+                            text: 'Calificaciones guardadas como borrador',
                             confirmButtonColor: '#8b5cf6'
-                        }).then(() => window.location.href = '/Profesor/MisAsignaturas');
+                        });
                     } else {
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: result.message || 'Error al publicar calificaciones'
+                            text: result.message || 'Error al guardar calificaciones'
                         });
                     }
                 } catch (error) {
@@ -384,6 +353,95 @@
                     });
                 }
             }
-        }
-    </script>
+
+            async function publicarCalificaciones() {
+                if (modoSoloLectura) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Acción no permitida',
+                        text: 'Las calificaciones ya están publicadas.'
+                    });
+                    return;
+                }
+
+                let hayErrores = false;
+                document.querySelectorAll('.total-input').forEach(input => {
+                    if (parseFloat(input.value) > 100) {
+                        hayErrores = true;
+                    }
+                });
+
+                if (hayErrores) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de validación',
+                        text: 'Hay estudiantes con totales que exceden 100 puntos. Por favor corrígelos antes de publicar.'
+                    });
+                    return;
+                }
+
+                const result = await Swal.fire({
+                    title: '¿Publicar calificaciones?',
+                    html: `
+                        <p class="text-gray-700 mb-4">Las calificaciones serán visibles para los estudiantes.</p>
+                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                            <p class="text-sm text-orange-700">
+                                <strong>⚠️ Advertencia:</strong> Solo el administrador podrá editarlas después.
+                            </p>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, publicar',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#8b5cf6'
+                });
+
+                if (result.isConfirmed) {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                    console.log('📤 Publicando calificaciones...');
+
+                    try {
+                        const response = await fetch('/Profesor/PublicarCalificaciones', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': token
+                            },
+                            body: JSON.stringify({
+                                idAsignatura: @Model.IdAsignatura,
+                                idCursoAcademico: @Model.IdCursoAcademico,
+                                idPeriodo: @Model.IdPeriodo
+                            })
+                        });
+
+                        const result = await response.json();
+                        console.log('📥 Respuesta:', result);
+
+                        if (result.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Publicado!',
+                                text: result.message || 'Calificaciones publicadas exitosamente',
+                                confirmButtonColor: '#8b5cf6'
+                            }).then(() => window.location.href = '/Profesor/MisAsignaturas');
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: result.message || 'Error al publicar calificaciones'
+                            });
+                        }
+                    } catch (error) {
+                        console.error('❌ Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error al procesar la solicitud'
+                        });
+                    }
+                }
+            }
+        </script>
 }
