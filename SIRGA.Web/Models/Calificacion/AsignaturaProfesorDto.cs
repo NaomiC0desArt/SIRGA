@@ -12,5 +12,6 @@
         public int CantidadEstudiantes { get; set; }
         public int CalificacionesPublicadas { get; set; }
         public int CalificacionesPendientes { get; set; }
+        public int CalificacionesGuardadas { get; set; }
     }
 }

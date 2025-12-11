@@ -1,6 +1,15 @@
-﻿<!-- Dashboard/Home -->
+﻿@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+
+    // Determinar sección activa
+    bool esCalificaciones = (controller == "Profesor" && (action == "MisAsignaturas" || action == "Calificar"));
+    bool esIndex = (controller == "Profesor" && action == "Index");
+}
+
+<!-- Dashboard/Home -->
 <a asp-controller="Profesor" asp-action="Index"
-   class="sidebar-menu-item flex items-center px-3 py-2.5 mb-1 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+   class="sidebar-menu-item @(esIndex ? "bg-blue-50 text-blue-700 font-semibold" : "text-gray-700 hover:bg-gray-100") flex items-center px-3 py-2.5 mb-1 rounded-lg transition-colors">
     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
     </svg>
@@ -17,14 +26,14 @@
             </svg>
             <span class="text-sm font-medium">Gestión de Clases</span>
         </div>
-        <svg id="gestion-clases-profesor-icon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg id="gestion-clases-profesor-icon" class="w-4 h-4 transition-transform @(esCalificaciones ? "rotate-180" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
         </svg>
     </button>
 
-    <div id="gestion-clases-profesor" class="ml-8 mt-1 space-y-1">
+    <div id="gestion-clases-profesor" class="ml-8 mt-1 space-y-1 @(esCalificaciones ? "" : "hidden")">
         <a asp-controller="Profesor" asp-action="MisClases"
-           class="sidebar-menu-item flex items-center px-3 py-2 text-sm text-gray-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors">
+           class="sidebar-submenu-item flex items-center px-3 py-2 text-sm text-gray-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
             </svg>
@@ -32,7 +41,7 @@
         </a>
 
         <a asp-controller="Profesor" asp-action="MisAsignaturas"
-           class="sidebar-menu-item flex items-center px-3 py-2 text-sm text-gray-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors">
+           class="sidebar-submenu-item calificaciones-link @(esCalificaciones ? "bg-purple-50 text-purple-700 font-semibold" : "") flex items-center px-3 py-2 text-sm text-gray-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
             </svg>
@@ -40,7 +49,7 @@
         </a>
 
         <a asp-controller="AsistenciaProfesor" asp-action="Index"
-           class="sidebar-menu-item flex items-center px-3 py-2 text-sm text-gray-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors">
+           class="sidebar-submenu-item flex items-center px-3 py-2 text-sm text-gray-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
@@ -87,3 +96,21 @@
     </svg>
     <span class="text-sm">Mi Perfil</span>
 </a>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mantener la sección de Gestión de Clases abierta si estamos en calificaciones
+        const currentPath = window.location.pathname.toLowerCase();
+        const isCalificaciones = currentPath.includes('/profesor/misasignaturas') ||
+                                 currentPath.includes('/profesor/calificar');
+
+        if (isCalificaciones) {
+            const section = document.getElementById('gestion-clases-profesor');
+            const icon = document.getElementById('gestion-clases-profesor-icon');
+            if (section && icon) {
+                section.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
+    });
+</script>

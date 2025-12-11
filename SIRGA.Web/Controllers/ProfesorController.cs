@@ -116,6 +116,26 @@ namespace SIRGA.Web.Controllers
                     return View("MisAsignaturas", new List<AsignaturaProfesorDto>());
                 }
 
+                // ✅ AGREGAR: Cargar período activo
+                try
+                {
+                    var periodoResponse = await _apiService.GetAsync<ApiResponse<dynamic>>("api/Periodo/Activo");
+                    if (periodoResponse?.Success == true && periodoResponse.Data != null)
+                    {
+                        ViewBag.PeriodoActivo = new
+                        {
+                            Numero = periodoResponse.Data.GetProperty("numero").GetInt32(),
+                            AnioEscolar = periodoResponse.Data.GetProperty("anioEscolar").GetProperty("periodo").GetString()
+                        };
+                        ViewBag.FechaLimite = periodoResponse.Data.GetProperty("fechaFin").GetDateTime();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error al cargar período activo");
+                    ViewBag.PeriodoActivo = null;
+                }
+
                 _logger.LogInformation($"✅ {response.Data?.Count ?? 0} asignaturas cargadas");
                 return View("MisAsignaturas", response.Data ?? new List<AsignaturaProfesorDto>());
             }
@@ -152,35 +172,67 @@ namespace SIRGA.Web.Controllers
 
                 _logger.LogInformation($"✅ {response.Data?.Calificaciones?.Count ?? 0} estudiantes");
 
-                // Obtener datos adicionales con manejo de errores
+                // ✅ MEJORADO: Obtener datos adicionales con mejor manejo de errores
                 try
                 {
-                    var asignaturaResponse = await _apiService.GetAsync<ApiResponse<dynamic>>($"api/Asignatura/{idAsignatura}");
-                    var cursoResponse = await _apiService.GetAsync<ApiResponse<dynamic>>($"api/CursoAcademico/{idCurso}");
-                    var periodoResponse = await _apiService.GetAsync<ApiResponse<dynamic>>("api/Periodo/Activo");
+                    // Obtener asignatura
+                    var asignaturaResponse = await _apiService.GetAsync<ApiResponse<System.Text.Json.JsonElement>>(
+                        $"api/Asignatura/{idAsignatura}");
 
-                    // Usar GetProperty de JsonElement de forma segura
-                    ViewBag.AsignaturaNombre = asignaturaResponse?.Data?.GetProperty("nombre").GetString() ?? "Asignatura";
-                    ViewBag.TipoAsignatura = asignaturaResponse?.Data?.GetProperty("tipoAsignatura").GetString() ?? "";
-
-                    if (cursoResponse?.Data != null)
+                    if (asignaturaResponse?.Success == true)
                     {
-                        var curso = cursoResponse.Data;
-                        var gradoNombre = curso.GetProperty("grado").GetProperty("gradeName").GetString();
-                        var seccionNombre = curso.GetProperty("seccion").GetProperty("nombre").GetString();
-                        ViewBag.CursoNombre = $"{gradoNombre} {seccionNombre}";
+                        ViewBag.AsignaturaNombre = asignaturaResponse.Data.GetProperty("nombre").GetString();
+                        ViewBag.TipoAsignatura = asignaturaResponse.Data.GetProperty("tipoAsignatura").GetString();
+                        _logger.LogInformation($"✅ Asignatura: {ViewBag.AsignaturaNombre}");
+                    }
+                    else
+                    {
+                        ViewBag.AsignaturaNombre = "Asignatura";
+                        ViewBag.TipoAsignatura = response.Data?.TipoAsignatura ?? "";
+                        _logger.LogWarning("⚠️ No se pudo obtener datos de asignatura");
+                    }
+
+                    // Obtener curso
+                    var cursoResponse = await _apiService.GetAsync<ApiResponse<System.Text.Json.JsonElement>>(
+                        $"api/CursoAcademico/{idCurso}");
+
+                    if (cursoResponse?.Success == true)
+                    {
+                        var grado = cursoResponse.Data.GetProperty("grado");
+                        var seccion = cursoResponse.Data.GetProperty("seccion");
+                        var gradoNombre = grado.GetProperty("gradeName").GetString();
+                        var gradoNivel = grado.GetProperty("nivel").GetString();
+                        var seccionNombre = seccion.GetProperty("nombre").GetString();
+
+                        ViewBag.CursoNombre = $"{gradoNombre} {gradoNivel} - Sección {seccionNombre}";
+                        _logger.LogInformation($"✅ Curso: {ViewBag.CursoNombre}");
                     }
                     else
                     {
                         ViewBag.CursoNombre = "Curso";
+                        _logger.LogWarning("⚠️ No se pudo obtener datos de curso");
                     }
 
-                    ViewBag.NumeroPeriodo = periodoResponse?.Data?.GetProperty("numero").GetInt32() ?? 0;
+                    // Obtener período
+                    var periodoResponse = await _apiService.GetAsync<ApiResponse<System.Text.Json.JsonElement>>(
+                        "api/Periodo/Activo");
+
+                    if (periodoResponse?.Success == true)
+                    {
+                        ViewBag.NumeroPeriodo = periodoResponse.Data.GetProperty("numero").GetInt32();
+                        _logger.LogInformation($"✅ Período: {ViewBag.NumeroPeriodo}");
+                    }
+                    else
+                    {
+                        ViewBag.NumeroPeriodo = 1;
+                        _logger.LogWarning("⚠️ No se pudo obtener período activo");
+                    }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error al obtener datos adicionales, usando valores por defecto");
-                    ViewBag.AsignaturaNombre = "Asignatura";
+                    _logger.LogError(ex, "❌ Error al obtener datos adicionales");
+                    // Valores por defecto
+                    ViewBag.AsignaturaNombre = response.Data?.TipoAsignatura ?? "Asignatura";
                     ViewBag.TipoAsignatura = response.Data?.TipoAsignatura ?? "";
                     ViewBag.CursoNombre = "Curso";
                     ViewBag.NumeroPeriodo = 1;

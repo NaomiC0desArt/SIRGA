@@ -73,19 +73,13 @@ namespace SIRGA.Application.Services
                     return ApiResponse<List<AsignaturaProfesorDto>>.ErrorResponse("Profesor no encontrado");
                 }
 
-                _logger.LogInformation($"✅ Profesor encontrado - ID: {profesor.Id}");
-
                 var periodoActivo = await _periodoRepository.GetPeriodoActivoAsync();
                 if (periodoActivo == null)
                 {
                     return ApiResponse<List<AsignaturaProfesorDto>>.ErrorResponse("No hay período activo");
                 }
 
-                _logger.LogInformation($"✅ Período activo: {periodoActivo.Id} - Número: {periodoActivo.Numero}");
-
                 var clases = await _claseProgramadaRepository.GetByProfesorAsync(profesor.Id);
-                _logger.LogInformation($"📚 Total de clases del profesor: {clases.Count}");
-
                 var asignaturas = new List<AsignaturaProfesorDto>();
 
                 foreach (var clase in clases)
@@ -93,11 +87,18 @@ namespace SIRGA.Application.Services
                     var inscripciones = await _inscripcionRepository
                         .GetAllByConditionAsync(i => i.IdCursoAcademico == clase.IdCursoAcademico);
 
-                    var calificacionesPublicadas = await _calificacionRepository
-                        .ContarCalificacionesPublicadasAsync(profesor.Id, periodoActivo.Id);
+                    // ✅ CORREGIR: Obtener calificaciones del curso
+                    var calificacionesCurso = await _calificacionRepository.GetCalificacionesPorCursoYAsignaturaAsync(
+                        clase.IdCursoAcademico, clase.IdAsignatura, periodoActivo.Id);
 
-                    var calificacionesPendientes = await _calificacionRepository
-                        .ContarCalificacionesPendientesAsync(profesor.Id, periodoActivo.Id);
+                    // ✅ Contar publicadas
+                    var calificacionesPublicadas = calificacionesCurso.Count(c => c.Publicada);
+
+                    // ✅ Contar guardadas (total != 0, sin importar si está publicada)
+                    var calificacionesGuardadas = calificacionesCurso.Count(c => c.Total > 0);
+
+                    // ✅ Contar pendientes (total == 0 O no existe)
+                    var calificacionesPendientes = inscripciones.Count - calificacionesGuardadas;
 
                     asignaturas.Add(new AsignaturaProfesorDto
                     {
@@ -110,11 +111,11 @@ namespace SIRGA.Application.Services
                         SeccionNombre = clase.CursoAcademico.Seccion.Nombre,
                         CantidadEstudiantes = inscripciones.Count,
                         CalificacionesPublicadas = calificacionesPublicadas,
-                        CalificacionesPendientes = calificacionesPendientes
+                        CalificacionesPendientes = calificacionesPendientes,
+                        CalificacionesGuardadas = calificacionesGuardadas
                     });
                 }
 
-                _logger.LogInformation($"✅ Total de asignaturas devueltas: {asignaturas.Count}");
                 return ApiResponse<List<AsignaturaProfesorDto>>.SuccessResponse(asignaturas);
             }
             catch (Exception ex)
