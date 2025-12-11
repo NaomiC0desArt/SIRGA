@@ -10,6 +10,7 @@ using SIRGA.Web.Models.Profesor;
 using SIRGA.Web.Models.Profile;
 using SIRGA.Web.Services;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace SIRGA.Web.Controllers
 {
@@ -116,23 +117,32 @@ namespace SIRGA.Web.Controllers
                     return View("MisAsignaturas", new List<AsignaturaProfesorDto>());
                 }
 
-                // ✅ AGREGAR: Cargar período activo
+                // ✅ CORREGIR: Cargar período activo con mejor manejo de JsonElement
                 try
                 {
-                    var periodoResponse = await _apiService.GetAsync<ApiResponse<dynamic>>("api/Periodo/Activo");
-                    if (periodoResponse?.Success == true && periodoResponse.Data != null)
+                    var periodoResponse = await _apiService.GetAsync<ApiResponse<JsonElement>>("api/Periodo/Activo");
+
+                    if (periodoResponse?.Success == true && periodoResponse.Data.ValueKind != JsonValueKind.Null)
                     {
+                        var periodoData = periodoResponse.Data;
+
                         ViewBag.PeriodoActivo = new
                         {
-                            Numero = periodoResponse.Data.GetProperty("numero").GetInt32(),
-                            AnioEscolar = periodoResponse.Data.GetProperty("anioEscolar").GetProperty("periodo").GetString()
+                            Numero = periodoData.GetProperty("numero").GetInt32(),
+                            AnioEscolar = periodoData.GetProperty("anioEscolar").GetProperty("periodo").GetString()
                         };
-                        ViewBag.FechaLimite = periodoResponse.Data.GetProperty("fechaFin").GetDateTime();
+
+                        if (periodoData.TryGetProperty("fechaFin", out var fechaFin))
+                        {
+                            ViewBag.FechaLimite = fechaFin.GetDateTime();
+                        }
+
+                        _logger.LogInformation("✅ Período activo cargado");
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error al cargar período activo");
+                    _logger.LogError(ex, "❌ Error al cargar período activo");
                     ViewBag.PeriodoActivo = null;
                 }
 
@@ -163,43 +173,53 @@ namespace SIRGA.Web.Controllers
                 var response = await _apiService.GetAsync<ApiResponse<CapturaMasivaDto>>(
                     $"api/Calificacion/Estudiantes-Para-Calificar?idAsignatura={idAsignatura}&idCursoAcademico={idCurso}");
 
-                if (response?.Success != true)
+                if (response?.Success != true || response.Data == null)
                 {
                     _logger.LogWarning($"⚠️ Error: {response?.Message}");
                     TempData["ErrorMessage"] = response?.Message ?? "Error al cargar estudiantes";
                     return RedirectToAction(nameof(MisAsignaturas));
                 }
 
-                _logger.LogInformation($"✅ {response.Data?.Calificaciones?.Count ?? 0} estudiantes");
+                _logger.LogInformation($"✅ {response.Data.Calificaciones?.Count ?? 0} estudiantes cargados");
 
-                // ✅ MEJORADO: Obtener datos adicionales con mejor manejo de errores
+                // ✅ VALORES POR DEFECTO
+                ViewBag.AsignaturaNombre = "Asignatura";
+                ViewBag.TipoAsignatura = response.Data.TipoAsignatura ?? "";
+                ViewBag.CursoNombre = "Curso";
+                ViewBag.NumeroPeriodo = 1;
+
+                // ✅ Intentar obtener datos adicionales (no crítico si falla)
                 try
                 {
                     // Obtener asignatura
-                    var asignaturaResponse = await _apiService.GetAsync<ApiResponse<System.Text.Json.JsonElement>>(
+                    var asignaturaResponse = await _apiService.GetAsync<ApiResponse<JsonElement>>(
                         $"api/Asignatura/{idAsignatura}");
 
-                    if (asignaturaResponse?.Success == true)
+                    if (asignaturaResponse?.Success == true && asignaturaResponse.Data.ValueKind != JsonValueKind.Null)
                     {
-                        ViewBag.AsignaturaNombre = asignaturaResponse.Data.GetProperty("nombre").GetString();
-                        ViewBag.TipoAsignatura = asignaturaResponse.Data.GetProperty("tipoAsignatura").GetString();
+                        var asigData = asignaturaResponse.Data;
+                        ViewBag.AsignaturaNombre = asigData.GetProperty("nombre").GetString() ?? "Asignatura";
+                        ViewBag.TipoAsignatura = asigData.GetProperty("tipoAsignatura").GetString() ?? response.Data.TipoAsignatura;
                         _logger.LogInformation($"✅ Asignatura: {ViewBag.AsignaturaNombre}");
                     }
-                    else
-                    {
-                        ViewBag.AsignaturaNombre = "Asignatura";
-                        ViewBag.TipoAsignatura = response.Data?.TipoAsignatura ?? "";
-                        _logger.LogWarning("⚠️ No se pudo obtener datos de asignatura");
-                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "⚠️ No se pudo cargar datos de asignatura, usando valores por defecto");
+                }
 
+                try
+                {
                     // Obtener curso
-                    var cursoResponse = await _apiService.GetAsync<ApiResponse<System.Text.Json.JsonElement>>(
+                    var cursoResponse = await _apiService.GetAsync<ApiResponse<JsonElement>>(
                         $"api/CursoAcademico/{idCurso}");
 
-                    if (cursoResponse?.Success == true)
+                    if (cursoResponse?.Success == true && cursoResponse.Data.ValueKind != JsonValueKind.Null)
                     {
-                        var grado = cursoResponse.Data.GetProperty("grado");
-                        var seccion = cursoResponse.Data.GetProperty("seccion");
+                        var cursoData = cursoResponse.Data;
+                        var grado = cursoData.GetProperty("grado");
+                        var seccion = cursoData.GetProperty("seccion");
+
                         var gradoNombre = grado.GetProperty("gradeName").GetString();
                         var gradoNivel = grado.GetProperty("nivel").GetString();
                         var seccionNombre = seccion.GetProperty("nombre").GetString();
@@ -207,36 +227,30 @@ namespace SIRGA.Web.Controllers
                         ViewBag.CursoNombre = $"{gradoNombre} {gradoNivel} - Sección {seccionNombre}";
                         _logger.LogInformation($"✅ Curso: {ViewBag.CursoNombre}");
                     }
-                    else
-                    {
-                        ViewBag.CursoNombre = "Curso";
-                        _logger.LogWarning("⚠️ No se pudo obtener datos de curso");
-                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "⚠️ No se pudo cargar datos de curso, usando valores por defecto");
+                }
 
+                try
+                {
                     // Obtener período
-                    var periodoResponse = await _apiService.GetAsync<ApiResponse<System.Text.Json.JsonElement>>(
+                    var periodoResponse = await _apiService.GetAsync<ApiResponse<JsonElement>>(
                         "api/Periodo/Activo");
 
-                    if (periodoResponse?.Success == true)
+                    if (periodoResponse?.Success == true && periodoResponse.Data.ValueKind != JsonValueKind.Null)
                     {
                         ViewBag.NumeroPeriodo = periodoResponse.Data.GetProperty("numero").GetInt32();
                         _logger.LogInformation($"✅ Período: {ViewBag.NumeroPeriodo}");
                     }
-                    else
-                    {
-                        ViewBag.NumeroPeriodo = 1;
-                        _logger.LogWarning("⚠️ No se pudo obtener período activo");
-                    }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "❌ Error al obtener datos adicionales");
-                    // Valores por defecto
-                    ViewBag.AsignaturaNombre = response.Data?.TipoAsignatura ?? "Asignatura";
-                    ViewBag.TipoAsignatura = response.Data?.TipoAsignatura ?? "";
-                    ViewBag.CursoNombre = "Curso";
-                    ViewBag.NumeroPeriodo = 1;
+                    _logger.LogWarning(ex, "⚠️ No se pudo cargar período activo, usando valor por defecto");
                 }
+
+                _logger.LogInformation($"📊 ViewBag - Asignatura: {ViewBag.AsignaturaNombre}, Curso: {ViewBag.CursoNombre}, Período: {ViewBag.NumeroPeriodo}");
 
                 return View("Calificar", response.Data);
             }

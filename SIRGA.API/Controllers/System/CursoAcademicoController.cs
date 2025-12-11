@@ -10,7 +10,7 @@ using SIRGA.Domain.Entities;
 
 namespace SIRGA.API.Controllers.System
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Profesor")]
     [Route("api/[controller]")]
     [ApiController]
     public class CursoAcademicoController : BaseApiController<CreateCursoAcademicoDto, CursoAcademicoDto>

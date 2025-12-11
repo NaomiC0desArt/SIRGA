@@ -9,7 +9,7 @@ namespace SIRGA.API.Controllers.System
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, Profesor")]
     public class AsignaturaController : BaseApiController<AsignaturaDto, AsignaturaResponseDto>
     {
         private readonly IAsignaturaService _asignaturaService;
