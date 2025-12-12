@@ -216,7 +216,7 @@ namespace SIRGA.API.Controllers.System
                 var userName = User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "Admin";
                 var userRole = User.FindFirstValue(ClaimTypes.Role) ?? "Admin";
 
-                _logger.LogInformation($"✏️ Admin {userName} editando calificación {dto.IdCalificacion}");
+                _logger.LogInformation($"✏️ Admin {userName} editando calificación - Estudiante: {dto.IdEstudiante}, Asignatura: {dto.IdAsignatura}, Período: {dto.IdPeriodo}");
 
                 var result = await _calificacionService.EditarCalificacionAsync(
                     dto, userId, userName, userRole);
@@ -263,6 +263,86 @@ namespace SIRGA.API.Controllers.System
             }
         }
 
+        [Authorize(Roles = "Admin,Profesor")]
+        [HttpGet("Estudiante/{estudianteId}")]
+        public async Task<IActionResult> GetCalificacionesEstudiante(int estudianteId)
+        {
+            try
+            {
+                var applicationUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userRole = User.FindFirstValue(ClaimTypes.Role);
 
+                _logger.LogInformation($"🔑 {userRole} consultando calificaciones del estudiante {estudianteId}");
+
+                if (string.IsNullOrEmpty(applicationUserId))
+                {
+                    _logger.LogWarning("⚠️ No se encontró ApplicationUserId en el token");
+                    return Unauthorized(new { message = "Usuario no autenticado" });
+                }
+
+                // TODO: Si es profesor, validar que el estudiante esté en sus clases
+                // Por ahora permitimos la consulta
+
+                var result = await _calificacionService.GetCalificacionesPorEstudianteIdAsync(estudianteId);
+
+                if (!result.Success)
+                {
+                    _logger.LogWarning($"⚠️ Error: {result.Message}");
+                    return NotFound(result);
+                }
+
+                _logger.LogInformation($"✅ Calificaciones del estudiante obtenidas correctamente");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error al obtener calificaciones del estudiante");
+                return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin,Profesor")]
+        [HttpGet("Buscar-Estudiantes")]
+        public async Task<IActionResult> BuscarEstudiantes(
+            [FromQuery] string searchTerm = "",
+            [FromQuery] int? idGrado = null,
+            [FromQuery] int? idCursoAcademico = null)
+        {
+            try
+            {
+                var applicationUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userRole = User.FindFirstValue(ClaimTypes.Role);
+
+                _logger.LogInformation($"🔍 {userRole} buscando estudiantes: '{searchTerm}'");
+
+                if (string.IsNullOrEmpty(applicationUserId))
+                {
+                    return Unauthorized(new { message = "Usuario no autenticado" });
+                }
+
+                var result = await _calificacionService.BuscarEstudiantesAsync(
+                    applicationUserId,
+                    userRole,
+                    searchTerm,
+                    idGrado,
+                    idCursoAcademico);
+
+                if (!result.Success)
+                {
+                    _logger.LogWarning($"⚠️ Error: {result.Message}");
+                    return NotFound(result);
+                }
+
+                _logger.LogInformation($"✅ {result.Data?.Count ?? 0} estudiantes encontrados");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error al buscar estudiantes");
+                return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
+            }
+
+
+        }
     }
 }

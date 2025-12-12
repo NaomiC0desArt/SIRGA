@@ -347,18 +347,49 @@ namespace SIRGA.Persistence.DbContext
 
             builder.Entity<HistorialCalificacion>(entity =>
             {
-                entity.HasKey(h => h.Id);
+                entity.ToTable("HistorialCalificaciones");
 
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.NumeroPeriodo)
+                    .IsRequired();
+
+                entity.Property(e => e.ValoresAnteriores)
+                    .HasColumnType("nvarchar(max)")
+                    .IsRequired();
+
+                entity.Property(e => e.ValoresNuevos)
+                    .HasColumnType("nvarchar(max)")
+                    .IsRequired();
+
+                entity.Property(e => e.UsuarioId)
+                    .HasMaxLength(450)
+                    .IsRequired();
+
+                entity.Property(e => e.UsuarioNombre)
+                    .HasMaxLength(200)
+                    .IsRequired();
+
+                entity.Property(e => e.UsuarioRol)
+                    .HasMaxLength(50)
+                    .IsRequired();
+
+                entity.Property(e => e.MotivoEdicion)
+                    .HasMaxLength(500)
+                    .IsRequired();
+
+                entity.Property(e => e.FechaModificacion)
+                    .IsRequired();
+
+                // Relación con Calificacion
                 entity.HasOne(h => h.Calificacion)
                     .WithMany()
                     .HasForeignKey(h => h.IdCalificacion)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasIndex(h => h.IdCalificacion)
-                    .HasDatabaseName("IX_HistorialCalificacion_Calificacion");
-
-                entity.HasIndex(h => h.FechaModificacion)
-                    .HasDatabaseName("IX_HistorialCalificacion_Fecha");
+                // Índices para mejorar consultas
+                entity.HasIndex(h => h.IdCalificacion);
+                entity.HasIndex(h => h.FechaModificacion);
             });
             // Para que en caso de que borremos un grado noborre los CursosAcademicos.
             foreach (var relationship in builder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))

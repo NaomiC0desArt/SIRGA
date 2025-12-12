@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SIRGA.Application.DTOs.Common;
 using SIRGA.Application.DTOs.Entities.Calificacion;
@@ -6,6 +7,7 @@ using SIRGA.Application.Interfaces.Entities;
 using SIRGA.Domain.Entities;
 using SIRGA.Domain.Interfaces;
 using SIRGA.Identity.Shared.Entities;
+using SIRGA.Persistence.Repositories;
 using SIRGA.Persistence.Repositories.Usuarios;
 using System;
 using System.Collections.Generic;
@@ -31,6 +33,7 @@ namespace SIRGA.Application.Services
         private readonly IAsignaturaRepository _asignaturaRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<CalificacionService> _logger;
+        private readonly IHistorialCalificacionRepository _historialCalificacionRepository;
 
         public CalificacionService(
             ICalificacionRepository calificacionRepository,
@@ -44,6 +47,7 @@ namespace SIRGA.Application.Services
             IPeriodoRepository periodoRepository,
             IAsignaturaRepository asignaturaRepository,
             UserManager<ApplicationUser> userManager,
+            IHistorialCalificacionRepository historialCalificacionRepository,
             ILogger<CalificacionService> logger)
         {
             _calificacionRepository = calificacionRepository;
@@ -57,6 +61,7 @@ namespace SIRGA.Application.Services
             _periodoRepository = periodoRepository;
             _asignaturaRepository = asignaturaRepository;
             _userManager = userManager;
+            _historialCalificacionRepository = historialCalificacionRepository;
             _logger = logger;
         }
 
@@ -417,41 +422,68 @@ namespace SIRGA.Application.Services
             }
         }
 
+        
         public async Task<ApiResponse<List<CalificacionEstudianteViewDto>>> GetCalificacionesEstudianteAsync(string applicationUserId)
         {
             try
             {
-                _logger.LogInformation($"🔍 GetCalificacionesEstudianteAsync - UserId: {applicationUserId}");
+                _logger.LogInformation($"📊 Obteniendo calificaciones para ApplicationUserId: {applicationUserId}");
 
+                // ✅ Obtener el estudiante por ApplicationUserId
                 var estudiante = await _estudianteRepository.GetByApplicationUserIdAsync(applicationUserId);
                 if (estudiante == null)
                 {
-                    _logger.LogWarning($"❌ Estudiante no encontrado para ApplicationUserId: {applicationUserId}");
-                    return ApiResponse<List<CalificacionEstudianteViewDto>>.ErrorResponse("Estudiante no encontrado");
+                    return ApiResponse<List<CalificacionEstudianteViewDto>>.ErrorResponse(
+                        "Estudiante no encontrado");
                 }
 
-                _logger.LogInformation($"✅ Estudiante encontrado - ID: {estudiante.Id}");
+                // ✅ Ahora usamos el Id numérico del estudiante
+                return await GetCalificacionesPorEstudianteIdAsync(estudiante.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error al obtener calificaciones del estudiante con ApplicationUserId {applicationUserId}");
+                return ApiResponse<List<CalificacionEstudianteViewDto>>.ErrorResponse(
+                    "Error al obtener calificaciones",
+                    new List<string> { ex.Message });
+            }
+        }
 
-                // ✅ SOLO obtener calificaciones PUBLICADAS
-                var calificaciones = await _calificacionRepository.GetCalificacionesPorEstudianteAsync(estudiante.Id);
+        // ==================== MÉTODO CORREGIDO: GetCalificacionesPorEstudianteIdAsync ====================
+        public async Task<ApiResponse<List<CalificacionEstudianteViewDto>>> GetCalificacionesPorEstudianteIdAsync(int estudianteId)
+        {
+            try
+            {
+                _logger.LogInformation($"📊 Obteniendo calificaciones del estudiante ID: {estudianteId}");
 
-                _logger.LogInformation($"📊 Total de calificaciones publicadas encontradas: {calificaciones.Count}");
+                // Verificar que el estudiante existe
+                var estudiante = await _estudianteRepository.GetByIdAsync(estudianteId);
+                if (estudiante == null)
+                {
+                    return ApiResponse<List<CalificacionEstudianteViewDto>>.ErrorResponse(
+                        "Estudiante no encontrado");
+                }
+
+                // Obtener todas las calificaciones del estudiante
+                var calificaciones = await _calificacionRepository.GetCalificacionesPorEstudianteAsync(estudianteId);
 
                 if (!calificaciones.Any())
                 {
-                    _logger.LogInformation("ℹ️ El estudiante no tiene calificaciones publicadas");
                     return ApiResponse<List<CalificacionEstudianteViewDto>>.SuccessResponse(
                         new List<CalificacionEstudianteViewDto>(),
-                        "No hay calificaciones publicadas disponibles");
+                        "No hay calificaciones registradas");
                 }
 
-                var resultado = calificaciones
+                // Agrupar por asignatura
+                var calificacionesPorAsignatura = calificaciones
                     .GroupBy(c => new { c.IdAsignatura, c.Asignatura.Nombre, c.Asignatura.TipoAsignatura })
                     .Select(g => new CalificacionEstudianteViewDto
                     {
+                        IdCalificacion = g.First().Id,
+                        IdAsignatura = g.Key.IdAsignatura,
                         AsignaturaNombre = g.Key.Nombre,
                         TipoAsignatura = g.Key.TipoAsignatura,
-                        Periodos = g.OrderBy(c => c.Periodo.Numero).Select(c => new CalificacionPorPeriodoDto
+                        Periodos = g.Select(c => new PeriodoCalificacionViewDto
                         {
                             NumeroPeriodo = c.Periodo.Numero,
                             Componentes = c.Detalles.ToDictionary(
@@ -460,27 +492,141 @@ namespace SIRGA.Application.Services
                             ),
                             Total = c.Total,
                             Publicada = c.Publicada
-                        }).ToList(),
-                        PromedioGeneral = (decimal)(g.Where(c => c.Publicada).Average(c => (double?)c.Total) ?? 0)
+                        }).OrderBy(p => p.NumeroPeriodo).ToList(),
+                        PromedioGeneral = g.Where(c => c.Publicada).Any()
+                            ? g.Where(c => c.Publicada).Average(c => c.Total)
+                            : 0
                     })
+                    .OrderBy(c => c.AsignaturaNombre)
                     .ToList();
 
-                _logger.LogInformation($"✅ Devolviendo {resultado.Count} asignaturas con calificaciones");
-                return ApiResponse<List<CalificacionEstudianteViewDto>>.SuccessResponse(resultado);
+                _logger.LogInformation($"✅ {calificacionesPorAsignatura.Count} asignaturas con calificaciones obtenidas");
+
+                return ApiResponse<List<CalificacionEstudianteViewDto>>.SuccessResponse(
+                    calificacionesPorAsignatura,
+                    "Calificaciones obtenidas exitosamente");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error al obtener calificaciones del estudiante");
+                _logger.LogError(ex, $"❌ Error al obtener calificaciones del estudiante {estudianteId}");
                 return ApiResponse<List<CalificacionEstudianteViewDto>>.ErrorResponse(
-                    "Error al obtener calificaciones", new List<string> { ex.Message });
+                    "Error al obtener calificaciones",
+                    new List<string> { ex.Message });
             }
         }
-        public async Task<ApiResponse<bool>> EditarCalificacionAsync(
-            EditarCalificacionDto dto, string usuarioId, string usuarioNombre, string rol)
+
+        // ==================== MÉTODO CORREGIDO: BuscarEstudiantesAsync ====================
+        public async Task<ApiResponse<List<EstudianteBusquedaDto>>> BuscarEstudiantesAsync(
+            string applicationUserId,
+            string userRole,
+            string searchTerm,
+            int? idGrado,
+            int? idCursoAcademico)
         {
             try
             {
-                var calificacion = await _calificacionRepository.GetByIdAsync(dto.IdCalificacion);
+                _logger.LogInformation($"🔍 Buscando estudiantes - Rol: {userRole}, Término: '{searchTerm}'");
+
+                // Obtener todas las inscripciones activas con sus relaciones
+                var inscripcionesQuery = await _inscripcionRepository.GetAllByConditionAsync(i => i.Estado == "Activa");
+
+                // Si es profesor, filtrar solo sus estudiantes
+                if (userRole == "Profesor")
+                {
+                    var profesor = await _profesorRepository.GetByApplicationUserIdAsync(applicationUserId);
+                    if (profesor == null)
+                    {
+                        return ApiResponse<List<EstudianteBusquedaDto>>.ErrorResponse(
+                            "Profesor no encontrado");
+                    }
+
+                    // Obtener cursos donde el profesor tiene clases
+                    var clases = await _claseProgramadaRepository.GetByProfesorAsync(profesor.Id);
+                    var cursosIds = clases.Select(c => c.IdCursoAcademico).Distinct().ToList();
+
+                    inscripcionesQuery = inscripcionesQuery
+                        .Where(i => cursosIds.Contains(i.IdCursoAcademico))
+                        .ToList();
+                }
+
+                // ✅ CORRECCIÓN: Obtener los usuarios mediante UserManager
+                var estudiantesConUsuarios = new List<EstudianteBusquedaDto>();
+
+                foreach (var inscripcion in inscripcionesQuery)
+                {
+                    var user = await _userManager.FindByIdAsync(inscripcion.Estudiante.ApplicationUserId);
+
+                    if (user == null) continue;
+
+                    // Aplicar filtros de búsqueda
+                    if (!string.IsNullOrWhiteSpace(searchTerm))
+                    {
+                        var termLower = searchTerm.ToLower().Trim();
+                        var nombreCompleto = $"{user.FirstName} {user.LastName}".ToLower();
+                        var matricula = inscripcion.Estudiante.Matricula.ToLower();
+
+                        if (!nombreCompleto.Contains(termLower) && !matricula.Contains(termLower))
+                        {
+                            continue;
+                        }
+                    }
+
+                    // Aplicar filtros adicionales
+                    if (idGrado.HasValue && inscripcion.CursoAcademico.IdGrado != idGrado.Value)
+                        continue;
+
+                    if (idCursoAcademico.HasValue && inscripcion.IdCursoAcademico != idCursoAcademico.Value)
+                        continue;
+
+                    estudiantesConUsuarios.Add(new EstudianteBusquedaDto
+                    {
+                        Id = inscripcion.IdEstudiante,
+                        NombreCompleto = $"{user.FirstName} {user.LastName}",
+                        Matricula = inscripcion.Estudiante.Matricula,
+                        Email = user.Email,
+                        Grado = inscripcion.CursoAcademico.Grado.GradeName,
+                        Seccion = inscripcion.CursoAcademico.Seccion.Nombre,
+                        IdCursoAcademico = inscripcion.IdCursoAcademico,
+                        CursoAcademico = inscripcion.CursoAcademico.NombreCompleto
+                    });
+                }
+
+                var resultado = estudiantesConUsuarios
+                    .OrderBy(e => e.NombreCompleto)
+                    .ToList();
+
+                _logger.LogInformation($"✅ {resultado.Count} estudiantes encontrados");
+
+                return ApiResponse<List<EstudianteBusquedaDto>>.SuccessResponse(
+                    resultado,
+                    $"{resultado.Count} estudiantes encontrados");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error al buscar estudiantes");
+                return ApiResponse<List<EstudianteBusquedaDto>>.ErrorResponse(
+                    "Error al buscar estudiantes",
+                    new List<string> { ex.Message });
+            }
+        }
+
+
+        public async Task<ApiResponse<bool>> EditarCalificacionAsync(
+    EditarCalificacionDto dto,
+    string userId,
+    string userName,
+    string userRole)
+        {
+            try
+            {
+                _logger.LogInformation($"✏️ Editando calificación - Estudiante: {dto.IdEstudiante}, Asignatura: {dto.IdAsignatura}, Período: {dto.IdPeriodo}");
+
+                // ✅ Obtener la calificación usando los IDs del DTO
+                var calificacion = await _calificacionRepository.GetCalificacionConDetallesAsync(
+                    dto.IdEstudiante,
+                    dto.IdAsignatura,
+                    dto.IdPeriodo);
+
                 if (calificacion == null)
                 {
                     return ApiResponse<bool>.ErrorResponse("Calificación no encontrada");
@@ -488,79 +634,148 @@ namespace SIRGA.Application.Services
 
                 if (!calificacion.Publicada)
                 {
-                    return ApiResponse<bool>.ErrorResponse("Solo se pueden editar calificaciones publicadas");
+                    return ApiResponse<bool>.ErrorResponse(
+                        "No se puede editar una calificación que no ha sido publicada");
                 }
 
-                // Guardar valores anteriores
-                var detallesAnteriores = await _detalleRepository.GetDetallesPorCalificacionAsync(calificacion.Id);
-                var valoresAnteriores = detallesAnteriores.ToDictionary(
-                    d => d.Componente.Nombre,
-                    d => d.Valor
-                );
-
-                var historial = new HistorialCalificacion
+                // Guardar valores anteriores para el historial
+                var valoresAnteriores = new ValoresCalificacionDto
                 {
-                    IdCalificacion = calificacion.Id,
-                    UsuarioModificadorId = usuarioId,
-                    NombreUsuarioModificador = usuarioNombre,
-                    RolUsuarioModificador = rol,
-                    MotivoModificacion = dto.MotivoModificacion,
-                    ValoresAnteriores = JsonSerializer.Serialize(valoresAnteriores),
-                    TotalAnterior = calificacion.Total
+                    Componentes = calificacion.Detalles.ToDictionary(
+                        d => d.Componente.Nombre,
+                        d => (decimal?)d.Valor
+                    ),
+                    Total = calificacion.Total
                 };
 
-                // Actualizar detalles
+                // Obtener componentes de la asignatura
+                var componentes = await _componenteRepository.GetByTipoAsignaturaAsync(
+                    calificacion.Asignatura.TipoAsignatura);
+
+                // Actualizar los componentes
                 decimal nuevoTotal = 0;
-                foreach (var componenteValor in dto.NuevaCalificacion.Componentes)
+                foreach (var componenteDto in dto.Componentes)
                 {
-                    var detalle = detallesAnteriores
-                        .FirstOrDefault(d => d.IdComponenteCalificacion == componenteValor.Key);
+                    var componente = componentes.FirstOrDefault(c => c.Nombre == componenteDto.Key);
+                    if (componente == null) continue;
+
+                    var valor = componenteDto.Value ?? 0;
+
+                    // Validar que no exceda el máximo
+                    if (valor > componente.ValorMaximo)
+                    {
+                        return ApiResponse<bool>.ErrorResponse(
+                            $"El valor de '{componente.Nombre}' ({valor}) excede el máximo ({componente.ValorMaximo})");
+                    }
+
+                    // Buscar o crear el detalle
+                    var detalle = calificacion.Detalles
+                        .FirstOrDefault(d => d.IdComponenteCalificacion == componente.Id);
 
                     if (detalle != null)
                     {
-                        detalle.Valor = componenteValor.Value ?? 0;
-                        nuevoTotal += detalle.Valor;
-                        await _detalleRepository.UpdateAsync(detalle);
+                        detalle.Valor = valor;
                     }
+                    else
+                    {
+                        var nuevoDetalle = new CalificacionDetalle
+                        {
+                            IdCalificacion = calificacion.Id,
+                            IdComponenteCalificacion = componente.Id,
+                            Valor = valor
+                        };
+                        calificacion.Detalles.Add(nuevoDetalle);
+                    }
+
+                    nuevoTotal += valor;
                 }
 
+                // Validar que el total no exceda 100
+                if (nuevoTotal > 100)
+                {
+                    return ApiResponse<bool>.ErrorResponse(
+                        $"El total ({nuevoTotal} pts) excede 100 puntos");
+                }
+
+                // Actualizar el total
                 calificacion.Total = nuevoTotal;
-                calificacion.Observaciones = dto.NuevaCalificacion.Observaciones;
                 calificacion.FechaUltimaModificacion = DateTime.Now;
 
-                var valoresNuevos = detallesAnteriores.ToDictionary(
-                    d => d.Componente.Nombre,
-                    d => d.Valor
-                );
+                // Guardar valores nuevos
+                var valoresNuevos = new ValoresCalificacionDto
+                {
+                    Componentes = dto.Componentes,
+                    Total = nuevoTotal
+                };
 
-                historial.ValoresNuevos = JsonSerializer.Serialize(valoresNuevos);
-                historial.TotalNuevo = calificacion.Total;
+                // Crear registro de historial
+                var historial = new HistorialCalificacion
+                {
+                    IdCalificacion = calificacion.Id,
+                    NumeroPeriodo = calificacion.Periodo.Numero,
+                    ValoresAnteriores = JsonSerializer.Serialize(valoresAnteriores),
+                    ValoresNuevos = JsonSerializer.Serialize(valoresNuevos),
+                    UsuarioId = userId,
+                    UsuarioNombre = userName,
+                    UsuarioRol = userRole,
+                    MotivoEdicion = dto.MotivoEdicion,
+                    FechaModificacion = DateTime.Now
+                };
 
-                await _historialRepository.RegistrarCambioAsync(historial);
+                await _historialCalificacionRepository.AddAsync(historial);
+
+                // Actualizar la calificación
                 await _calificacionRepository.UpdateAsync(calificacion);
 
-                return ApiResponse<bool>.SuccessResponse(true, "Calificación editada exitosamente");
+                _logger.LogInformation($"✅ Calificación editada exitosamente");
+
+                return ApiResponse<bool>.SuccessResponse(
+                    true,
+                    "Calificación actualizada exitosamente");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error al editar calificación");
                 return ApiResponse<bool>.ErrorResponse(
-                    "Error al editar calificación", new List<string> { ex.Message });
+                    "Error al editar la calificación",
+                    new List<string> { ex.Message });
             }
         }
 
-        public async Task<ApiResponse<List<HistorialCalificacion>>> GetHistorialCalificacionAsync(int idCalificacion)
+        public async Task<ApiResponse<List<HistorialCalificacionDto>>> GetHistorialCalificacionAsync(int idCalificacion)
         {
             try
             {
-                var historial = await _historialRepository.GetHistorialPorCalificacionAsync(idCalificacion);
-                return ApiResponse<List<HistorialCalificacion>>.SuccessResponse(historial);
+                _logger.LogInformation($"📜 Obteniendo historial de calificación {idCalificacion}");
+
+                var historial = await _historialCalificacionRepository.GetByCalificacionIdAsync(idCalificacion);
+
+                var resultado = historial.Select(h => new HistorialCalificacionDto
+                {
+                    Id = h.Id,
+                    IdCalificacion = h.IdCalificacion,
+                    NumeroPeriodo = h.NumeroPeriodo,
+                    ValoresAnteriores = h.ValoresAnteriores,
+                    ValoresNuevos = h.ValoresNuevos,
+                    UsuarioNombre = h.UsuarioNombre,
+                    UsuarioRol = h.UsuarioRol,
+                    FechaModificacion = h.FechaModificacion,
+                    MotivoEdicion = h.MotivoEdicion,
+                    CambiosRealizados = h.CambiosRealizados
+                }).ToList();
+
+                _logger.LogInformation($"✅ {resultado.Count} registros de historial encontrados");
+
+                return ApiResponse<List<HistorialCalificacionDto>>.SuccessResponse(
+                    resultado,
+                    "Historial obtenido exitosamente");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error al obtener historial");
-                return ApiResponse<List<HistorialCalificacion>>.ErrorResponse(
-                    "Error al obtener historial", new List<string> { ex.Message });
+                _logger.LogError(ex, $"❌ Error al obtener historial de calificación {idCalificacion}");
+                return ApiResponse<List<HistorialCalificacionDto>>.ErrorResponse(
+                    "Error al obtener el historial",
+                    new List<string> { ex.Message });
             }
         }
     }

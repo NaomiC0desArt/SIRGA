@@ -14,5 +14,7 @@ namespace SIRGA.Domain.Interfaces
         Task<InscripcionConDetalles> GetInscripcionConDetallesAsync(int id);
         Task<List<InscripcionConDetalles>> GetAllInscripcionesConDetallesAsync();
         Task<List<InscripcionConDetalles>> GetInscripcionesPorCursoAsync(int idCursoAcademico);
+
+        Task<Inscripcion> GetInscripcionActivaByEstudianteIdAsync(int estudianteId);
     }
 }

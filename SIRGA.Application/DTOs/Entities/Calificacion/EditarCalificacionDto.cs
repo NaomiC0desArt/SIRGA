@@ -5,13 +5,20 @@ namespace SIRGA.Application.DTOs.Entities.Calificacion
     public class EditarCalificacionDto
     {
         [Required]
-        public int IdCalificacion { get; set; }
+        public int IdEstudiante { get; set; }
 
         [Required]
-        [MaxLength(500)]
-        public string MotivoModificacion { get; set; }
+        public int IdAsignatura { get; set; }
 
         [Required]
-        public GuardarCalificacionDto NuevaCalificacion { get; set; }
+        [Range(1, 4)]
+        public int IdPeriodo { get; set; }
+
+        [Required]
+        public Dictionary<string, decimal?> Componentes { get; set; }
+
+        [Required]
+        [StringLength(500, MinimumLength = 10)]
+        public string MotivoEdicion { get; set; }
     }
 }

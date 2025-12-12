@@ -1,9 +1,24 @@
-﻿namespace SIRGA.Web.Models.Calificacion
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace SIRGA.Web.Models.Calificacion
 {
     public class EditarCalificacionDto
     {
-        public int IdCalificacion { get; set; }
-        public string MotivoModificacion { get; set; }
-        public CalificacionEstudianteDto NuevaCalificacion { get; set; }
+        [Required]
+        public int IdEstudiante { get; set; }
+
+        [Required]
+        public int IdAsignatura { get; set; }
+
+        [Required]
+        [Range(1, 4)]
+        public int IdPeriodo { get; set; }
+
+        [Required]
+        public Dictionary<string, decimal?> Componentes { get; set; }
+
+        [Required]
+        [StringLength(500, MinimumLength = 10)]
+        public string MotivoEdicion { get; set; }
     }
 }

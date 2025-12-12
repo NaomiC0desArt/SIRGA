@@ -91,6 +91,21 @@ namespace SIRGA.Persistence.Repositories
                           }).ToListAsync();
         }
 
+        public async Task<Inscripcion> GetInscripcionActivaByEstudianteIdAsync(int estudianteId)
+        {
+            return await _context.Inscripciones
+                .Include(i => i.Estudiante) // ✅ Solo incluimos Estudiante
+                .Include(i => i.CursoAcademico)
+                    .ThenInclude(ca => ca.Grado)
+                .Include(i => i.CursoAcademico)
+                    .ThenInclude(ca => ca.Seccion)
+                .Include(i => i.CursoAcademico)
+                    .ThenInclude(ca => ca.AnioEscolar)
+                .FirstOrDefaultAsync(i =>
+                    i.IdEstudiante == estudianteId &&
+                    i.Estado == "Activa");
+        }
+
         public async Task<List<InscripcionConDetalles>> GetInscripcionesPorCursoAsync(int idCursoAcademico)
         {
             return await (from i in _context.Inscripciones

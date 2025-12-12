@@ -6,16 +6,19 @@ using SIRGA.Web.Models.Estudiante;
 using SIRGA.Web.Models.Profile;
 using SIRGA.Web.Services;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace SIRGA.Web.Controllers
 {
     public class EstudianteController : Controller
     {
         private readonly ApiService _apiService;
+        private readonly ILogger<EstudianteController> _logger;
 
-        public EstudianteController(ApiService apiService)
+        public EstudianteController(ApiService apiService, ILogger<EstudianteController> logger)
         {
             _apiService = apiService;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
@@ -65,6 +68,7 @@ namespace SIRGA.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error al completar perfil");
                 TempData["ErrorMessage"] = "Error al procesar la solicitud";
                 return View(model);
             }
@@ -108,45 +112,69 @@ namespace SIRGA.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error al cargar horario");
                 TempData["ErrorMessage"] = "Error al cargar el horario";
                 return View(new HorarioSemanalViewModel());
             }
         }
-
-        // En EstudianteController.cs - AGREGAR este método:
 
         [HttpGet]
         public async Task<IActionResult> MisCalificaciones()
         {
             try
             {
+                _logger.LogInformation("📊 Cargando calificaciones del estudiante...");
+
                 var response = await _apiService.GetAsync<ApiResponse<List<CalificacionEstudianteViewDto>>>(
                     "api/Calificacion/Mis-Calificaciones");
 
                 if (response?.Success != true)
                 {
+                    _logger.LogWarning($"⚠️ Error: {response?.Message}");
                     TempData["ErrorMessage"] = response?.Message ?? "Error al cargar calificaciones";
                     return View(new List<CalificacionEstudianteViewDto>());
                 }
 
-                // Obtener año escolar actual
-                var anioResponse = await _apiService.GetAsync<ApiResponse<dynamic>>("api/AnioEscolar/Activo");
-                ViewBag.PeriodoAcademico = anioResponse?.Data?.GetProperty("periodo").GetString();
+                // ✅ CORREGIR: Obtener año escolar actual con manejo de JsonElement
+                try
+                {
+                    var anioResponse = await _apiService.GetAsync<ApiResponse<JsonElement>>("api/AnioEscolar/Activo");
 
+                    if (anioResponse?.Success == true && anioResponse.Data.ValueKind != JsonValueKind.Null)
+                    {
+                        ViewBag.PeriodoAcademico = anioResponse.Data.GetProperty("periodo").GetString();
+                        _logger.LogInformation($"✅ Año escolar: {ViewBag.PeriodoAcademico}");
+                    }
+                    else
+                    {
+                        ViewBag.PeriodoAcademico = DateTime.Now.Year.ToString();
+                        _logger.LogWarning("⚠️ No se pudo cargar año escolar, usando año actual");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "❌ Error al cargar año escolar");
+                    ViewBag.PeriodoAcademico = DateTime.Now.Year.ToString();
+                }
+
+                _logger.LogInformation($"✅ {response.Data?.Count ?? 0} asignaturas con calificaciones");
                 return View(response.Data ?? new List<CalificacionEstudianteViewDto>());
             }
             catch (UnauthorizedAccessException)
             {
+                _logger.LogWarning("⚠️ Token expirado");
                 TempData["ErrorMessage"] = "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.";
                 return RedirectToAction("Login", "Account");
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "❌ Error al cargar calificaciones");
                 TempData["ErrorMessage"] = "Error de conexión con el servidor";
                 return View(new List<CalificacionEstudianteViewDto>());
             }
         }
     }
+
     public class EstudianteDashboardViewModel
     {
         public UserProfileDto Profile { get; set; }

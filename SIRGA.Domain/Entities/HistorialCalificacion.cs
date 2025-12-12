@@ -5,42 +5,45 @@ namespace SIRGA.Domain.Entities
 {
     public class HistorialCalificacion
     {
-        [Key]
         public int Id { get; set; }
 
-        [Required]
+        // Relación con Calificación
         public int IdCalificacion { get; set; }
+
+        // Período que se modificó
+        public int NumeroPeriodo { get; set; }
+
+        // Valores anteriores (JSON serializado)
+        public string ValoresAnteriores { get; set; }
+
+        // Valores nuevos (JSON serializado)
+        public string ValoresNuevos { get; set; }
+
+        // Información del usuario que hizo el cambio
+        public string UsuarioId { get; set; }
+        public string UsuarioNombre { get; set; }
+        public string UsuarioRol { get; set; }
+
+        // Motivo del cambio
+        public string MotivoEdicion { get; set; }
+
+        // Fecha del cambio
+        public DateTime FechaModificacion { get; set; }
+
+        // Navigation Properties
         [ForeignKey("IdCalificacion")]
         public Calificacion Calificacion { get; set; }
 
-        [Required]
-        [MaxLength(450)]
-        public string UsuarioModificadorId { get; set; }
+        [NotMapped]
+        public string CambiosRealizados
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(ValoresAnteriores) || string.IsNullOrEmpty(ValoresNuevos))
+                    return "Sin cambios registrados";
 
-        [Required]
-        [MaxLength(100)]
-        public string NombreUsuarioModificador { get; set; }
-
-        [Required]
-        [MaxLength(50)]
-        public string RolUsuarioModificador { get; set; }
-
-        [Required]
-        public string ValoresAnteriores { get; set; }
-
-        [Required]
-        public string ValoresNuevos { get; set; }
-
-        [Required]
-        public decimal TotalAnterior { get; set; }
-
-        [Required]
-        public decimal TotalNuevo { get; set; }
-
-        [Required]
-        [MaxLength(500)]
-        public string MotivoModificacion { get; set; }
-
-        public DateTime FechaModificacion { get; set; } = DateTime.Now;
+                return $"Período {NumeroPeriodo}: Modificado por {UsuarioNombre}";
+            }
+        }
     }
 }

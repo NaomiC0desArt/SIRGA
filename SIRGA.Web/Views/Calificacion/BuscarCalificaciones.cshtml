@@ -1,0 +1,271 @@
+﻿@model List<SIRGA.Web.Models.Calificacion.EstudianteBusquedaDto>
+
+@{
+    ViewData["Title"] = "Buscar Calificaciones de Estudiantes";
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = User.Identity.Name;
+    ViewBag.UserRole = User.IsInRole("Admin") ? "Admin" : "Profesor";
+}
+
+@section SidebarMenu {
+    @if (User.IsInRole("Admin"))
+    {
+        <partial name="_AdminSidebarMenu" />
+    }
+    else
+    {
+        <partial name="_ProfesorSidebarMenu" />
+    }
+}
+
+<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
+    <div class="max-w-7xl mx-auto">
+
+        <!-- Encabezado -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center">
+                    <div class="h-16 w-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Buscar Calificaciones</h1>
+                        <p class="text-gray-600 mt-1">Consulta las calificaciones de los estudiantes</p>
+                    </div>
+                </div>
+                <a href="@(User.IsInRole("Admin") ? Url.Action("Index", "Admin") : Url.Action("Index", "Profesor"))"
+                   class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Volver
+                </a>
+            </div>
+        </div>
+
+        <!-- Filtros de Búsqueda -->
+        <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Búsqueda por Nombre/Matrícula -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        Buscar por Nombre o Matrícula
+                    </label>
+                    <input type="text"
+                           id="searchInput"
+                           placeholder="Ej: Juan Pérez o 2024"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                           onkeyup="filtrarEstudiantes()">
+                </div>
+
+                <!-- Filtro por Grado -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Grado
+                    </label>
+                    <select id="gradoFilter"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                            onchange="filtrarEstudiantes()">
+                        <option value="">Todos los grados</option>
+                        <!-- Se llenarán dinámicamente -->
+                    </select>
+                </div>
+
+                <!-- Filtro por Sección -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Sección
+                    </label>
+                    <select id="seccionFilter"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                            onchange="filtrarEstudiantes()">
+                        <option value="">Todas las secciones</option>
+                        <!-- Se llenarán dinámicamente -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- Contador de Resultados -->
+            <div class="mt-4 flex items-center justify-between">
+                <p class="text-sm text-gray-600">
+                    Mostrando <span id="resultCount" class="font-semibold text-indigo-600">0</span> estudiantes
+                </p>
+                <button onclick="limpiarFiltros()" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                    Limpiar filtros
+                </button>
+            </div>
+        </div>
+
+        <!-- Lista de Estudiantes -->
+        <div id="estudiantesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Se llenará dinámicamente -->
+        </div>
+
+        <!-- Sin Resultados -->
+        <div id="noResults" class="hidden bg-white rounded-xl shadow-lg p-12 border border-gray-100 text-center">
+            <svg class="w-20 h-20 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">
+                No se encontraron estudiantes
+            </h3>
+            <p class="text-gray-500">
+                Intenta con otros criterios de búsqueda
+            </p>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        let todosLosEstudiantes = [];
+        let estudiantesFiltrados = [];
+
+        // Cargar estudiantes al inicio
+        document.addEventListener('DOMContentLoaded', async function() {
+            await cargarEstudiantes();
+            llenarFiltros();
+            mostrarEstudiantes(todosLosEstudiantes);
+        });
+
+        async function cargarEstudiantes() {
+            try {
+                const response = await fetch('/Calificacion/BuscarEstudiantes');
+                const result = await response.json();
+
+                if (result.success) {
+                    todosLosEstudiantes = result.data || [];
+                    estudiantesFiltrados = todosLosEstudiantes;
+                } else {
+                    console.error('Error:', result.message);
+                    Swal.fire('Error', result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error al cargar estudiantes:', error);
+                Swal.fire('Error', 'No se pudieron cargar los estudiantes', 'error');
+            }
+        }
+
+        function llenarFiltros() {
+            // Grados únicos
+            const grados = [...new Set(todosLosEstudiantes.map(e => e.grado))].sort();
+            const gradoSelect = document.getElementById('gradoFilter');
+            grados.forEach(grado => {
+                const option = document.createElement('option');
+                option.value = grado;
+                option.textContent = grado;
+                gradoSelect.appendChild(option);
+            });
+
+            // Secciones únicas
+            const secciones = [...new Set(todosLosEstudiantes.map(e => e.seccion))].sort();
+            const seccionSelect = document.getElementById('seccionFilter');
+            secciones.forEach(seccion => {
+                const option = document.createElement('option');
+                option.value = seccion;
+                option.textContent = seccion;
+                seccionSelect.appendChild(option);
+            });
+        }
+
+        function filtrarEstudiantes() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const gradoSeleccionado = document.getElementById('gradoFilter').value;
+            const seccionSeleccionada = document.getElementById('seccionFilter').value;
+
+            estudiantesFiltrados = todosLosEstudiantes.filter(estudiante => {
+                const matchSearch = searchTerm === '' ||
+                    estudiante.nombreCompleto.toLowerCase().includes(searchTerm) ||
+                    estudiante.matricula.toLowerCase().includes(searchTerm);
+
+                const matchGrado = gradoSeleccionado === '' || estudiante.grado === gradoSeleccionado;
+                const matchSeccion = seccionSeleccionada === '' || estudiante.seccion === seccionSeleccionada;
+
+                return matchSearch && matchGrado && matchSeccion;
+            });
+
+            mostrarEstudiantes(estudiantesFiltrados);
+        }
+
+        function mostrarEstudiantes(estudiantes) {
+            const container = document.getElementById('estudiantesList');
+            const noResults = document.getElementById('noResults');
+            const countElement = document.getElementById('resultCount');
+
+            countElement.textContent = estudiantes.length;
+
+            if (estudiantes.length === 0) {
+                container.innerHTML = '';
+                noResults.classList.remove('hidden');
+                return;
+            }
+
+            noResults.classList.add('hidden');
+
+            container.innerHTML = estudiantes.map(estudiante => `
+                <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
+                    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white">
+                        <div class="flex items-center mb-3">
+                            <div class="h-12 w-12 bg-white bg-opacity-30 rounded-full flex items-center justify-center mr-3">
+                                <span class="text-white font-bold text-lg">${obtenerIniciales(estudiante.nombreCompleto)}</span>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-xl font-bold">${estudiante.nombreCompleto}</h3>
+                                <p class="text-indigo-100 text-sm">Mat: ${estudiante.matricula}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-6">
+                        <div class="space-y-3 mb-6">
+                            <div class="flex items-center text-sm">
+                                <svg class="w-5 h-5 text-indigo-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                                <span class="text-gray-700">${estudiante.grado} - Sección ${estudiante.seccion}</span>
+                            </div>
+                            <div class="flex items-center text-sm">
+                                <svg class="w-5 h-5 text-indigo-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                                <span class="text-gray-700">${estudiante.email}</span>
+                            </div>
+                        </div>
+
+                        <button onclick="verCalificaciones(${estudiante.id})"
+                                class="block w-full px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-center font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                            <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Ver Calificaciones
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function obtenerIniciales(nombreCompleto) {
+            const partes = nombreCompleto.split(' ');
+            if (partes.length === 1) return partes[0].substring(0, 2).toUpperCase();
+            return `${partes[0][0]}${partes[partes.length - 1][0]}`.toUpperCase();
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('gradoFilter').value = '';
+            document.getElementById('seccionFilter').value = '';
+            filtrarEstudiantes();
+        }
+
+        function verCalificaciones(estudianteId) {
+    window.location.href = `/Calificacion/VerCalificacionesEstudiante?estudianteId=${estudianteId}`;
+}
+    </script>
+}

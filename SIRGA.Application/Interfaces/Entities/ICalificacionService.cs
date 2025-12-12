@@ -15,8 +15,26 @@ namespace SIRGA.Application.Interfaces.Entities
         Task<ApiResponse<CapturaMasivaDto>> GetEstudiantesParaCalificarAsync(string applicationUserId, int idAsignatura, int idCursoAcademico);
         Task<ApiResponse<bool>> GuardarCalificacionesAsync(GuardarCalificacionesRequestDto dto);
         Task<ApiResponse<bool>> PublicarCalificacionesAsync(PublicarCalificacionesDto dto);
+
+
         Task<ApiResponse<List<CalificacionEstudianteViewDto>>> GetCalificacionesEstudianteAsync(string applicationUserId);
-        Task<ApiResponse<bool>> EditarCalificacionAsync(EditarCalificacionDto dto, string usuarioId, string usuarioNombre, string rol);
-        Task<ApiResponse<List<HistorialCalificacion>>> GetHistorialCalificacionAsync(int idCalificacion);
+
+
+        Task<ApiResponse<List<EstudianteBusquedaDto>>> BuscarEstudiantesAsync(
+             string applicationUserId,
+             string userRole,
+             string searchTerm,
+             int? idGrado,
+             int? idCursoAcademico);
+
+        Task<ApiResponse<List<CalificacionEstudianteViewDto>>> GetCalificacionesPorEstudianteIdAsync(int estudianteId);
+
+        Task<ApiResponse<bool>> EditarCalificacionAsync(
+            EditarCalificacionDto dto,
+            string userId,
+            string userName,
+            string userRole);
+
+        Task<ApiResponse<List<HistorialCalificacionDto>>> GetHistorialCalificacionAsync(int idCalificacion);
     }
 }

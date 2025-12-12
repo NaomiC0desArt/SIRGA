@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SIRGA.Domain.Entities
 {
@@ -12,5 +13,7 @@ namespace SIRGA.Domain.Entities
         [ForeignKey("IdCursoAcademico")]
         public CursoAcademico CursoAcademico { get; set; }
         public DateTime FechaInscripcion { get; set; } = DateTime.Now;
+        [MaxLength(50)]
+        public string Estado { get; set; } = "Activa";
     }
 }

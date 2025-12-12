@@ -1,4 +1,4 @@
-﻿namespace SIRGA.Application.DTOs.Entities.Calificacion
+﻿namespace SIRGA.Web.Models.Calificacion
 {
     public class HistorialCalificacionDto
     {
