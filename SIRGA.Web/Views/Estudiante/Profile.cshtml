@@ -1,0 +1,674 @@
+﻿@model SIRGA.Web.Models.Profile.UserProfileDto
+@{
+    ViewData["Title"] = "Perfil del Usuario";
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = Model.FirstName;
+    ViewBag.UserRole = "Estudiante";
+}
+
+@section SidebarMenu {
+    <partial name="_EstudianteSidebarMenu"   />
+}
+
+<!-- Estilos personalizados -->
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        --transition: all 0.3s ease;
+    }
+
+    .profile-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .profile-header {
+        background: var(--primary-gradient);
+        border-radius: 20px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+        box-shadow: var(--card-shadow);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(30deg);
+        }
+
+    .avatar-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 1.5rem;
+    }
+
+    .avatar {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 4px solid white;
+        object-fit: cover;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: var(--secondary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2.5rem;
+        font-weight: bold;
+        border: 4px solid white;
+    }
+
+    .status-badge {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 3px solid white;
+    }
+
+    .status-active {
+        background: #10b981;
+    }
+
+    .status-inactive {
+        background: #ef4444;
+    }
+
+    .profile-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--card-shadow);
+        transition: var(--transition);
+        border: 1px solid #f1f5f9;
+    }
+
+        .profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+    .info-group {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+        .info-group:last-child {
+            border-bottom: none;
+        }
+
+    .info-label {
+        color: #64748b;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+
+    .info-value {
+        color: #1e293b;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .empty-value {
+        color: #94a3b8;
+        font-style: italic;
+    }
+
+    .action-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-edit {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+    }
+
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+    .notification-badge {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        animation: pulse 2s infinite;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: var(--card-shadow);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        background: var(--primary-gradient);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: #64748b;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .progress-ring {
+        width: 80px;
+        height: 80px;
+    }
+
+    .progress-ring-circle {
+        stroke-dasharray: 283;
+        stroke-dashoffset: 283;
+        stroke-linecap: round;
+        stroke: #10b981;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+        transition: stroke-dashoffset 1s ease;
+    }
+
+    .profile-completion {
+        text-align: center;
+        padding: 1.5rem;
+    }
+
+    .completion-percentage {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+
+    .completion-text {
+        color: #64748b;
+        font-size: 0.875rem;
+    }
+
+    .last-login-badge {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-title {
+        color: #1e293b;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #f1f5f9;
+        position: relative;
+    }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background: var(--primary-gradient);
+        }
+
+    .gender-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.5rem;
+    }
+
+    .gender-male {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .gender-female {
+        background: #ec4899;
+        color: white;
+    }
+
+    .gender-other {
+        background: #94a3b8;
+        color: white;
+    }
+</style>
+
+<div class="profile-container">
+    <!-- Header con alerta de perfil incompleto -->
+    @if (Model.MustCompleteProfile)
+    {
+        <div class="alert alert-warning d-flex align-items-center notification-badge" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <div>
+                <strong>¡Atención!</strong> Tu perfil está incompleto. Completa tu información para acceder a todas las funciones.
+            </div>
+        </div>
+    }
+
+    <!-- Header principal -->
+    <div class="profile-header">
+        <div class="row align-items-center">
+            <div class="col-md-4 text-center">
+                <div class="avatar-container">
+                    @if (!string.IsNullOrEmpty(Model.Photo))
+                    {
+                        <img src="@Model.Photo" alt="Foto de perfil" class="avatar">
+                    }
+                    else
+                    {
+                        <div class="avatar-placeholder">
+                            @Model.FirstName[0]@Model.LastName[0]
+                        </div>
+                    }
+                    <div class="status-badge @(Model.IsActive ? "status-active" : "status-inactive")"
+                         title="@(Model.IsActive ? "Usuario Activo" : "Usuario Inactivo")">
+                    </div>
+                </div>
+                <h4 class="mt-3 mb-1">@Model.FirstName @Model.LastName</h4>
+                <p class="mb-0 opacity-75">@Model.Email</p>
+                @if (Model.LastLogin.HasValue)
+                {
+                    <div class="mt-2">
+                        <span class="last-login-badge">
+                            <i class="bi bi-clock-history"></i>
+                            Último acceso: @Model.LastLogin.Value.ToString("dd/MM/yyyy HH:mm")
+                        </span>
+                    </div>
+                }
+            </div>
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="bi bi-calendar-check"></i>
+                            </div>
+                            <div class="stat-number">@Model.DateOfEntry.ToString("dd/MM/yyyy")</div>
+                            <div class="stat-label">Fecha de Ingreso</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="profile-completion">
+                            <svg class="progress-ring" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" fill="none" stroke="#f1f5f9" stroke-width="8" />
+                                <circle class="progress-ring-circle" cx="50" cy="50" r="45" fill="none" stroke-width="8"
+                                        stroke-dashoffset="@(283 * (1 - (Model.MustCompleteProfile ? 0.7 : 1)))" />
+                            </svg>
+                            <div class="completion-percentage">
+                                @(Model.MustCompleteProfile ? "70%" : "100%")
+                            </div>
+                            <div class="completion-text">
+                                Perfil @(Model.MustCompleteProfile ? "Incompleto" : "Completo")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información del perfil -->
+    <div class="row">
+        <!-- Información personal -->
+        <div class="col-lg-8">
+            <div class="row">
+                <div class="col-12">
+                    <div class="profile-card">
+                        <h5 class="section-title">
+                            <i class="bi bi-person-badge me-2"></i>Información Personal
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <div class="info-label">ID de Usuario</div>
+                                    <div class="info-value">
+                                        <code>@Model.Id</code>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <div class="info-label">Género</div>
+                                    <div class="info-value">
+                                        @switch (Model.Gender)
+                                        {
+                                            case 'M':
+                                                <span class="gender-icon gender-male">
+                                                    <i class="bi bi-gender-male"></i>
+                                                    Masculino
+                                                </span>
+                                                break;
+                                            case 'F':
+                                                <span class="gender-icon gender-female">
+                                                    <i class="bi bi-gender-female"></i>
+                                                    Femenino
+                                                </span>
+                                                break;
+                                            default:
+                                                <span class="gender-icon gender-other">
+                                                    <i class="bi bi-gender-ambiguous"></i>
+                                                    No especificado
+                                                </span>
+                                                break;
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <div class="info-label">Fecha de Nacimiento</div>
+                                    <div class="info-value">
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        @Model.DateOfBirth.ToString("dd/MM/yyyy")
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <div class="info-label">Teléfono</div>
+                                    <div class="info-value">
+                                        @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                                        {
+                                            <i class="bi bi-telephone me-1"></i>
+                                            @Model.PhoneNumber
+                                        }
+                                        else
+                                        {
+                                            <span class="empty-value">No especificado</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dirección -->
+                <div class="col-12">
+                    <div class="profile-card">
+                        <h5 class="section-title">
+                            <i class="bi bi-geo-alt me-2"></i>Información de Ubicación
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="info-group">
+                                    <div class="info-label">Provincia</div>
+                                    <div class="info-value">
+                                        @if (!string.IsNullOrEmpty(Model.Province))
+                                        {
+                                            <i class="bi bi-building me-1"></i>
+                                            @Model.Province
+                                        }
+                                        else
+                                        {
+                                            <span class="empty-value">No especificada</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="info-group">
+                                    <div class="info-label">Sector</div>
+                                    <div class="info-value">
+                                        @if (!string.IsNullOrEmpty(Model.Sector))
+                                        {
+                                            <i class="bi bi-pin-map me-1"></i>
+                                            @Model.Sector
+                                        }
+                                        else
+                                        {
+                                            <span class="empty-value">No especificado</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="info-group">
+                                    <div class="info-label">Dirección</div>
+                                    <div class="info-value">
+                                        @if (!string.IsNullOrEmpty(Model.Address))
+                                        {
+                                            <i class="bi bi-house-door me-1"></i>
+                                            @Model.Address
+                                        }
+                                        else
+                                        {
+                                            <span class="empty-value">No especificada</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel lateral de acciones y estado -->
+        <div class="col-lg-4">
+            <div class="profile-card">
+                <h5 class="section-title">
+                    <i class="bi bi-speedometer2 me-2"></i>Estado de la Cuenta
+                </h5>
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="info-label">Estado del Usuario</span>
+                        <span class="badge @(Model.IsActive ? "bg-success" : "bg-danger") rounded-pill px-3 py-2">
+                            @(Model.IsActive ? "ACTIVO" : "INACTIVO")
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="info-label">Perfil Completo</span>
+                        <span class="badge @(Model.MustCompleteProfile ? "bg-warning" : "bg-success") rounded-pill px-3 py-2">
+                            @(Model.MustCompleteProfile ? "INCOMPLETO" : "COMPLETO")
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Acciones rápidas -->
+                <h5 class="section-title">
+                    <i class="bi bi-lightning me-2"></i>Acciones Rápidas
+                </h5>
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("Edit", "Profile", new { id = Model.Id })"
+                       class="btn btn-edit action-btn">
+                        <i class="bi bi-pencil-square"></i>
+                        Editar Perfil
+                    </a>
+                    <button class="btn btn-outline-primary action-btn" onclick="window.print()">
+                        <i class="bi bi-printer"></i>
+                        Imprimir Perfil
+                    </button>
+                    @if (Model.MustCompleteProfile)
+                    {
+                        <button class="btn btn-warning action-btn" data-bs-toggle="modal" data-bs-target="#completeProfileModal">
+                            <i class="bi bi-check-circle"></i>
+                            Completar Perfil
+                        </button>
+                    }
+                    <button class="btn btn-outline-secondary action-btn" onclick="shareProfile()">
+                        <i class="bi bi-share"></i>
+                        Compartir Perfil
+                    </button>
+                </div>
+
+                <!-- Estadísticas -->
+                <div class="mt-4">
+                    <h5 class="section-title">
+                        <i class="bi bi-graph-up me-2"></i>Estadísticas
+                    </h5>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded">
+                                <div class="h4 mb-1">@Model.DateOfEntry.Year</div>
+                                <small class="text-muted">Año de Ingreso</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded">
+                                <div class="h4 mb-1">@DateTime.Now.Year - @Model.DateOfBirth.Year</div>
+                                <small class="text-muted">Edad</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para completar perfil -->
+@if (Model.MustCompleteProfile)
+{
+    <div class="modal fade" id="completeProfileModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Completar Perfil</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Te falta información importante en tu perfil:</p>
+                    <ul>
+                        @if (string.IsNullOrEmpty(Model.PhoneNumber))
+                        {
+                            <li>Número de teléfono</li>
+                        }
+                        @if (string.IsNullOrEmpty(Model.Province))
+                        {
+                            <li>Provincia</li>
+                        }
+                        @if (string.IsNullOrEmpty(Model.Address))
+                        {
+                            <li>Dirección</li>
+                        }
+                    </ul>
+                    <p>¿Quieres completarla ahora?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Más tarde</button>
+                    <a href="@Url.Action("Edit", "Profile", new { id = Model.Id })" class="btn btn-primary">
+                        Completar Ahora
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Scripts -->
+<script>
+    // Actualizar círculo de progreso
+    document.addEventListener('DOMContentLoaded', function() {
+        const circle = document.querySelector('.progress-ring-circle');
+        const radius = circle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        circle.style.strokeDashoffset = circumference;
+
+        const offset = circumference - (@(Model.MustCompleteProfile ? 0.7 : 1) * circumference);
+        circle.style.strokeDashoffset = offset;
+    });
+
+    // Función para compartir perfil
+    function shareProfile() {
+        if (navigator.share) {
+            navigator.share({
+                title: 'Mi Perfil - SIRGA',
+                text: `Perfil de ${model.FirstName} ${model.LastName}`,
+                url: window.location.href
+            });
+        } else {
+            // Fallback para navegadores que no soportan Web Share API
+            navigator.clipboard.writeText(window.location.href);
+            alert('Enlace copiado al portapapeles');
+        }
+    }
+
+    // Animación para los cards
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.profile-card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        observer.observe(card);
+    });
+</script>
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

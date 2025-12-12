@@ -2,6 +2,13 @@
 
 @{
     ViewData["Title"] = "Bienestar Estudiantil";
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    //ViewBag.UserName = Model.;
+    ViewBag.UserRole = "Estudiante";
+}
+
+@section SidebarMenu {
+    <partial name="_EstudianteSidebarMenu"   />
 }
 
 <div class="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">

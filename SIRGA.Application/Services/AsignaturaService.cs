@@ -40,7 +40,6 @@ namespace SIRGA.Application.Services
             return $"{letras}-{numero}";
         }
 
-        public async Task<ApiResponse<AsignaturaResponseDto>> CreateAsync(AsignaturaDto dto)
         protected override string EntityName => "Asignatura";
         
         #region Mapeos
@@ -49,7 +48,9 @@ namespace SIRGA.Application.Services
             return new Asignatura
             {
                 Nombre = dto.Nombre,
-                Descripcion = dto.Descripcion
+                Codigo = GenerarCodigoAsignatura(dto.Nombre),
+                Descripcion = dto.Descripcion,
+                TipoAsignatura = dto.TipoAsignatura
             };
         }
 
@@ -58,7 +59,9 @@ namespace SIRGA.Application.Services
             return new AsignaturaResponseDto
             {
                 Id = entity.Id,
+                Codigo = entity.Codigo,
                 Nombre = entity.Nombre,
+                TipoAsignatura = entity.TipoAsignatura,
                 Descripcion = entity.Descripcion
             };
         }
@@ -66,6 +69,8 @@ namespace SIRGA.Application.Services
         protected override void UpdateEntityFromDto(Asignatura entity, AsignaturaDto dto)
         {
             entity.Nombre = dto.Nombre;
+            entity.Codigo = dto.Codigo;
+            entity.TipoAsignatura = dto.TipoAsignatura;
             entity.Descripcion = dto.Descripcion;
         }
         #endregion

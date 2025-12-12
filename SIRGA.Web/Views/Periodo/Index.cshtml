@@ -40,9 +40,16 @@
             _ => "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
         };
     }
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    ViewBag.UserName = User.Identity.Name;
+    ViewBag.UserRole = "Administrador";
 }
 
-<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8">
+@section SidebarMenu {
+    <partial name="_AdminSidebarMenu"   />
+}
+
+<!--<div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8">-->
     <div class="max-w-7xl mx-auto">
 
         <!-- Header -->
@@ -374,7 +381,7 @@
             }
         </div>
     </div>
-</div>
+<!--</div>-->
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

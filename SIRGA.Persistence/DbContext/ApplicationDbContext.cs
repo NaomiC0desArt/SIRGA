@@ -26,7 +26,6 @@ namespace SIRGA.Persistence.DbContext
 
         #region "Modulo de Calificaciones"
         public DbSet<AnioEscolar> AniosEscolares { get; set; }
-        //public DbSet<AnnualGrade> AnnualGrates { get; set; }
         public DbSet<Periodo> Periodos { get; set; }
         public DbSet<Calificacion> Calificaciones { get; set; }
         #endregion

@@ -2,6 +2,13 @@
 
 @{
     ViewData["Title"] = "Mi Horario";
+    Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+    //ViewBag.UserName = Model.Fi;
+    ViewBag.UserRole = "Estudiante";
+}
+
+@section SidebarMenu {
+    <partial name="_EstudianteSidebarMenu"   />
 }
 
 <div class="min-h-screen bg-gray-50 px-3 sm:px-4 lg:px-8 pt-8 pb-12">
