@@ -12,10 +12,14 @@ namespace SIRGA.API.Controllers
     public class EstudianteController : ControllerBase
     {
         private readonly IEstudianteService _estudianteService;
+        private readonly ILogger<EstudianteController> _logger; // ✅ Agregar logger
 
-        public EstudianteController(IEstudianteService estudianteService)
+        public EstudianteController(
+            IEstudianteService estudianteService,
+            ILogger<EstudianteController> logger) // ✅ Inyectar logger
         {
             _estudianteService = estudianteService;
+            _logger = logger;
         }
 
         [Authorize(Roles = "Admin")]
@@ -26,8 +30,7 @@ namespace SIRGA.API.Controllers
             return Ok(result);
         }
 
-
-        [HttpGet("{id:int}", Name ="GetEstudianteById")]
+        [HttpGet("{id:int}", Name = "GetEstudianteById")]
         public async Task<IActionResult> GetById(int id)
         {
             var result = await _estudianteService.GetEstudianteByIdAsync(id);
@@ -48,7 +51,6 @@ namespace SIRGA.API.Controllers
 
             return CreatedAtRoute("GetEstudianteById", new { id = result.Data.Id }, result);
         }
-
 
         [Authorize(Roles = "Estudiante")]
         [HttpPost("Completar-Perfil")]
@@ -104,21 +106,40 @@ namespace SIRGA.API.Controllers
             if (!result.Success) return BadRequest(result);
             return Ok(result);
         }
+
+        // ✅ MEJORADO: Obtener ID del estudiante con logs
         [Authorize(Roles = "Estudiante")]
         [HttpGet("Mi-Id")]
         public async Task<IActionResult> GetMyEstudianteId()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized(new { message = "Usuario no autenticado" });
+                _logger.LogInformation($"🔍 [API] Obteniendo ID de estudiante para userId: {userId}");
 
-            var result = await _estudianteService.GetEstudianteIdByUserIdAsync(userId);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    _logger.LogWarning("⚠️ Usuario no autenticado");
+                    return Unauthorized(new { success = false, message = "Usuario no autenticado" });
+                }
 
-            if (!result.Success)
-                return NotFound(result);
+                var result = await _estudianteService.GetEstudianteIdByUserIdAsync(userId);
 
-            return Ok(new { id = result.Data });
+                if (!result.Success)
+                {
+                    _logger.LogWarning($"⚠️ Estudiante no encontrado para userId: {userId}");
+                    return NotFound(result);
+                }
+
+                _logger.LogInformation($"✅ Estudiante ID encontrado: {result.Data}");
+                return Ok(new { success = true, data = result.Data });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error al obtener ID del estudiante");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
         }
     }
 }

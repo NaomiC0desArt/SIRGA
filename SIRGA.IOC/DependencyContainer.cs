@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SIRGA.Application.Interfaces.Entities;
+using SIRGA.Application.Interfaces.IA;
 using SIRGA.Application.Interfaces.Services;
 using SIRGA.Application.Interfaces.Services.Email;
 using SIRGA.Application.Interfaces.Usuarios;
@@ -61,6 +62,8 @@ namespace SIRGA.IOC
             services.AddScoped<IAulaService, AulaService>();
             services.AddScoped<IPeriodoService, PeriodoService>();
             services.AddScoped<ICalificacionService, CalificacionService>();
+            // Agregar esta línea
+            services.AddScoped<IIACalificacionService, IACalificacionService>();
 
 
             //servicios de ia

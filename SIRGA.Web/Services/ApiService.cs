@@ -350,6 +350,89 @@ namespace SIRGA.Web.Services
             }
         }
 
+        public async Task<TResponse?> GenerarMensajeIAAsync<TRequest, TResponse>(TRequest data)
+        {
+            try
+            {
+                var endpoint = "api/IACalificacion/Generar-Mensaje";
+                var client = CreateClient(endpoint);
+                var json = JsonSerializer.Serialize(data, _jsonOptions);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                _logger.LogDebug($"➡️ POST IA {endpoint}");
+                var response = await client.PostAsync(endpoint, content);
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                _logger.LogDebug($"⬅️ Response IA: {response.StatusCode} - {responseContent}");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
+                    response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    HandleUnauthorizedResponse(endpoint, response.StatusCode);
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning($"⚠️ POST IA {endpoint} failed: {response.StatusCode}");
+                    return default;
+                }
+
+                return JsonSerializer.Deserialize<TResponse>(responseContent, _jsonOptions);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error en GenerarMensajeIA");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Responde mensaje del estudiante con IA
+        /// </summary>
+        public async Task<TResponse?> ResponderMensajeIAAsync<TRequest, TResponse>(TRequest data)
+        {
+            try
+            {
+                var endpoint = "api/IACalificacion/Responder";
+                var client = CreateClient(endpoint);
+                var json = JsonSerializer.Serialize(data, _jsonOptions);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                _logger.LogDebug($"➡️ POST IA Responder {endpoint}");
+                var response = await client.PostAsync(endpoint, content);
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                _logger.LogDebug($"⬅️ Response IA: {response.StatusCode}");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
+                    response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    HandleUnauthorizedResponse(endpoint, response.StatusCode);
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning($"⚠️ POST IA Responder failed: {response.StatusCode}");
+                    return default;
+                }
+
+                return JsonSerializer.Deserialize<TResponse>(responseContent, _jsonOptions);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error en ResponderMensajeIA");
+                throw;
+            }
+        }
+
     }
 }
 

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SIRGA.Application.DTOs.Common;
 using SIRGA.Application.DTOs.Entities.Calificacion;
 using SIRGA.Application.Interfaces.Entities;
+using SIRGA.Application.Interfaces.IA;
 using SIRGA.Domain.Entities;
 using SIRGA.Domain.Interfaces;
 using SIRGA.Identity.Shared.Entities;
@@ -34,6 +35,7 @@ namespace SIRGA.Application.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<CalificacionService> _logger;
         private readonly IHistorialCalificacionRepository _historialCalificacionRepository;
+        private readonly IIACalificacionService _iaService;
 
         public CalificacionService(
             ICalificacionRepository calificacionRepository,
@@ -47,6 +49,7 @@ namespace SIRGA.Application.Services
             IPeriodoRepository periodoRepository,
             IAsignaturaRepository asignaturaRepository,
             UserManager<ApplicationUser> userManager,
+            IIACalificacionService iaService,
             IHistorialCalificacionRepository historialCalificacionRepository,
             ILogger<CalificacionService> logger)
         {
@@ -61,6 +64,7 @@ namespace SIRGA.Application.Services
             _periodoRepository = periodoRepository;
             _asignaturaRepository = asignaturaRepository;
             _userManager = userManager;
+            _iaService = iaService;
             _historialCalificacionRepository = historialCalificacionRepository;
             _logger = logger;
         }
@@ -742,6 +746,85 @@ namespace SIRGA.Application.Services
             }
         }
 
+        public async Task<ApiResponse<string>> GenerarMensajeIAAsync(int estudianteId, int asignaturaId, int periodoId)
+        {
+            try
+            {
+                _logger.LogInformation($"🤖 Generando mensaje IA para estudiante {estudianteId}");
+
+                // Obtener calificación
+                var calificacion = await _calificacionRepository.GetCalificacionConDetallesAsync(
+                    estudianteId, asignaturaId, periodoId);
+
+                if (calificacion == null || !calificacion.Publicada)
+                {
+                    return ApiResponse<string>.ErrorResponse("Calificación no encontrada o no publicada");
+                }
+
+                // Obtener datos del estudiante
+                var estudiante = await _estudianteRepository.GetByIdAsync(estudianteId);
+                var user = await _userManager.FindByIdAsync(estudiante.ApplicationUserId);
+                var nombreCompleto = $"{user.FirstName} {user.LastName}";
+
+                // Preparar componentes
+                var componentes = calificacion.Detalles.ToDictionary(
+                    d => d.Componente.Nombre,
+                    d => d.Valor
+                );
+
+                // Generar mensaje con IA
+                var mensajeIA = await _iaService.GenerarMensajeInicialAsync(
+                    nombreCompleto,
+                    calificacion.Asignatura.Nombre,
+                    calificacion.Asignatura.TipoAsignatura,
+                    componentes,
+                    calificacion.Total
+                );
+
+                _logger.LogInformation("✅ Mensaje IA generado exitosamente");
+
+                return ApiResponse<string>.SuccessResponse(mensajeIA, "Mensaje generado");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error al generar mensaje IA");
+                return ApiResponse<string>.ErrorResponse(
+                    "Error al generar mensaje",
+                    new List<string> { ex.Message });
+            }
+        }
+
+        public async Task<ApiResponse<string>> ResponderMensajeIAAsync(
+            int estudianteId,
+            int asignaturaId,
+            string mensajeEstudiante,
+            List<string> historial)
+        {
+            try
+            {
+                var estudiante = await _estudianteRepository.GetByIdAsync(estudianteId);
+                var user = await _userManager.FindByIdAsync(estudiante.ApplicationUserId);
+                var nombreCompleto = $"{user.FirstName} {user.LastName}";
+
+                var asignatura = await _asignaturaRepository.GetByIdAsync(asignaturaId);
+
+                var respuesta = await _iaService.ResponderEstudianteAsync(
+                    nombreCompleto,
+                    asignatura.Nombre,
+                    mensajeEstudiante,
+                    historial
+                );
+
+                return ApiResponse<string>.SuccessResponse(respuesta, "Respuesta generada");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error al responder mensaje");
+                return ApiResponse<string>.ErrorResponse(
+                    "Error al procesar mensaje",
+                    new List<string> { ex.Message });
+            }
+        }
         public async Task<ApiResponse<List<HistorialCalificacionDto>>> GetHistorialCalificacionAsync(int idCalificacion)
         {
             try

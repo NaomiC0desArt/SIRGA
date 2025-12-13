@@ -31,15 +31,6 @@
         </svg>
     </button>
 
-    <div id="gestion-clases-profesor" class="ml-8 mt-1 space-y-1 @(esCalificaciones ? "" : "hidden")">
-        <a asp-controller="Profesor" asp-action="MisClases"
-           class="sidebar-submenu-item flex items-center px-3 py-2 text-sm text-gray-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-            Mis Clases
-        </a>
-
         <a asp-controller="Profesor" asp-action="MisAsignaturas"
            class="sidebar-submenu-item calificaciones-link @(esCalificaciones ? "bg-purple-50 text-purple-700 font-semibold" : "") flex items-center px-3 py-2 text-sm text-gray-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

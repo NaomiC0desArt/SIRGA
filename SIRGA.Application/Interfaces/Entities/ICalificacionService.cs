@@ -36,5 +36,18 @@ namespace SIRGA.Application.Interfaces.Entities
             string userRole);
 
         Task<ApiResponse<List<HistorialCalificacionDto>>> GetHistorialCalificacionAsync(int idCalificacion);
+
+        Task<ApiResponse<string>> GenerarMensajeIAAsync(
+            int estudianteId,
+            int asignaturaId,
+            int periodoId);
+
+        Task<ApiResponse<string>> ResponderMensajeIAAsync(
+            int estudianteId,
+            int asignaturaId,
+            string mensajeEstudiante,
+            List<string> historial);
+
     }
 }
+

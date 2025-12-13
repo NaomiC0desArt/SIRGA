@@ -118,13 +118,43 @@ namespace SIRGA.Web.Controllers
             }
         }
 
+        // ✅ MÉTODO MODIFICADO: MisCalificaciones con EstudianteId
         [HttpGet]
         public async Task<IActionResult> MisCalificaciones()
         {
             try
             {
-                _logger.LogInformation("📊 Cargando calificaciones del estudiante...");
+                _logger.LogInformation("📊 Cargando calificaciones del estudiante");
 
+                // ✅ Obtener el ApplicationUserId del usuario autenticado
+                var applicationUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(applicationUserId))
+                {
+                    _logger.LogWarning("⚠️ No se encontró ApplicationUserId");
+                    TempData["ErrorMessage"] = "No se pudo identificar al usuario";
+                    return RedirectToAction("Index");
+                }
+
+                _logger.LogInformation($"🔑 ApplicationUserId: {applicationUserId}");
+
+                // ✅ PRIMERO: Obtener el ID numérico del estudiante usando el endpoint existente
+                var estudianteIdResponse = await _apiService.GetAsync<ApiResponse<int>>(
+                    "api/Estudiante/Mi-Id"
+                );
+
+                int estudianteId = 0;
+                if (estudianteIdResponse?.Success == true)
+                {
+                    estudianteId = estudianteIdResponse.Data;
+                    _logger.LogInformation($"✅ Estudiante ID numérico: {estudianteId}");
+                }
+                else
+                {
+                    _logger.LogWarning("⚠️ No se pudo obtener el ID del estudiante");
+                }
+
+                // ✅ Obtener las calificaciones
                 var response = await _apiService.GetAsync<ApiResponse<List<CalificacionEstudianteViewDto>>>(
                     "api/Calificacion/Mis-Calificaciones");
 
@@ -135,7 +165,23 @@ namespace SIRGA.Web.Controllers
                     return View(new List<CalificacionEstudianteViewDto>());
                 }
 
-                // ✅ CORREGIR: Obtener año escolar actual con manejo de JsonElement
+                // ✅ Obtener el período activo
+                int numeroPeriodo = 1;
+                try
+                {
+                    var periodoResponse = await _apiService.GetAsync<ApiResponse<JsonElement>>("api/Periodo/Activo");
+                    if (periodoResponse?.Success == true)
+                    {
+                        numeroPeriodo = periodoResponse.Data.GetProperty("numero").GetInt32();
+                        _logger.LogInformation($"📅 Período activo: {numeroPeriodo}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "⚠️ No se pudo cargar período activo");
+                }
+
+                // ✅ Obtener el año escolar activo
                 try
                 {
                     var anioResponse = await _apiService.GetAsync<ApiResponse<JsonElement>>("api/AnioEscolar/Activo");
@@ -157,7 +203,13 @@ namespace SIRGA.Web.Controllers
                     ViewBag.PeriodoAcademico = DateTime.Now.Year.ToString();
                 }
 
+                // ✅ CRÍTICO: Pasar el EstudianteId al ViewBag para JavaScript
+                ViewBag.EstudianteId = estudianteId;
+                ViewBag.NumeroPeriodo = numeroPeriodo;
+
                 _logger.LogInformation($"✅ {response.Data?.Count ?? 0} asignaturas con calificaciones");
+                _logger.LogInformation($"✅ EstudianteId pasado a la vista: {estudianteId}");
+
                 return View(response.Data ?? new List<CalificacionEstudianteViewDto>());
             }
             catch (UnauthorizedAccessException)
@@ -172,6 +224,155 @@ namespace SIRGA.Web.Controllers
                 TempData["ErrorMessage"] = "Error de conexión con el servidor";
                 return View(new List<CalificacionEstudianteViewDto>());
             }
+        }
+
+        // ==================== MÉTODOS IA ====================
+
+        /// <summary>
+        /// Genera mensaje inicial de IA para una calificación
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GenerarMensajeIA([FromBody] GenerarMensajeIARequest request)
+        {
+            try
+            {
+                _logger.LogInformation($"🤖 [MVC] Generando mensaje IA - Estudiante: {request.EstudianteId}, Asignatura: {request.AsignaturaId}");
+
+                // ✅ Validar que el estudiante ID no sea 0
+                if (request.EstudianteId == 0)
+                {
+                    _logger.LogWarning("⚠️ EstudianteId es 0 - no se puede generar mensaje");
+                    return Json(new
+                    {
+                        success = false,
+                        message = "No se pudo identificar al estudiante. Recarga la página."
+                    });
+                }
+
+                var response = await _apiService.PostAsync<GenerarMensajeIARequest, ApiResponse<string>>(
+                    "api/IACalificacion/Generar-Mensaje",
+                    request
+                );
+
+                if (response?.Success != true)
+                {
+                    _logger.LogWarning($"⚠️ Error IA: {response?.Message}");
+                    return Json(new
+                    {
+                        success = false,
+                        message = response?.Message ?? "Error al generar mensaje"
+                    });
+                }
+
+                _logger.LogInformation("✅ Mensaje IA generado correctamente");
+                return Json(new
+                {
+                    success = true,
+                    data = response.Data,
+                    message = response.Message
+                });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                _logger.LogWarning("⚠️ Token expirado al generar mensaje IA");
+                return Json(new
+                {
+                    success = false,
+                    message = "Tu sesión ha expirado. Recarga la página e inicia sesión nuevamente."
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error al generar mensaje IA");
+                return Json(new
+                {
+                    success = false,
+                    message = "Error de conexión con el servidor de IA"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Responde a un mensaje del estudiante con IA
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResponderMensajeIA([FromBody] ResponderMensajeIARequest request)
+        {
+            try
+            {
+                _logger.LogInformation($"🤖 [MVC] Respondiendo mensaje IA - Estudiante: {request.EstudianteId}");
+
+                // ✅ Validar que el estudiante ID no sea 0
+                if (request.EstudianteId == 0)
+                {
+                    _logger.LogWarning("⚠️ EstudianteId es 0 - no se puede responder");
+                    return Json(new
+                    {
+                        success = false,
+                        message = "No se pudo identificar al estudiante. Recarga la página."
+                    });
+                }
+
+                var response = await _apiService.PostAsync<ResponderMensajeIARequest, ApiResponse<string>>(
+                    "api/IACalificacion/Responder",
+                    request
+                );
+
+                if (response?.Success != true)
+                {
+                    _logger.LogWarning($"⚠️ Error IA: {response?.Message}");
+                    return Json(new
+                    {
+                        success = false,
+                        message = response?.Message ?? "Error al responder"
+                    });
+                }
+
+                _logger.LogInformation("✅ Respuesta IA generada correctamente");
+                return Json(new
+                {
+                    success = true,
+                    data = response.Data,
+                    message = response.Message
+                });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                _logger.LogWarning("⚠️ Token expirado al responder mensaje IA");
+                return Json(new
+                {
+                    success = false,
+                    message = "Tu sesión ha expirado. Recarga la página e inicia sesión nuevamente."
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error al responder mensaje IA");
+                return Json(new
+                {
+                    success = false,
+                    message = "Error de conexión con el servidor de IA"
+                });
+            }
+        }
+
+        // ==================== MODELOS IA ====================
+
+        public class GenerarMensajeIARequest
+        {
+            public int EstudianteId { get; set; }
+            public int AsignaturaId { get; set; }
+            public int PeriodoId { get; set; }
+        }
+
+        public class ResponderMensajeIARequest
+        {
+            public int EstudianteId { get; set; }
+            public int AsignaturaId { get; set; }
+            public string MensajeEstudiante { get; set; }
+            public List<string> HistorialConversacion { get; set; }
         }
     }
 

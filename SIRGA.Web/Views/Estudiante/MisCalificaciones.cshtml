@@ -2,7 +2,9 @@
 
 @{
     ViewData["Title"] = "Mis Calificaciones";
+
     Layout = "~/Views/Shared/_LayoutWithSidebar.cshtml";
+
     ViewBag.UserName = User.Identity.Name;
     ViewBag.UserRole = "Estudiante";
 }
@@ -47,10 +49,13 @@
                         <div>
                             <p class="text-sm font-medium text-gray-600">Promedio General</p>
                             <p class="text-4xl font-bold text-indigo-600 mt-2">
+
                                 @{
-                                    var promedioTotal = Model.Any() ? Model.Average(m => m.PromedioGeneral) : 0;
+                                    var promedioTotal = Model.Any()
+                                    ? Model.Average(m => m.PromedioGeneral)
+                                    : 0;
                                 }
-                                @promedioTotal.ToString("F0")
+  @promedioTotal.ToString("F0")
                             </p>
                             <p class="text-xs text-gray-500 mt-1">puntos</p>
                         </div>
@@ -132,7 +137,6 @@
                         _ => asignatura.TipoAsignatura
                     };
 
-                    // Determinar color del promedio
                     var promedioColor = asignatura.PromedioGeneral >= 90 ? "bg-emerald-100 text-emerald-800 border-emerald-300" :
                     asignatura.PromedioGeneral >= 80 ? "bg-green-100 text-green-800 border-green-300" :
                     asignatura.PromedioGeneral >= 70 ? "bg-yellow-100 text-yellow-800 border-yellow-300" :
@@ -143,14 +147,11 @@
                         <button onclick="toggleAsignatura('@asignaturaId')"
                                 class="w-full px-6 py-5 flex items-center justify-between hover:bg-indigo-50 transition-colors">
                             <div class="flex items-center space-x-4">
-                                <!-- Icono -->
                                 <div class="h-12 w-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
                                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                                     </svg>
                                 </div>
-
-                                <!-- Info de la Asignatura -->
                                 <div class="text-left">
                                     <h2 class="text-xl font-bold text-gray-900">@asignatura.AsignaturaNombre</h2>
                                     <span class="inline-block mt-1 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">
@@ -160,15 +161,12 @@
                             </div>
 
                             <div class="flex items-center space-x-4">
-                                <!-- Promedio -->
                                 <div class="text-right mr-4">
                                     <p class="text-xs text-gray-500 mb-1">Promedio</p>
                                     <span class="inline-block px-4 py-2 rounded-lg text-2xl font-bold border-2 @promedioColor">
                                         @asignatura.PromedioGeneral.ToString("F0")
                                     </span>
                                 </div>
-
-                                <!-- Flecha -->
                                 <svg id="@asignaturaId-icon" class="w-6 h-6 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                 </svg>
@@ -186,6 +184,7 @@
                                             </th>
                                             @{
                                                 var primerPeriodo = asignatura.Periodos.FirstOrDefault();
+
                                                 if (primerPeriodo != null)
                                                 {
                                                     foreach (var componente in primerPeriodo.Componentes.OrderBy(c => c.Key))
@@ -196,29 +195,38 @@
                                                     }
                                                 }
                                             }
+
                                             <th class="px-6 py-4 text-center text-xs font-semibold text-indigo-900 uppercase tracking-wider bg-indigo-100">
                                                 Total
                                             </th>
                                         </tr>
                                     </thead>
+
                                     <tbody class="bg-white divide-y divide-indigo-100">
+
                                         @for (int i = 1; i <= 4; i++)
                                         {
                                             var periodo = asignatura.Periodos.FirstOrDefault(p => p.NumeroPeriodo == i);
 
                                             <tr class="hover:bg-indigo-50 transition-colors">
+
                                                 <td class="px-6 py-4 whitespace-nowrap">
                                                     <div class="flex items-center">
                                                         <div class="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                                                            <span class="text-indigo-700 font-bold text-sm">@($"P{i}")</span>
+                                                            <span class="text-indigo-700 font-bold text-sm">
+                                                                @($"P{i}")
+                                                            </span>
                                                         </div>
-                                                        <span class="ml-3 text-sm font-medium text-gray-900">Período @i</span>
+
+                                                        <span class="ml-3 text-sm font-medium text-gray-900">
+                                                            Período @i
+                                                        </span>
                                                     </div>
                                                 </td>
 
                                                 @if (periodo != null && periodo.Publicada)
                                                 {
-                                                    @foreach (var componente in periodo.Componentes.OrderBy(c => c.Key))
+                                                    foreach (var componente in periodo.Componentes.OrderBy(c => c.Key))
                                                     {
                                                         <td class="px-4 py-4 text-center">
                                                             @if (componente.Value.HasValue)
@@ -237,7 +245,8 @@
                                                     <td class="px-6 py-4 text-center bg-indigo-50">
                                                         @if (periodo.Total.HasValue)
                                                         {
-                                                            var totalColor = periodo.Total >= 90 ? "bg-emerald-100 text-emerald-800 border-emerald-300" :
+                                                            var totalColor =
+                                                            periodo.Total >= 90 ? "bg-emerald-100 text-emerald-800 border-emerald-300" :
                                                             periodo.Total >= 80 ? "bg-green-100 text-green-800 border-green-300" :
                                                             periodo.Total >= 70 ? "bg-yellow-100 text-yellow-800 border-yellow-300" :
                                                             "bg-red-100 text-red-800 border-red-300";
@@ -250,7 +259,7 @@
                                                 }
                                                 else
                                                 {
-                                                    @for (int j = 0; j < (primerPeriodo?.Componentes.Count ?? 0); j++)
+                                                    for (int j = 0; j < (primerPeriodo?.Componentes.Count ?? 0); j++)
                                                     {
                                                         <td class="px-4 py-4 text-center">
                                                             <span class="inline-block px-3 py-1.5 rounded-lg text-xs bg-gray-100 text-gray-500">
@@ -258,16 +267,29 @@
                                                             </span>
                                                         </td>
                                                     }
+
                                                     <td class="px-6 py-4 text-center bg-indigo-50">
                                                         <span class="inline-block px-3 py-1.5 rounded-lg text-xs bg-gray-100 text-gray-500">
                                                             Pendiente
                                                         </span>
                                                     </td>
                                                 }
+
                                             </tr>
                                         }
                                     </tbody>
-                                </table>
+                                    </table>
+                            </div>
+
+                            <!-- Botón de IA -->
+                            <div class="p-4 bg-indigo-50 border-t border-indigo-200">
+                                <button onclick="abrirChatIA(@asignatura.IdAsignatura, '@asignatura.AsignaturaNombre', @ViewBag.NumeroPeriodo)"
+                                        class="w-full px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl flex items-center justify-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                    </svg>
+                                    Hablar con el Asistente IA
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -293,6 +315,58 @@
         }
 
     </div>
+
+    <!-- Modal de Chat IA -->
+    <div id="chatIAModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+
+            <!-- Header del Chat -->
+            <div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 rounded-t-2xl flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="h-12 w-12 bg-white bg-opacity-30 rounded-full flex items-center justify-center mr-3">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white">Asistente Académico SIRGA</h3>
+                        <p class="text-indigo-100 text-sm">Tu mentor personalizado</p>
+                    </div>
+                </div>
+                <button onclick="cerrarChatIA()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Área de Mensajes -->
+            <div id="chatMessages" class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+                <!-- Los mensajes se agregarán dinámicamente aquí -->
+            </div>
+
+            <!-- Input de Mensaje -->
+            <div class="p-4 border-t border-gray-200 bg-white rounded-b-2xl">
+                <div class="flex items-end space-x-2">
+                    <textarea id="inputMensaje"
+                              rows="2"
+                              placeholder="Escribe tu respuesta aquí..."
+                              class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                              onkeypress="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); enviarMensaje(); }"></textarea>
+                    <button onclick="enviarMensaje()"
+                            class="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                    </button>
+                </div>
+                <p class="text-xs text-gray-500 mt-2 text-center">
+                    Presiona Enter para enviar • Shift+Enter para nueva línea
+                </p>
+            </div>
+
+        </div>
+    </div>
 </div>
 
 @section Scripts {
@@ -302,37 +376,213 @@
             const icon = document.getElementById(asignaturaId + '-icon');
 
             if (content.classList.contains('hidden')) {
-                // Abrir
                 content.classList.remove('hidden');
                 icon.style.transform = 'rotate(180deg)';
             } else {
-                // Cerrar
                 content.classList.add('hidden');
                 icon.style.transform = 'rotate(0deg)';
             }
         }
 
-        // Opcional: Cerrar todas las demás al abrir una
-        // function toggleAsignatura(asignaturaId) {
-        //     // Cerrar todas
-        //     document.querySelectorAll('[id^="asignatura-"]').forEach(el => {
-        //         if (el.id !== asignaturaId && !el.classList.contains('hidden')) {
-        //             el.classList.add('hidden');
-        //             document.getElementById(el.id + '-icon').style.transform = 'rotate(0deg)';
-        //         }
-        //     });
-        //
-        //     // Toggle la actual
-        //     const content = document.getElementById(asignaturaId);
-        //     const icon = document.getElementById(asignaturaId + '-icon');
-        //
-        //     if (content.classList.contains('hidden')) {
-        //         content.classList.remove('hidden');
-        //         icon.style.transform = 'rotate(180deg)';
-        //     } else {
-        //         content.classList.add('hidden');
-        //         icon.style.transform = 'rotate(0deg)';
-        //     }
-        // }
+        let chatActivo = false;
+        let asignaturaActual = null;
+        let estudianteId = @(ViewBag.EstudianteId ?? 0);
+        let historialConversacion = [];
+
+        function abrirChatIA(asignaturaId, asignaturaNombre, periodoId) {
+            chatActivo = true;
+            asignaturaActual = { id: asignaturaId, nombre: asignaturaNombre, periodo: periodoId };
+            historialConversacion = [];
+
+            document.getElementById('chatIAModal').classList.remove('hidden');
+            document.getElementById('inputMensaje').value = '';
+            document.getElementById('chatMessages').innerHTML = `
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center mr-2">
+                                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <div class="bg-white rounded-2xl rounded-tl-none shadow-md p-4 border border-indigo-100">
+                                    <p class="text-sm text-gray-700">Analizando tu calificación en ${asignaturaNombre}... ⏳</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+            generarMensajeInicial();
+        }
+
+        function cerrarChatIA() {
+            chatActivo = false;
+            document.getElementById('chatIAModal').classList.add('hidden');
+            historialConversacion = [];
+        }
+
+        async function generarMensajeInicial() {
+            try {
+                console.log('🤖 Generando mensaje inicial...', {
+                    estudianteId,
+                    asignaturaId: asignaturaActual.id,
+                    periodoId: asignaturaActual.periodo
+                });
+
+                // ✅ CORRECCIÓN: Llamar al endpoint del MVC, NO de la API directamente
+                const response = await fetch('/Estudiante/GenerarMensajeIA', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                    },
+                    body: JSON.stringify({
+                        estudianteId: estudianteId,
+                        asignaturaId: asignaturaActual.id,
+                        periodoId: asignaturaActual.periodo
+                    })
+                });
+
+                console.log('📡 Response status:', response.status);
+                const result = await response.json();
+                console.log('📥 Result:', result);
+
+                if (result.success && result.data) {
+                    const mensajeIA = result.data;
+                    historialConversacion.push(`Asistente: ${mensajeIA}`);
+                    mostrarMensajeIA(mensajeIA);
+                } else {
+                    console.error('❌ Error del servidor:', result);
+                    mostrarMensajeIA("Hola, estoy aquí para ayudarte con tus estudios. ¿Cómo te sientes con esta calificación?");
+                }
+            } catch (error) {
+                console.error('❌ Error en generarMensajeInicial:', error);
+                mostrarMensajeIA("Hola, veo que tienes una nueva calificación. ¿Quieres hablar sobre ella?");
+            }
+        }
+
+        function mostrarMensajeIA(mensaje) {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = ''; // Limpiar mensaje de carga
+
+            const mensajeDiv = document.createElement('div');
+            mensajeDiv.className = 'flex items-start animate-fadeIn';
+            mensajeDiv.innerHTML = `
+                        <div class="flex-shrink-0 h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center mr-2">
+                            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="bg-white rounded-2xl rounded-tl-none shadow-md p-4 border border-indigo-100">
+                                <p class="text-sm text-gray-700">${mensaje}</p>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1 ml-1">Asistente</p>
+                        </div>
+                    `;
+            chatMessages.appendChild(mensajeDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function mostrarMensajeEstudiante(mensaje) {
+            const chatMessages = document.getElementById('chatMessages');
+            const mensajeDiv = document.createElement('div');
+            mensajeDiv.className = 'flex items-start justify-end animate-fadeIn';
+            mensajeDiv.innerHTML = `
+                        <div class="flex-1 flex flex-col items-end">
+                            <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl rounded-tr-none shadow-md p-4 max-w-[80%]">
+                                <p class="text-sm text-white">${mensaje}</p>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1 mr-1">Tú</p>
+                        </div>
+                    `;
+            chatMessages.appendChild(mensajeDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function enviarMensaje() {
+            const input = document.getElementById('inputMensaje');
+            const mensaje = input.value.trim();
+
+            if (!mensaje) return;
+
+            mostrarMensajeEstudiante(mensaje);
+            historialConversacion.push(`Estudiante: ${mensaje}`);
+            input.value = '';
+
+            const chatMessages = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.className = 'flex items-start';
+            typingDiv.innerHTML = `
+                        <div class="flex-shrink-0 h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center mr-2">
+                            <svg class="w-5 h-5 text-indigo-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="bg-white rounded-2xl rounded-tl-none shadow-md p-4 border border-indigo-100">
+                                <p class="text-sm text-gray-500 italic">Escribiendo...</p>
+                            </div>
+                        </div>
+                    `;
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                console.log('🤖 Enviando mensaje...', {
+                    estudianteId,
+                    asignaturaId: asignaturaActual.id,
+                    mensaje,
+                    historialLength: historialConversacion.length
+                });
+
+                // ✅ CORRECCIÓN: Llamar al endpoint del MVC
+                const response = await fetch('/Estudiante/ResponderMensajeIA', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                    },
+                    body: JSON.stringify({
+                        estudianteId: estudianteId,
+                        asignaturaId: asignaturaActual.id,
+                        mensajeEstudiante: mensaje,
+                        historialConversacion: historialConversacion
+                    })
+                });
+
+                console.log('📡 Response status:', response.status);
+                const result = await response.json();
+                console.log('📥 Result:', result);
+
+                document.getElementById('typing-indicator')?.remove();
+
+                if (result.success && result.data) {
+                    const respuestaIA = result.data;
+                    historialConversacion.push(`Asistente: ${respuestaIA}`);
+                    mostrarMensajeIA(respuestaIA);
+                } else {
+                    console.error('❌ Error del servidor:', result);
+                    mostrarMensajeIA("Disculpa, tuve un problema. ¿Podrías reformular tu pregunta?");
+                }
+            } catch (error) {
+                console.error('❌ Error en enviarMensaje:', error);
+                document.getElementById('typing-indicator')?.remove();
+                mostrarMensajeIA("Lo siento, hubo un error de conexión. Intenta de nuevo.");
+            }
+        }
+
+        // Agregar animación CSS
+        const style = document.createElement('style');
+        style.textContent = `
+        @@keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(10px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+                    .animate-fadeIn {
+                        animation: fadeIn 0.3s ease-out;
+                    }
+                `;
+        document.head.appendChild(style);
     </script>
 }
